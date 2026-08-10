@@ -39,9 +39,10 @@ function SkeletonCard() {
 function ExamCard({ exam }: { exam: Exam }) {
   const isLatest = Number(exam.is_latest) === 1 || Number(exam.set_on_top) === 1;
 
-  const saveActiveExam = () => {
+  const handleCardClick = () => {
     try {
       sessionStorage.setItem('cbtrank_active_exam', JSON.stringify(exam));
+      sessionStorage.setItem('cbtrank_home_scroll', String(window.scrollY));
     } catch (e) {}
   };
 
@@ -50,7 +51,7 @@ function ExamCard({ exam }: { exam: Exam }) {
 
   return (
     <div className="exam-card">
-      <Link href={href} onClick={saveActiveExam} aria-label={exam.title}>
+      <Link href={href} onClick={handleCardClick} aria-label={exam.title}>
         <div className="exam-card-left">
           <div className="exam-title">
             <span>{exam.title}</span>
@@ -88,6 +89,21 @@ export default function HomePage() {
     }
     fetchExams();
   }, []);
+
+  // Restore list scroll position when returning to Home Page
+  useEffect(() => {
+    if (!loading && exams.length > 0) {
+      const savedScroll = sessionStorage.getItem('cbtrank_home_scroll');
+      if (savedScroll) {
+        const top = parseInt(savedScroll, 10);
+        if (!isNaN(top) && top > 0) {
+          setTimeout(() => {
+            window.scrollTo({ top, behavior: 'instant' });
+          }, 60);
+        }
+      }
+    }
+  }, [loading, exams]);
 
   const CalculatorIcon = () => (
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
