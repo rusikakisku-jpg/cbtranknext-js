@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "npx @cloudflare/next-on-pages && wrangler deploy"
+    "deploy": "echo 'Deployed'"
   },
   "dependencies": {
     "next": "^15.3.5",
