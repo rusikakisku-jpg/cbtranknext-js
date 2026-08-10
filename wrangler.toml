@@ -2,13 +2,3 @@ name = "cbtrank"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
-
-# Uncomment and update when deploying to Cloudflare Workers
-# main = ".worker-next/index.mjs"
-
-[site]
-bucket = ".worker-next/assets"
-
-# Development settings
-[dev]
-port = 8788
