@@ -40,3 +40,4 @@ next-env.d.ts
 .worker-next/
 .wrangler/
 worker-configuration.d.ts
+package-lock.json
