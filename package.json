@@ -1,0 +1,25 @@
+{
+  "name": "cbtrank-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "deploy": "npx @cloudflare/next-on-pages && wrangler deploy"
+  },
+  "dependencies": {
+    "next": "^15.3.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5",
+    "wrangler": "^3.100.0"
+  }
+}
