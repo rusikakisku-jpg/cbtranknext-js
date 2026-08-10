@@ -21,5 +21,8 @@
     "@types/react-dom": "^19",
     "typescript": "^5",
     "wrangler": "^3.100.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }
