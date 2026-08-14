@@ -13,6 +13,29 @@ interface Section {
   unattempted: number;
 }
 
+interface QuestionItem {
+  q_no: number;
+  question_id?: string;
+  question_type?: string;
+  section: string;
+  question_text: string;
+  question_image: string;
+  question_html: string;
+  options: Array<{
+    option_no: number;
+    option_id?: string;
+    option_text: string;
+    option_image: string;
+    option_html: string;
+    is_correct: boolean;
+  }>;
+  chosen_option: string;
+  chosen_option_id?: string;
+  right_option: string;
+  right_option_no?: number;
+  status: string;
+}
+
 interface ResultData {
   candidateName: string;
   rollNo: string;
@@ -24,6 +47,7 @@ interface ResultData {
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
   sections: Section[];
+  questionsSummary?: QuestionItem[];
   correctCount: number;
   wrongCount: number;
   unattemptedCount: number;
@@ -52,6 +76,8 @@ export default function ResultPage() {
   const [rightVal, setRightVal] = useState(1.0);
   const [wrongVal, setWrongVal] = useState(0.25);
   const [noData, setNoData] = useState(false);
+  const [activeSecTab, setActiveSecTab] = useState('ALL');
+  const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
 
   useEffect(() => {
     try {
@@ -119,6 +145,13 @@ export default function ResultPage() {
   // Determine authentic community from JSON infoRows first, fallback to user form category
   const authenticCommunityRow = resultData.infoRows?.find(r => /community|caste|category/i.test(r.label));
   const effectiveCommunity = authenticCommunityRow ? authenticCommunityRow.value : (formData?.category || 'UR');
+
+  const allQuestions = resultData.questionsSummary || [];
+  const filteredQuestions = allQuestions.filter(q => {
+    const matchesSec = activeSecTab === 'ALL' || q.section === activeSecTab;
+    const matchesStatus = activeStatusFilter === 'ALL' || q.status === activeStatusFilter;
+    return matchesSec && matchesStatus;
+  });
 
   return (
     <main>
@@ -335,6 +368,192 @@ export default function ResultPage() {
               </div>
             </div>
           </div>
+
+          {/* 4. Section-Wise Question Breakdown & Key Analysis */}
+          {allQuestions.length > 0 && (
+            <div style={{ position: 'relative', zIndex: 1, marginTop: '24px', padding: '16px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+              
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                <div>
+                  <h3 style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+                    Question Wise Performance Breakdown
+                  </h3>
+                  <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0 0' }}>
+                    Section-wise detailed analysis of right, wrong & unattempted questions
+                  </p>
+                </div>
+
+                {/* Filter Status Pills */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {['ALL', 'Correct', 'Wrong', 'Unattempted'].map(st => (
+                    <button
+                      key={st}
+                      onClick={() => setActiveStatusFilter(st)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '20px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        border: 'none',
+                        transition: 'all 0.2s ease',
+                        background: activeStatusFilter === st ? (
+                          st === 'Correct' ? '#10b981' : st === 'Wrong' ? '#ef4444' : st === 'Unattempted' ? '#f59e0b' : '#2563eb'
+                        ) : '#f1f5f9',
+                        color: activeStatusFilter === st ? '#ffffff' : '#475569'
+                      }}
+                    >
+                      {st === 'ALL' ? `All (${allQuestions.length})` : 
+                       st === 'Correct' ? `Correct (${totalRight})` : 
+                       st === 'Wrong' ? `Wrong (${totalWrong})` : 
+                       `Unattempted (${totalUnattempted})`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section Selector Tabs */}
+              {resultData.sections && resultData.sections.length > 1 && (
+                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
+                  <button
+                    onClick={() => setActiveSecTab('ALL')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      border: activeSecTab === 'ALL' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                      background: activeSecTab === 'ALL' ? '#eff6ff' : '#ffffff',
+                      color: activeSecTab === 'ALL' ? '#1d4ed8' : '#334155'
+                    }}
+                  >
+                    All Sections ({allQuestions.length})
+                  </button>
+                  {resultData.sections.map(sec => (
+                    <button
+                      key={sec.name}
+                      onClick={() => setActiveSecTab(sec.name)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer',
+                        border: activeSecTab === sec.name ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                        background: activeSecTab === sec.name ? '#eff6ff' : '#ffffff',
+                        color: activeSecTab === sec.name ? '#1d4ed8' : '#334155'
+                      }}
+                    >
+                      {sec.name} ({sec.total})
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Question Cards List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {filteredQuestions.map((q, idx) => {
+                  const isCorrect = q.status === 'Correct';
+                  const isWrong = q.status === 'Wrong';
+
+                  return (
+                    <div key={idx} style={{
+                      borderRadius: '12px',
+                      border: isCorrect ? '1px solid #a7f3d0' : isWrong ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                      background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : '#f8fafc',
+                      padding: '14px 16px'
+                    }}>
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 900, fontSize: '0.85rem', color: '#0f172a' }}>Q.{q.q_no}</span>
+                          <span style={{ fontSize: '0.72rem', background: '#e2e8f0', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                            {q.section}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '0.75rem', fontWeight: 900, padding: '3px 10px', borderRadius: '12px',
+                          background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#64748b',
+                          color: '#ffffff'
+                        }}>
+                          {isCorrect ? `Correct (+${rightVal})` : isWrong ? `Wrong (-${wrongVal})` : 'Unattempted (0.0)'}
+                        </span>
+                      </div>
+
+                      {/* Question Text / Image / HTML */}
+                      <div style={{ fontSize: '0.88rem', color: '#1e293b', marginBottom: '12px', fontWeight: 600, lineHeight: 1.5 }}>
+                        {q.question_html ? (
+                          <div dangerouslySetInnerHTML={{ __html: q.question_html }} />
+                        ) : q.question_image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={q.question_image} alt={`Question ${q.q_no}`} style={{ maxWidth: '100%', borderRadius: '6px' }} />
+                        ) : (
+                          <div>{q.question_text}</div>
+                        )}
+                      </div>
+
+                      {/* Options List */}
+                      {q.options && q.options.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {q.options.map(opt => {
+                            const isOptRight = opt.is_correct;
+                            const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
+                                               (q.chosen_option && String(q.chosen_option) === String(opt.option_no));
+
+                            let bg = '#ffffff';
+                            let border = '1px solid #e2e8f0';
+                            let color = '#334155';
+                            let badgeText = '';
+
+                            if (isOptRight) {
+                              bg = '#d1fae5';
+                              border = '1.5px solid #10b981';
+                              color = '#065f46';
+                              badgeText = '✓ Correct Answer';
+                            }
+                            if (isOptChosen && !isOptRight) {
+                              bg = '#fee2e2';
+                              border = '1.5px solid #ef4444';
+                              color = '#991b1b';
+                              badgeText = '✗ Your Answer';
+                            }
+
+                            return (
+                              <div key={opt.option_no} style={{
+                                padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
+                                fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                              }}>
+                                <div style={{ flex: 1 }}>
+                                  <span style={{ fontWeight: 800, marginRight: '6px' }}>{opt.option_no}.</span>
+                                  {opt.option_html ? (
+                                    <span dangerouslySetInnerHTML={{ __html: opt.option_html }} />
+                                  ) : opt.option_image ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '40px', verticalAlign: 'middle' }} />
+                                  ) : (
+                                    <span>{opt.option_text}</span>
+                                  )}
+                                </div>
+                                {badgeText && (
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 900, marginLeft: '8px', whiteSpace: 'nowrap' }}>
+                                    {badgeText}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+          )}
 
         </div>
       </div>

@@ -78,6 +78,8 @@ interface ParseResult {
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
   sections: Array<{ name: string; total: number; correct: number; wrong: number; unattempted: number }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  questionsSummary?: Array<any>;
 }
 
 function parseResponseSheetHtml(htmlText: string, baseUrl: string): ParseResult {
@@ -238,7 +240,8 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const examName = info['Subject'] || info['Exam'] || data.examName || '';
   const headerImgUrl = data.header_banner_img || data.header_image || data.headerImgUrl || data.logo || '';
   const headerBannerText = data.header_banner_text || data.headerBannerText || '';
-  
+  const questionsSummary = data.questions_summary || data.questions || [];
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sections: Array<{ name: string; total: number; correct: number; wrong: number; unattempted: number }> = [];
 
@@ -307,7 +310,8 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
     headerImgUrl,
     headerBannerText,
     infoRows,
-    sections
+    sections,
+    questionsSummary
   };
 }
 
