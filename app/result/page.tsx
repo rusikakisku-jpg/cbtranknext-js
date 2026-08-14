@@ -388,7 +388,11 @@ export default function ResultPage() {
                   {['ALL', 'Correct', 'Wrong', 'Unattempted'].map(st => (
                     <button
                       key={st}
-                      onClick={() => setActiveStatusFilter(st)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveStatusFilter(st);
+                      }}
                       style={{
                         padding: '4px 10px',
                         borderRadius: '20px',
@@ -416,7 +420,11 @@ export default function ResultPage() {
               {resultData.sections && resultData.sections.length > 1 && (
                 <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
                   <button
-                    onClick={() => setActiveSecTab('ALL')}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveSecTab('ALL');
+                    }}
                     style={{
                       padding: '6px 14px',
                       borderRadius: '8px',
@@ -434,7 +442,11 @@ export default function ResultPage() {
                   {resultData.sections.map(sec => (
                     <button
                       key={sec.name}
-                      onClick={() => setActiveSecTab(sec.name)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setActiveSecTab(sec.name);
+                      }}
                       style={{
                         padding: '6px 14px',
                         borderRadius: '8px',
