@@ -75,6 +75,7 @@ interface ParseResult {
   testCenter: string;
   examName: string;
   headerImgUrl: string;
+  headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
   sections: Array<{ name: string; total: number; correct: number; wrong: number; unattempted: number }>;
 }
@@ -235,7 +236,8 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const testTime = info['Test Time'] || data.testTime || '';
   const testCenter = info['Test Centre Name'] || info['Test Center Name'] || info['Venue'] || data.testCenter || '';
   const examName = info['Subject'] || info['Exam'] || data.examName || '';
-  const headerImgUrl = data.header_image || data.headerImgUrl || data.logo || '';
+  const headerImgUrl = data.header_banner_img || data.header_image || data.headerImgUrl || data.logo || '';
+  const headerBannerText = data.header_banner_text || data.headerBannerText || '';
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sections: Array<{ name: string; total: number; correct: number; wrong: number; unattempted: number }> = [];
@@ -303,6 +305,7 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
     testCenter,
     examName,
     headerImgUrl,
+    headerBannerText,
     infoRows,
     sections
   };
