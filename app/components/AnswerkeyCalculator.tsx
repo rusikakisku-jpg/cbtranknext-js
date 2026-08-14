@@ -531,7 +531,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     // Direct JSON extraction from http://147.93.154.159/api_smart.php
     try {
-      const smartApiUrl = `http://147.93.154.159/api_smart.php?url=${encodeURIComponent(urlVal)}`;
+      const smartApiUrl = `https://digialm.quickgift.in/api_v2.php?url=${encodeURIComponent(urlVal)}`;
       const smartRes = await fetch(smartApiUrl);
       if (smartRes.ok) {
         const smartData = await smartRes.json();
