@@ -21,6 +21,7 @@ interface ResultData {
   testCenter: string;
   examName: string;
   headerImgUrl: string;
+  headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
   sections: Section[];
   correctCount: number;
@@ -139,14 +140,17 @@ export default function ResultPage() {
 
           {/* 1. Exam & Candidate Info Header */}
           <div className="info-section-header" style={{ position: 'relative', zIndex: 1 }}>
-            {resultData.headerImgUrl && (
+            {resultData.headerImgUrl ? (
               <div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" />
               </div>
-            )}
-            {resultData.examName && (
-              <h1 className="exam-name-title">{resultData.examName}</h1>
+            ) : resultData.headerBannerText ? (
+              <h1 className="exam-name-title">{resultData.headerBannerText}</h1>
+            ) : (
+              resultData.examName && (
+                <h1 className="exam-name-title">{resultData.examName}</h1>
+              )
             )}
 
             {/* Metadata Grid */}
