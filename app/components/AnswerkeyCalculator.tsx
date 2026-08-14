@@ -341,7 +341,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     gender: '',
     paper_language: '',
     state: '',
-    consent: true,
+    consent: false,
   });
 
   function showToast(msg: string) {
@@ -477,16 +477,12 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examSlug]);
 
-  async function logInvalidUrl(url: string) {
-    try {
-      await fetch(`${WORKER_BASE}/invalid_answerkey_urls?url=${encodeURIComponent(url)}&action=insert`);
-    } catch (e) {}
+  function logInvalidUrl(url: string) {
+    fetch(`${WORKER_BASE}/invalid_answerkey_urls?url=${encodeURIComponent(url)}&action=insert`).catch(() => {});
   }
 
-  async function logValidUrl(url: string) {
-    try {
-      await fetch(`${WORKER_BASE}/valid_answerkey_urls?url=${encodeURIComponent(url)}&action=insert`);
-    } catch (e) {}
+  function logValidUrl(url: string) {
+    fetch(`${WORKER_BASE}/valid_answerkey_urls?url=${encodeURIComponent(url)}&action=insert`).catch(() => {});
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -506,32 +502,31 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     const isCbexams = isCbexamsHost(urlVal);
 
     if (!isDigialm && !isCbexams) {
-      await logInvalidUrl(urlVal);
+      logInvalidUrl(urlVal);
       showToast('Enter Correct Answerkey Url From Official Website');
       return;
     }
 
     if (isCbexams) {
-      await logInvalidUrl(urlVal);
+      logInvalidUrl(urlVal);
       showToast('CBExams API integration is coming soon. Currently Digialm URLs are supported.');
       return;
     }
 
     if (isDigialm && !urlHasHtmlExtension(urlVal)) {
-      await logInvalidUrl(urlVal);
+      logInvalidUrl(urlVal);
       showToast('Enter Correct Answerkey Url From Official Website');
       return;
     }
 
     setSubmitting(true);
-    setBtnText('Checking URL...');
-    setTimeout(() => setBtnText('Processing...'), 350);
+    setBtnText('Processing...');
 
     let parsedResult: ParseResult | null = null;
 
-    // Direct JSON extraction from http://147.93.154.159/api_smart.php
+    // Direct JSON extraction from https://digialm.quickgift.in/api_v6.php
     try {
-      const smartApiUrl = `https://digialm.quickgift.in/api_v2.php?url=${encodeURIComponent(urlVal)}`;
+      const smartApiUrl = `https://digialm.quickgift.in/api_v6.php?url=${encodeURIComponent(urlVal)}`;
       const smartRes = await fetch(smartApiUrl);
       if (smartRes.ok) {
         const smartData = await smartRes.json();
