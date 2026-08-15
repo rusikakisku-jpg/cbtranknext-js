@@ -28,7 +28,11 @@ function isDigialmHost(raw: string): boolean {
   try {
     const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw);
     const host = (parsed.hostname || '').toLowerCase();
-    return host === 'digialm.com' || host.endsWith('.digialm.com');
+    const fullUrl = raw.toLowerCase();
+
+    return host === 'digialm.com' || host.endsWith('.digialm.com') ||
+           host === 'tcsion.com' || host.endsWith('.tcsion.com') ||
+           fullUrl.includes('assessmentqp') || fullUrl.includes('touchstone') || fullUrl.includes('per/g');
   } catch (e) { return false; }
 }
 
