@@ -42,7 +42,6 @@ function ExamCard({ exam }: { exam: Exam }) {
   const handleCardClick = () => {
     try {
       sessionStorage.setItem('cbtrank_active_exam', JSON.stringify(exam));
-      sessionStorage.setItem('cbtrank_home_scroll', String(window.scrollY));
     } catch (e) {}
   };
 
@@ -51,7 +50,7 @@ function ExamCard({ exam }: { exam: Exam }) {
 
   return (
     <div className="exam-card">
-      <Link href={href} onClick={handleCardClick} aria-label={exam.title}>
+      <Link href={href} onClick={handleCardClick} prefetch={true} aria-label={exam.title}>
         <div className="exam-card-left">
           <div className="exam-title">
             <span>{exam.title}</span>
@@ -73,6 +72,14 @@ export default function HomePage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [showBlogs] = useState(false);
+
+  // Always ensure Home Page starts at the top (0,0) on open
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    try {
+      sessionStorage.removeItem('cbtrank_home_scroll');
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     // 1. Read cached exams for instant 0ms load
@@ -96,7 +103,6 @@ export default function HomePage() {
           if (Array.isArray(data) && data.length > 0) {
             setExams(data);
             try {
-              localStorage.getItem('cbtrank_cached_exams');
               localStorage.setItem('cbtrank_cached_exams', JSON.stringify(data));
             } catch (e) {}
           }
@@ -106,21 +112,6 @@ export default function HomePage() {
     }
     fetchExams();
   }, []);
-
-  // Restore list scroll position when returning to Home Page
-  useEffect(() => {
-    if (!loading && exams.length > 0) {
-      const savedScroll = sessionStorage.getItem('cbtrank_home_scroll');
-      if (savedScroll) {
-        const top = parseInt(savedScroll, 10);
-        if (!isNaN(top) && top > 0) {
-          setTimeout(() => {
-            window.scrollTo({ top, behavior: 'instant' });
-          }, 60);
-        }
-      }
-    }
-  }, [loading, exams]);
 
   const CalculatorIcon = () => (
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
