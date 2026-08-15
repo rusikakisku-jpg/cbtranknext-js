@@ -50,7 +50,7 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
         boxSizing: 'border-box',
       }}>
-        {/* Glowing Telegram Bell */}
+        {/* Glowing Official Telegram Icon Header */}
         <div style={{
           width: '72px',
           height: '72px',
@@ -62,9 +62,8 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
           justifyContent: 'center',
           boxShadow: '0 0 0 12px rgba(0,136,204,0.12), 0 8px 24px rgba(0,136,204,0.45)',
         }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="#ffffff">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.38-.27-2.05-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.66-2.89 8.01-3.45 3.81-1.59 4.6-1.87 5.12-1.88.11 0 .37.03.54.18.14.12.18.29.2.46-.01.07.01.24-.02.4z"/>
           </svg>
         </div>
 
