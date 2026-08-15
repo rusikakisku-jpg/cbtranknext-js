@@ -469,27 +469,45 @@ export default function ResultPage() {
               <h3 style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject-Wise Performance Breakdown</h3>
               <div className="recalc-controls">
                 <label>
-                  Correct:{' '}
+                  Right (+):{' '}
                   <input
                     type="number"
+                    inputMode="decimal"
                     id="right-val-input"
-                    value={rightVal}
-                    step="0.25"
+                    value={rightVal === 0 ? '' : rightVal}
+                    placeholder="0"
+                    step="any"
                     min="0"
-                    style={{ width: '60px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 900, fontSize: '0.82rem', outline: 'none' }}
-                    onChange={e => setRightVal(parseFloat(e.target.value) || 1)}
+                    style={{ width: '64px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 900, fontSize: '0.88rem', outline: 'none' }}
+                    onChange={e => {
+                      const v = e.target.value;
+                      if (v === '') setRightVal(0);
+                      else {
+                        const n = parseFloat(v);
+                        if (!isNaN(n)) setRightVal(n);
+                      }
+                    }}
                   />
                 </label>
                 <label>
-                  Wrong:{' '}
+                  Wrong (-):{' '}
                   <input
                     type="number"
+                    inputMode="decimal"
                     id="wrong-val-input"
-                    value={wrongVal}
-                    step="0.05"
+                    value={wrongVal === 0 ? '' : wrongVal}
+                    placeholder="0"
+                    step="any"
                     min="0"
-                    style={{ width: '60px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 900, fontSize: '0.82rem', outline: 'none' }}
-                    onChange={e => setWrongVal(parseFloat(e.target.value) || 0.25)}
+                    style={{ width: '64px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 900, fontSize: '0.88rem', outline: 'none' }}
+                    onChange={e => {
+                      const v = e.target.value;
+                      if (v === '') setWrongVal(0);
+                      else {
+                        const n = parseFloat(v);
+                        if (!isNaN(n)) setWrongVal(n);
+                      }
+                    }}
                   />
                 </label>
               </div>
