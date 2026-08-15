@@ -1,9 +1,126 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TelegramPortalModal — renders directly into document.body via React Portal.
+// Completely independent of any parent component's render/null-guard/CSS.
+// ─────────────────────────────────────────────────────────────────────────────
+function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      id="cbtrank-tg-portal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(10, 18, 40, 0.88)',
+        backdropFilter: 'blur(7px)',
+        WebkitBackdropFilter: 'blur(7px)',
+        zIndex: 2147483647,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div style={{
+        background: '#ffffff',
+        borderRadius: '24px',
+        maxWidth: '400px',
+        width: '100%',
+        padding: '32px 24px 28px',
+        boxShadow: '0 32px 64px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.15)',
+        textAlign: 'center',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        boxSizing: 'border-box',
+      }}>
+        {/* Glowing Telegram Bell */}
+        <div style={{
+          width: '72px',
+          height: '72px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #0088cc 0%, #29b6f6 100%)',
+          margin: '0 auto 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 0 0 12px rgba(0,136,204,0.12), 0 8px 24px rgba(0,136,204,0.45)',
+        }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+
+        {/* Badge */}
+        <div style={{
+          display: 'inline-block',
+          background: 'linear-gradient(90deg,#0088cc,#29b6f6)',
+          color: '#fff',
+          fontSize: '0.7rem',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          padding: '3px 12px',
+          borderRadius: '999px',
+          marginBottom: '12px',
+        }}>Official Channel</div>
+
+        <h3 style={{ fontSize: '1.22rem', fontWeight: 900, color: '#0a1228', margin: '0 0 10px', lineHeight: 1.3 }}>
+          Get Instant Exam &amp; Rank Updates!
+        </h3>
+        <p style={{ fontSize: '0.875rem', color: '#475569', margin: '0 0 26px', lineHeight: 1.6 }}>
+          Join our official Telegram Channel to get instant notifications about upcoming <strong>Answer Keys</strong>, <strong>Ranks</strong> &amp; <strong>Cut-offs</strong> updates!
+        </p>
+
+        {/* Join Button */}
+        <a
+          href="https://t.me/cbtrank"
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onJoin}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            background: 'linear-gradient(135deg, #0088cc 0%, #29b6f6 100%)',
+            color: '#ffffff',
+            padding: '15px 20px',
+            borderRadius: '14px',
+            fontWeight: 800,
+            fontSize: '0.97rem',
+            textDecoration: 'none',
+            boxShadow: '0 4px 20px rgba(0,136,204,0.4)',
+            letterSpacing: '0.01em',
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.38-.27-2.05-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.66-2.89 8.01-3.45 3.81-1.59 4.6-1.87 5.12-1.88.11 0 .37.03.54.18.14.12.18.29.2.46-.01.07.01.24-.02.4z"/>
+          </svg>
+          🚀 Join Official Telegram Channel
+        </a>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 interface Section {
   name: string;
@@ -79,7 +196,8 @@ export default function ResultPage() {
   const [noData, setNoData] = useState(false);
   const [activeSecTab, setActiveSecTab] = useState('ALL');
   const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
-  const [showTelegramModal, setShowTelegramModal] = useState(true);
+  // Portal modal state — managed separately, independent of resultData
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
 
   function handleTelegramJoinClick() {
     try {
@@ -89,6 +207,20 @@ export default function ResultPage() {
     setShowTelegramModal(false);
   }
 
+  // ── Telegram Portal Modal: runs independently, does NOT depend on resultData ──
+  useEffect(() => {
+    try {
+      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+      const now = Date.now();
+      const twoMinutesMs = 2 * 60 * 1000;
+      const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+      if (isCooldownElapsed) {
+        setShowTelegramModal(true);
+      }
+    } catch (e) {}
+  }, []);
+
+  // ── Main data loading useEffect ──
   useEffect(() => {
     try {
       const rawResult = sessionStorage.getItem('cbtrank_result_data');
@@ -123,17 +255,6 @@ export default function ResultPage() {
 
       setResultData(result);
       setFormData(form);
-
-      // 🚀 Guarantee Telegram popup modal display on /result page load
-      const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
-      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
-      const now = Date.now();
-      const twoMinutesMs = 2 * 60 * 1000;
-      const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
-
-      if (showFlag === 'true' || isCooldownElapsed) {
-        setShowTelegramModal(true);
-      }
     } catch (e) {
       router.push('/');
     }
@@ -189,7 +310,8 @@ export default function ResultPage() {
   }
 
   if (!resultData) {
-    return null;
+    // Even when resultData is loading, render the Portal Modal if needed
+    return showTelegramModal ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
   }
 
   const { raw, totalRight, totalWrong, totalUnattempted } = calcMarks(resultData.sections, rightVal, wrongVal);
@@ -210,92 +332,8 @@ export default function ResultPage() {
 
   return (
     <>
-      {/* OneSignal Style Push / Telegram Subscription Modal */}
-      {showTelegramModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          zIndex: 2147483647,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '24px',
-            maxWidth: '400px',
-            width: '100%',
-            padding: '30px 24px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2)',
-            position: 'relative',
-            textAlign: 'center',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}>
-            {/* Glowing OneSignal Style Telegram Bell Icon */}
-            <div style={{
-              width: '68px',
-              height: '68px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
-              margin: '0 auto 18px auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 10px 25px rgba(0, 136, 204, 0.4)'
-            }}>
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </div>
-
-            {/* Title & Sub-text */}
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: '0 0 10px 0', lineHeight: 1.3 }}>
-              Get Instant Exam &amp; Rank Updates!
-            </h3>
-            <p style={{ fontSize: '0.88rem', color: '#475569', margin: '0 0 24px 0', lineHeight: 1.5 }}>
-              Join our official Telegram Channel to get instant notifications about upcoming Answer Keys, Ranks &amp; Cut-offs updates!
-            </p>
-
-            {/* Mandatory Action Button (No Skip) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <a
-                href="https://t.me/cbtrank"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleTelegramJoinClick}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
-                  color: '#ffffff',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  fontWeight: 800,
-                  fontSize: '0.96rem',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 16px rgba(0, 136, 204, 0.35)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.38-.27-2.05-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.66-2.89 8.01-3.45 3.81-1.59 4.6-1.87 5.12-1.88.11 0 .37.03.54.18.14.12.18.29.2.46-.01.07.01.24-.02.4z"/>
-                </svg>
-                Join Official Telegram Channel
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Telegram Portal Modal — rendered via createPortal into document.body */}
+      {showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
 
       <main>
       <div className="result-main">
