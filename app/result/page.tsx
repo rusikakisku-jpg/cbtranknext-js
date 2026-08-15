@@ -79,7 +79,7 @@ export default function ResultPage() {
   const [noData, setNoData] = useState(false);
   const [activeSecTab, setActiveSecTab] = useState('ALL');
   const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
-  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [showTelegramModal, setShowTelegramModal] = useState(true);
 
   function handleTelegramJoinClick() {
     try {
