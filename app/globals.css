@@ -1847,3 +1847,171 @@ footer {
     gap: 8px;
   }
 }
+
+/* ============================================================
+   SEC-TABLE — STACKED CARD LAYOUT ON MOBILE
+   No horizontal scroll — each row becomes a card.
+   CSS-only: no JSX/HTML changes needed.
+   Applies at ≤ 600px
+============================================================ */
+@media (max-width: 600px) {
+
+  /* Remove horizontal scroll wrapper */
+  .table-responsive {
+    overflow-x: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Table itself - block layout */
+  .sec-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  /* Hide desktop column headers */
+  .sec-table thead {
+    display: none;
+  }
+
+  /* tbody and tfoot become block */
+  .sec-table tbody,
+  .sec-table tfoot {
+    display: block;
+    width: 100%;
+  }
+
+  /* ── TBODY rows: each section = a card ── */
+  .sec-table tbody tr {
+    display: block;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
+  }
+
+  /* Each td = a label-value row inside the card */
+  .sec-table tbody td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    font-size: 0.82rem !important;
+    font-weight: 700;
+    white-space: normal !important;
+  }
+
+  .sec-table tbody td:last-child {
+    border-bottom: none !important;
+  }
+
+  /* Section name td (1st) — card header */
+  .sec-table tbody td:nth-child(1) {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f4ff 100%);
+    font-size: 0.88rem !important;
+    font-weight: 900 !important;
+    color: #1e40af !important;
+    border-bottom: 2px solid #bfdbfe !important;
+    padding: 10px 14px !important;
+    justify-content: flex-start !important;
+    gap: 8px;
+  }
+
+  /* Book icon before section name */
+  .sec-table tbody td:nth-child(1)::before {
+    content: "📋";
+    font-size: 0.88rem;
+    flex-shrink: 0;
+  }
+
+  /* Labels for columns 2-7 via ::before */
+  .sec-table tbody td:nth-child(2)::before { content: "Total Questions"; }
+  .sec-table tbody td:nth-child(3)::before { content: "Attempted"; }
+  .sec-table tbody td:nth-child(4)::before { content: "Unattempted"; }
+  .sec-table tbody td:nth-child(5)::before { content: "Correct ✓"; }
+  .sec-table tbody td:nth-child(6)::before { content: "Wrong ✗"; }
+  .sec-table tbody td:nth-child(7)::before { content: "Marks"; }
+
+  /* Label style */
+  .sec-table tbody td:nth-child(2)::before,
+  .sec-table tbody td:nth-child(3)::before,
+  .sec-table tbody td:nth-child(4)::before,
+  .sec-table tbody td:nth-child(5)::before,
+  .sec-table tbody td:nth-child(6)::before,
+  .sec-table tbody td:nth-child(7)::before {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── TFOOT row: TOTAL summary card ── */
+  .sec-table tfoot tr {
+    display: block;
+    background: #f0f4ff;
+    border: 2px solid #bfdbfe;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+    margin-top: 4px;
+  }
+
+  .sec-table tfoot td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px !important;
+    border-bottom: 1px solid #dbeafe !important;
+    font-size: 0.82rem !important;
+    white-space: normal !important;
+  }
+
+  .sec-table tfoot td:last-child {
+    border-bottom: none !important;
+  }
+
+  /* Total header td */
+  .sec-table tfoot td:nth-child(1) {
+    background: #2563eb;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid #1d4ed8 !important;
+    justify-content: center !important;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* tfoot labels */
+  .sec-table tfoot td:nth-child(2)::before { content: "Total Questions"; }
+  .sec-table tfoot td:nth-child(3)::before { content: "Attempted"; }
+  .sec-table tfoot td:nth-child(4)::before { content: "Unattempted"; }
+  .sec-table tfoot td:nth-child(5)::before { content: "Correct ✓"; }
+  .sec-table tfoot td:nth-child(6)::before { content: "Wrong ✗"; }
+  .sec-table tfoot td:nth-child(7)::before { content: "Total Marks"; }
+
+  .sec-table tfoot td:nth-child(2)::before,
+  .sec-table tfoot td:nth-child(3)::before,
+  .sec-table tfoot td:nth-child(4)::before,
+  .sec-table tfoot td:nth-child(5)::before,
+  .sec-table tfoot td:nth-child(6)::before,
+  .sec-table tfoot td:nth-child(7)::before {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #1e40af;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Preserve color classes on mobile */
+  .sec-table td.text-green { color: #16a34a !important; }
+  .sec-table td.text-red   { color: #dc2626 !important; }
+  .sec-table td.text-blue  { color: #2563eb !important; }
+}
+
