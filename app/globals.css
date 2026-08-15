@@ -1319,7 +1319,29 @@ footer {
 
 @media (max-width: 640px) {
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .form-grid .ak-form-group {
+    margin-bottom: 8px;
+    min-width: 0;
+  }
+
+  .form-grid .ak-form-group label {
+    font-size: 0.7rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+
+  .form-grid .ak-form-select,
+  .form-grid .ak-form-input {
+    font-size: 0.75rem !important;
+    padding: 0 6px !important;
+    height: 36px !important;
+    text-overflow: ellipsis;
   }
 
   .feature-grid {
