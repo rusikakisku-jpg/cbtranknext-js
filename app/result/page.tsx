@@ -209,7 +209,95 @@ export default function ResultPage() {
   });
 
   return (
-    <main>
+    <>
+      {/* OneSignal Style Push / Telegram Subscription Modal */}
+      {showTelegramModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.85)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          zIndex: 2147483647,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '24px',
+            maxWidth: '400px',
+            width: '100%',
+            padding: '30px 24px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2)',
+            position: 'relative',
+            textAlign: 'center',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>
+            {/* Glowing OneSignal Style Telegram Bell Icon */}
+            <div style={{
+              width: '68px',
+              height: '68px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
+              margin: '0 auto 18px auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 25px rgba(0, 136, 204, 0.4)'
+            }}>
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+
+            {/* Title & Sub-text */}
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: '0 0 10px 0', lineHeight: 1.3 }}>
+              Get Instant Exam &amp; Rank Updates!
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: '#475569', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+              Join our official Telegram Channel to get instant notifications about upcoming Answer Keys, Ranks &amp; Cut-offs updates!
+            </p>
+
+            {/* Mandatory Action Button (No Skip) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <a
+                href="https://t.me/cbtrank"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleTelegramJoinClick}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
+                  color: '#ffffff',
+                  padding: '14px 20px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '0.96rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 16px rgba(0, 136, 204, 0.35)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.38-.27-2.05-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.66-2.89 8.01-3.45 3.81-1.59 4.6-1.87 5.12-1.88.11 0 .37.03.54.18.14.12.18.29.2.46-.01.07.01.24-.02.4z"/>
+                </svg>
+                Join Official Telegram Channel
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main>
       <div className="result-main">
 
         {/* Main Scorecard Card */}
@@ -614,94 +702,7 @@ export default function ResultPage() {
           )}
 
         </div>
-      </div>
-
-      {/* OneSignal Style Push / Telegram Subscription Modal */}
-      {showTelegramModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.70)',
-          backdropFilter: 'blur(5px)',
-          zIndex: 999999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px',
-          animation: 'fadeInModal 0.25s ease-out'
-        }}>
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '24px',
-            maxWidth: '400px',
-            width: '100%',
-            padding: '28px 24px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2)',
-            position: 'relative',
-            textAlign: 'center',
-            fontFamily: 'system-ui, -apple-system, sans-serif'
-          }}>
-            {/* Glowing OneSignal Style Telegram Bell Icon */}
-            <div style={{
-              width: '68px',
-              height: '68px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
-              margin: '0 auto 18px auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 10px 25px rgba(0, 136, 204, 0.4)'
-            }}>
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </div>
-
-            {/* Title & Sub-text */}
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: '0 0 10px 0', lineHeight: 1.3 }}>
-              Get Instant Exam &amp; Rank Updates!
-            </h3>
-            <p style={{ fontSize: '0.86rem', color: '#475569', margin: '0 0 24px 0', lineHeight: 1.5 }}>
-              Join our official Telegram Channel to get instant notifications about upcoming Answer Keys, Ranks &amp; Cut-offs updates!
-            </p>
-
-            {/* Mandatory Action Button (No Skip) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <a
-                href="https://t.me/cbtrank"
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={handleTelegramJoinClick}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
-                  color: '#ffffff',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 16px rgba(0, 136, 204, 0.35)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.38-.27-2.05-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.66-2.89 8.01-3.45 3.81-1.59 4.6-1.87 5.12-1.88.11 0 .37.03.54.18.14.12.18.29.2.46-.01.07.01.24-.02.4z"/>
-                </svg>
-                Join Official Telegram Channel
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
+    </>
   );
 }
