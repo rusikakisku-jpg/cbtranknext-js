@@ -3,7 +3,7 @@ export const runtime = 'edge';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { BLOG_POSTS } from '../../data/blogs';
+import { fetchBlogsFromCloudflareD1 } from '../../data/blogs';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -11,7 +11,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = BLOG_POSTS.find(p => p.slug === slug);
+  const allPosts = await fetchBlogsFromCloudflareD1();
+  const post = allPosts.find(p => p.slug === slug);
 
   if (!post) {
     return {
@@ -31,16 +32,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = BLOG_POSTS.find(p => p.slug === slug);
+  const allPosts = await fetchBlogsFromCloudflareD1();
+  const post = allPosts.find(p => p.slug === slug);
 
   if (!post) {
     notFound();
   }
 
-  const categories = Array.from(new Set(BLOG_POSTS.map(p => p.category))).map(cat => ({
+  const categories = Array.from(new Set(allPosts.map(p => p.category))).map(cat => ({
     category: cat,
-    count: BLOG_POSTS.filter(p => p.category === cat).length,
+    count: allPosts.filter(p => p.category === cat).length,
   }));
+
+  const isHtmlString = typeof post.content === 'string';
 
   return (
     <main style={{ minHeight: '80vh', padding: '12px 0 36px' }}>
@@ -64,26 +68,42 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </h1>
 
                 <div className="article-meta" style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
-                  <span>by Team CBTRANK</span>
+                  <span>by {post.author_name || 'Team CBTRANK'}</span>
                   <span>&bull; {post.date}</span>
                   <span>&bull; {post.readTime}</span>
                 </div>
               </div>
 
+              {/* Cover Image if available */}
+              {post.coverImage && (
+                <div style={{ marginBottom: '20px', width: '100%', overflow: 'hidden', borderRadius: '8px' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={post.coverImage.startsWith('/') || post.coverImage.startsWith('http') ? post.coverImage : `/${post.coverImage}`}
+                    alt={post.title}
+                    style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }}
+                  />
+                </div>
+              )}
+
               {/* Body */}
               <div className="article-body article-content" style={{ fontSize: '0.94rem', color: '#334155', lineHeight: 1.75 }}>
-                {post.content.map((sec, i) => (
-                  <section key={i} style={{ marginBottom: '20px' }}>
-                    {sec.heading && (
-                      <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '20px', marginBottom: '10px' }}>
-                        {sec.heading}
-                      </h2>
-                    )}
-                    <p style={{ margin: 0 }}>
-                      {sec.paragraph}
-                    </p>
-                  </section>
-                ))}
+                {isHtmlString ? (
+                  <div dangerouslySetInnerHTML={{ __html: post.content as string }} />
+                ) : (
+                  (post.content as Array<{ heading?: string; paragraph: string }>).map((sec, i) => (
+                    <section key={i} style={{ marginBottom: '20px' }}>
+                      {sec.heading && (
+                        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', marginTop: '20px', marginBottom: '10px' }}>
+                          {sec.heading}
+                        </h2>
+                      )}
+                      <p style={{ margin: 0 }}>
+                        {sec.paragraph}
+                      </p>
+                    </section>
+                  ))
+                )}
               </div>
 
               {/* Share Bar */}
@@ -191,7 +211,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <div className="widget widget-popular">
               <h3 className="widget-title">Recent Posts</h3>
               <ul className="popular-posts-list">
-                {BLOG_POSTS.slice(0, 5).map((p) => (
+                {allPosts.slice(0, 5).map((p) => (
                   <li key={p.slug} className="popular-item">
                     <div className="popular-info">
                       <Link href={`/blog/${p.slug}`} className="popular-title-link">
