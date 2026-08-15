@@ -79,21 +79,12 @@ export default function ResultPage() {
   const [noData, setNoData] = useState(false);
   const [activeSecTab, setActiveSecTab] = useState('ALL');
   const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
-  const [showTelegramModal, setShowTelegramModal] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    try {
-      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
-      const now = Date.now();
-      const twoMinutesMs = 2 * 60 * 1000;
-      return !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
-    } catch (e) {
-      return true;
-    }
-  });
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
 
   function handleTelegramJoinClick() {
     try {
       localStorage.setItem('cbtrank_tg_popup_last_time', Date.now().toString());
+      sessionStorage.removeItem('cbtrank_show_tg_popup');
     } catch (e) {}
     setShowTelegramModal(false);
   }
@@ -132,6 +123,17 @@ export default function ResultPage() {
 
       setResultData(result);
       setFormData(form);
+
+      // 🚀 Guarantee Telegram popup modal display on /result page load
+      const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
+      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+      const now = Date.now();
+      const twoMinutesMs = 2 * 60 * 1000;
+      const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+
+      if (showFlag === 'true' || isCooldownElapsed) {
+        setShowTelegramModal(true);
+      }
     } catch (e) {
       router.push('/');
     }

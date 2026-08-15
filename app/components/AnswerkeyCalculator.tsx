@@ -670,6 +670,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
         ...parsedResult,
         overallRank, shiftRank, categoryRank,
       }));
+      sessionStorage.setItem('cbtrank_show_tg_popup', 'true');
     } catch (e) {}
 
     router.push('/result');
