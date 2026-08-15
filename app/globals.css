@@ -1791,25 +1791,25 @@ footer {
     padding: 10px 6px;
     border-radius: 10px;
   }
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 68, 204, 0.2);
+  transition: all 0.2s ease;
+}
 
-  .metric-card .val {
-    font-size: 1.15rem;
-  }
+.json-toggle-btn:hover {
+  background: #003399;
+}
 
-  .metric-card .lbl {
-    font-size: 0.58rem;
-  }
-
-  .metric-card .sub {
-    font-size: 0.58rem;
-  }
-
-  /* Table */
-  .sec-table th,
-  .sec-table td {
-    padding: 8px 8px;
-    font-size: 0.74rem;
-  }
+/* Print Styles */
+@media print {
+  .navbar,
+  footer,
+  .float-telegram,
+  .float-download,
+  .btn-action-ui {
     display: none !important;
   }
 
