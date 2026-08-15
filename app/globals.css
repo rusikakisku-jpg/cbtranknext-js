@@ -1609,3 +1609,241 @@ footer {
     border: 1px solid #e2e8f0;
   }
 }
+/* ============================================================
+   RESULT PAGE — MOBILE RESPONSIVE
+   Breakpoints: 768px | 480px | 360px
+   Safe append — no existing rules changed
+============================================================ */
+
+@media (max-width: 768px) {
+  /* Wrapper */
+  .result-main {
+    width: 100%;
+    padding: 12px 12px 40px;
+  }
+
+  /* Main scorecard card */
+  .scorecard-card {
+    padding: 16px 14px;
+    border-radius: 18px;
+    gap: 16px;
+  }
+
+  /* Exam logo */
+  .exam-logo {
+    max-height: 52px;
+  }
+
+  .exam-name-title {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  /* Metadata grid — 2 columns on tablet */
+  .metadata-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .meta-box {
+    padding: 9px 12px;
+  }
+
+  .meta-box label {
+    font-size: 0.6rem;
+  }
+
+  .meta-box span {
+    font-size: 0.82rem;
+  }
+
+  /* Recalc header — stack on mobile */
+  .recalc-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .recalc-controls {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 7px 12px;
+  }
+
+  /* Metrics grid — 2 columns on tablet */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .metric-card {
+    padding: 12px 8px;
+    border-radius: 12px;
+  }
+
+  .metric-card .val {
+    font-size: 1.3rem;
+  }
+
+  .metric-card .lbl {
+    font-size: 0.6rem;
+  }
+
+  .metric-card .sub {
+    font-size: 0.62rem;
+  }
+
+  /* Section table — horizontal scroll */
+  .table-responsive {
+    border-radius: 12px;
+  }
+
+  .sec-table th,
+  .sec-table td {
+    padding: 9px 10px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .sec-table th {
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Result main */
+  .result-main {
+    padding: 10px 8px 36px;
+  }
+
+  /* Scorecard card */
+  .scorecard-card {
+    padding: 14px 10px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+
+  /* Exam info */
+  .exam-logo {
+    max-height: 44px;
+  }
+
+  .exam-name-title {
+    font-size: 0.92rem;
+  }
+
+  /* Metadata grid — 1 col on small phones */
+  .metadata-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
+
+  .meta-box {
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .meta-box label {
+    font-size: 0.58rem;
+  }
+
+  .meta-box span {
+    font-size: 0.8rem;
+  }
+
+  /* Recalc controls */
+  .recalc-controls {
+    gap: 10px;
+    padding: 6px 10px;
+    font-size: 0.74rem;
+  }
+
+  /* Metrics — 2 col still on 480px */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 7px;
+  }
+
+  .metric-card {
+    padding: 10px 6px;
+    border-radius: 10px;
+  }
+
+  .metric-card .val {
+    font-size: 1.15rem;
+  }
+
+  .metric-card .lbl {
+    font-size: 0.58rem;
+  }
+
+  .metric-card .sub {
+    font-size: 0.58rem;
+  }
+
+  /* Table */
+  .sec-table th,
+  .sec-table td {
+    padding: 8px 8px;
+    font-size: 0.74rem;
+  }
+
+  .sec-table th {
+    font-size: 0.62rem;
+  }
+
+  /* Question breakdown section */
+  #question-breakdown-section {
+    padding: 12px 8px !important;
+    border-radius: 14px !important;
+    margin-top: 16px !important;
+  }
+
+  /* Action buttons */
+  .btn-action-ui {
+    padding: 7px 11px;
+    font-size: 0.76rem;
+  }
+
+  /* JSON toggle btn */
+  .json-toggle-btn {
+    font-size: 0.8rem;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  /* Very small phones */
+  .result-main {
+    padding: 8px 6px 30px;
+  }
+
+  .scorecard-card {
+    padding: 12px 8px;
+    border-radius: 12px;
+  }
+
+  /* Metadata — single column on tiny screens */
+  .metadata-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  /* Metrics — still 2 col, smaller values */
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .metric-card .val {
+    font-size: 1rem;
+  }
+
+  /* Recalc full width stacked */
+  .recalc-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
