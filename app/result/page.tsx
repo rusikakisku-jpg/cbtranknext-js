@@ -79,22 +79,17 @@ export default function ResultPage() {
   const [noData, setNoData] = useState(false);
   const [activeSecTab, setActiveSecTab] = useState('ALL');
   const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
-  const [showTelegramModal, setShowTelegramModal] = useState(false);
-
-  useEffect(() => {
+  const [showTelegramModal, setShowTelegramModal] = useState(() => {
+    if (typeof window === 'undefined') return false;
     try {
       const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
       const now = Date.now();
       const twoMinutesMs = 2 * 60 * 1000;
-
-      if (!lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs) {
-        const timer = setTimeout(() => {
-          setShowTelegramModal(true);
-        }, 400);
-        return () => clearTimeout(timer);
-      }
-    } catch (e) {}
-  }, []);
+      return !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+    } catch (e) {
+      return true;
+    }
+  });
 
   function handleTelegramJoinClick() {
     try {
