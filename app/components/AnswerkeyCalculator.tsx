@@ -516,7 +516,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     if (isCbexams) {
       logInvalidUrl(urlVal);
-      showToast('server under maintenance. Please try again after some time.');
+      showToast('Server under maintenance. Please try again after some time.');
       return;
     }
 
