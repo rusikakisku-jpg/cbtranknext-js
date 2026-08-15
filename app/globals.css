@@ -1810,22 +1810,22 @@ footer {
     padding: 8px 8px;
     font-size: 0.74rem;
   }
-
-  .sec-table th {
-    font-size: 0.62rem;
+    display: none !important;
   }
 
-  /* Question breakdown section */
-  #question-breakdown-section {
-    padding: 12px 8px !important;
-    border-radius: 14px !important;
-    margin-top: 16px !important;
+  body {
+    padding-top: 0 !important;
   }
 
-  /* Action buttons */
-  .btn-action-ui {
-    padding: 7px 11px;
-    font-size: 0.76rem;
+  .page-body {
+    padding-top: 0 !important;
+  }
+
+  .scorecard-card {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+  }
+}
 /* ============================================================
    RESULT PAGE — MOBILE RESPONSIVE
    Breakpoints: 768px | 480px | 360px
@@ -2004,6 +2004,8 @@ footer {
   .btn-action-ui {
     padding: 7px 11px;
     font-size: 0.76rem;
+  }
+}
   }
 
   /* JSON toggle btn */
