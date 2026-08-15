@@ -75,6 +75,19 @@ export default function HomePage() {
   const [showBlogs] = useState(false);
 
   useEffect(() => {
+    // 1. Read cached exams for instant 0ms load
+    try {
+      const cached = localStorage.getItem('cbtrank_cached_exams');
+      if (cached) {
+        const parsed = JSON.parse(cached) as Exam[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setExams(parsed);
+          setLoading(false);
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fetch fresh exams in background
     async function fetchExams() {
       try {
         const res = await fetch(`${WORKER_BASE}/exams`);
@@ -82,6 +95,10 @@ export default function HomePage() {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
             setExams(data);
+            try {
+              localStorage.getItem('cbtrank_cached_exams');
+              localStorage.setItem('cbtrank_cached_exams', JSON.stringify(data));
+            } catch (e) {}
           }
         }
       } catch (e) {}
