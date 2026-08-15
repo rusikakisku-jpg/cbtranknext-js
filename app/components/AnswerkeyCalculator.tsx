@@ -517,6 +517,13 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
 
+    const isCbexams = isCbexamsHost(urlVal);
+    if (isCbexams) {
+      logInvalidUrl(urlVal);
+      showToast('CBExams server under maintenance. Please try again after some time.');
+      return;
+    }
+
     setSubmitting(true);
     setBtnText('Processing...');
 
