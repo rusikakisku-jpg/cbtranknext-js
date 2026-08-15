@@ -198,6 +198,8 @@ export default function ResultPage() {
   const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
   // Portal modal state — managed separately, independent of resultData
   const [showTelegramModal, setShowTelegramModal] = useState(false);
+  // Track if we need to redirect after modal is dismissed
+  const pendingRedirect = useRef(false);
 
   function handleTelegramJoinClick() {
     try {
@@ -205,20 +207,16 @@ export default function ResultPage() {
       sessionStorage.removeItem('cbtrank_show_tg_popup');
     } catch (e) {}
     setShowTelegramModal(false);
+    // If no result data was found, redirect home after modal dismiss
+    if (pendingRedirect.current) {
+      pendingRedirect.current = false;
+      router.push('/');
+    }
   }
 
   // ── Telegram Portal Modal: runs independently, does NOT depend on resultData ──
-  useEffect(() => {
-    try {
-      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
-      const now = Date.now();
-      const twoMinutesMs = 2 * 60 * 1000;
-      const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
-      if (isCooldownElapsed) {
-        setShowTelegramModal(true);
-      }
-    } catch (e) {}
-  }, []);
+  // NOTE: When no result data, this is now handled inside the data useEffect above
+  // to avoid race conditions with router.push redirect.
 
   // ── Main data loading useEffect ──
   useEffect(() => {
@@ -227,7 +225,19 @@ export default function ResultPage() {
       const rawForm = sessionStorage.getItem('cbtrank_form_data');
 
       if (!rawResult) {
-        router.push('/');
+        // Check if Telegram modal should show before redirecting
+        const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+        const now = Date.now();
+        const twoMinutesMs = 2 * 60 * 1000;
+        const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+        if (isCooldownElapsed) {
+          // Show modal first — redirect happens when user clicks Join
+          pendingRedirect.current = true;
+          setShowTelegramModal(true);
+        } else {
+          // Cooldown active, redirect immediately
+          router.push('/');
+        }
         return;
       }
 
