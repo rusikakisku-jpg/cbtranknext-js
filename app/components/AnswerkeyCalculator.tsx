@@ -488,17 +488,25 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examSlug]);
 
-  function triggerTelegramPopupCheck() {
+  function shouldShowTelegramModal(): boolean {
     try {
       const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
       const now = Date.now();
-      const twoMinutesMs = 2 * 60 * 1000; // 2 minutes cooldown
+      const twoMinutesMs = 2 * 60 * 1000;
 
       if (!lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs) {
-        localStorage.setItem('cbtrank_tg_popup_last_time', now.toString());
-        setShowTelegramModal(true);
+        return true;
       }
     } catch (e) {}
+    return false;
+  }
+
+  function handleTelegramJoinClick() {
+    try {
+      localStorage.setItem('cbtrank_tg_popup_last_time', Date.now().toString());
+    } catch (e) {}
+    setShowTelegramModal(false);
+    router.push('/result');
   }
 
   function logInvalidUrl(url: string) {
@@ -561,7 +569,6 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     setSubmitting(true);
     setBtnText('Processing...');
-    triggerTelegramPopupCheck();
 
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
@@ -665,7 +672,11 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       }));
     } catch (e) {}
 
-    router.push('/result');
+    if (shouldShowTelegramModal()) {
+      setShowTelegramModal(true);
+    } else {
+      router.push('/result');
+    }
   }
 
   return (
@@ -927,7 +938,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
                 href="https://t.me/cbtrank"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => setShowTelegramModal(false)}
+                onClick={handleTelegramJoinClick}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
