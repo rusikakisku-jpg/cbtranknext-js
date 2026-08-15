@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { BLOG_POSTS } from '../data/blogs';
+import { fetchBlogsFromCloudflareD1, BlogPost } from '../data/blogs';
 
 export const metadata: Metadata = {
   title: 'Latest Exam Updates & Rank Analysis Articles | CBT RANK Blog',
@@ -23,17 +23,19 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
   const resolvedParams = searchParams ? await searchParams : {};
   const query = resolvedParams?.q || '';
 
+  const allPosts = await fetchBlogsFromCloudflareD1();
+
   const filteredPosts = query
-    ? BLOG_POSTS.filter(p =>
+    ? allPosts.filter(p =>
         p.title.toLowerCase().includes(query.toLowerCase()) ||
         p.excerpt.toLowerCase().includes(query.toLowerCase()) ||
         p.category.toLowerCase().includes(query.toLowerCase())
       )
-    : BLOG_POSTS;
+    : allPosts;
 
-  const categories = Array.from(new Set(BLOG_POSTS.map(p => p.category))).map(cat => ({
+  const categories = Array.from(new Set(allPosts.map(p => p.category))).map(cat => ({
     category: cat,
-    count: BLOG_POSTS.filter(p => p.category === cat).length,
+    count: allPosts.filter(p => p.category === cat).length,
   }));
 
   return (
@@ -71,7 +73,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
                       </h2>
 
                       <div className="entry-meta">
-                        <span className="byline">by Team CBTRANK</span>
+                        <span className="byline">by {post.author_name || 'Team CBTRANK'}</span>
                         <span className="posted-on">
                           &bull; {post.date}
                         </span>
@@ -162,7 +164,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
             <div className="widget widget-popular">
               <h3 className="widget-title">Recent Posts</h3>
               <ul className="popular-posts-list">
-                {BLOG_POSTS.slice(0, 5).map((post) => (
+                {allPosts.slice(0, 5).map((post) => (
                   <li key={post.slug} className="popular-item">
                     <div className="popular-info">
                       <Link href={`/blog/${post.slug}`} className="popular-title-link">
