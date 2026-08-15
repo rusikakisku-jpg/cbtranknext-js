@@ -185,6 +185,10 @@ interface FormData {
   marks_wrong?: number;
 }
 
+// ── CONFIGURATION: Control Telegram Dialogue visibility ──
+// Set to `true` to show the Telegram modal dialogue on /result page, or `false` to hide it completely.
+const ENABLE_TELEGRAM_DIALOG = true;
+
 export default function ResultPage() {
   const router = useRouter();
   const breakdownRef = useRef<HTMLDivElement>(null);
@@ -221,14 +225,17 @@ export default function ResultPage() {
 
       if (!rawResult) {
         // No result data — user visited /result directly (not from /answerkey)
-        // Show modal first if cooldown elapsed, then redirect
-        const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
-        const now = Date.now();
-        const twoMinutesMs = 2 * 60 * 1000;
-        const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
-        if (isCooldownElapsed) {
-          pendingRedirect.current = true;
-          setShowTelegramModal(true);
+        if (ENABLE_TELEGRAM_DIALOG) {
+          const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+          const now = Date.now();
+          const twoMinutesMs = 2 * 60 * 1000;
+          const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+          if (isCooldownElapsed) {
+            pendingRedirect.current = true;
+            setShowTelegramModal(true);
+          } else {
+            router.push('/');
+          }
         } else {
           router.push('/');
         }
@@ -261,22 +268,21 @@ export default function ResultPage() {
       setFormData(form);
 
       // ── Modal trigger when result data IS found ──
-      // If cbtrank_show_tg_popup flag is set (user came fresh from /answerkey),
-      // ALWAYS show modal regardless of cooldown.
-      // Otherwise use 2-min cooldown for repeat visits.
-      const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
-      if (showFlag === 'true') {
-        // Fresh calculation from /answerkey — always show
-        sessionStorage.removeItem('cbtrank_show_tg_popup');
-        setShowTelegramModal(true);
-      } else {
-        // Direct /result visit — use cooldown
-        const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
-        const now = Date.now();
-        const twoMinutesMs = 2 * 60 * 1000;
-        const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
-        if (isCooldownElapsed) {
+      if (ENABLE_TELEGRAM_DIALOG) {
+        const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
+        if (showFlag === 'true') {
+          // Fresh calculation from /answerkey — always show
+          sessionStorage.removeItem('cbtrank_show_tg_popup');
           setShowTelegramModal(true);
+        } else {
+          // Direct /result visit — use cooldown
+          const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+          const now = Date.now();
+          const twoMinutesMs = 2 * 60 * 1000;
+          const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+          if (isCooldownElapsed) {
+            setShowTelegramModal(true);
+          }
         }
       }
     } catch (e) {
@@ -334,8 +340,8 @@ export default function ResultPage() {
   }
 
   if (!resultData) {
-    // Even when resultData is loading, render the Portal Modal if needed
-    return showTelegramModal ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
+    // Even when resultData is loading, render the Portal Modal if enabled
+    return (ENABLE_TELEGRAM_DIALOG && showTelegramModal) ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
   }
 
   const { raw, totalRight, totalWrong, totalUnattempted } = calcMarks(resultData.sections, rightVal, wrongVal);
@@ -383,8 +389,8 @@ export default function ResultPage() {
 
   return (
     <>
-      {/* Telegram Portal Modal — rendered via createPortal into document.body */}
-      {showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
+      {/* Telegram Portal Modal — rendered via createPortal into document.body when enabled */}
+      {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
 
       <main>
       <div className="result-main">
