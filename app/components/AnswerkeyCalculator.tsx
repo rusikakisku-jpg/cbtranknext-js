@@ -504,6 +504,28 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     }).catch(() => {});
   }
 
+  function logUserRank(data: {
+    user_id: string;
+    url: string;
+    exam_slug: string;
+    paper_language: string;
+    url_hash?: string;
+    total_marks: number;
+    exam_date: string;
+    exam_time: string;
+    exam_id: string;
+    location: string;
+    gender: string;
+    category: string;
+    domain: string;
+  }) {
+    fetch(`${WORKER_BASE}/user_ranks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).catch(() => {});
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
@@ -528,6 +550,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     setBtnText('Processing...');
 
     let parsedResult: ParseResult | null = null;
+    let rawSmartData: any = null;
 
     // Direct JSON extraction from https://digialm.quickgift.in/api_v7.php
     try {
@@ -536,6 +559,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       if (smartRes.ok) {
         const smartData = await smartRes.json();
         if (smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
+          rawSmartData = smartData;
           parsedResult = normalizeSmartApiResponse(smartData, urlVal);
         } else if (smartData && (smartData.success === false || smartData.error)) {
           logInvalidUrl(urlVal);
@@ -567,13 +591,40 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       return;
     }
 
-    // Safely log valid URL into DB before displaying result
-    await logValidUrl(urlVal);
+    // Safely log valid URL into DB asynchronously without blocking UI transition
+    logValidUrl(urlVal);
+
+    // Safely log candidate ranking data into user_ranks table asynchronously
+    try {
+      const domainHost = new URL(urlVal).hostname;
+      const userRoll = (rawSmartData?.exam_info?.user_id) || (parsedResult.rollNo) || (parsedResult.candidateName) || '';
+      const examPaperCode = (rawSmartData?.exam_info?.exam_id) || '';
+      const testExamDate = (rawSmartData?.exam_info?.exam_date) || (parsedResult.testDate) || '';
+      const testExamTime = (rawSmartData?.exam_info?.exam_time) || (parsedResult.testTime) || '';
+      const rawScoreVal = (parsedResult.correctCount * 1.0) - (parsedResult.wrongCount * 0.25);
+
+      logUserRank({
+        user_id: userRoll,
+        url: urlVal,
+        exam_slug: examSlug || 'general',
+        paper_language: formData.paper_language || 'English',
+        url_hash: '',
+        total_marks: rawScoreVal,
+        exam_date: testExamDate,
+        exam_time: testExamTime,
+        exam_id: examPaperCode,
+        location: state || '',
+        gender: gender || '',
+        category: category || '',
+        domain: domainHost
+      });
+    } catch (e) {}
 
     const overallRank = Math.floor(Math.random() * 45) + 4;
     const shiftRank = Math.max(1, Math.floor(overallRank / 3.2));
     const categoryRank = Math.max(1, Math.floor(overallRank / 2.1));
 
+    const isDigialm = isDigialmHost(urlVal);
     const providerType = isDigialm ? 'Digialm' : (isCbexams ? 'CBExams' : 'Official Portal');
 
     const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
