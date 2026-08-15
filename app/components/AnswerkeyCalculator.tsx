@@ -529,9 +529,9 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     let parsedResult: ParseResult | null = null;
 
-    // Direct JSON extraction from https://digialm.quickgift.in/api_v6.php
+    // Direct JSON extraction from https://digialm.quickgift.in/api_v7.php
     try {
-      const smartApiUrl = `https://digialm.quickgift.in/api_v6.php?url=${encodeURIComponent(urlVal)}`;
+      const smartApiUrl = `https://digialm.quickgift.in/api_v7.php?url=${encodeURIComponent(urlVal)}`;
       const smartRes = await fetch(smartApiUrl);
       if (smartRes.ok) {
         const smartData = await smartRes.json();
