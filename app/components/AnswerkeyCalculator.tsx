@@ -488,26 +488,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examSlug]);
 
-  function shouldShowTelegramModal(): boolean {
-    try {
-      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
-      const now = Date.now();
-      const twoMinutesMs = 2 * 60 * 1000;
 
-      if (!lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs) {
-        return true;
-      }
-    } catch (e) {}
-    return false;
-  }
-
-  function handleTelegramJoinClick() {
-    try {
-      localStorage.setItem('cbtrank_tg_popup_last_time', Date.now().toString());
-    } catch (e) {}
-    setShowTelegramModal(false);
-    router.push('/result');
-  }
 
   function logInvalidUrl(url: string) {
     fetch(`${WORKER_BASE}/invalid_answerkey_urls`, {
