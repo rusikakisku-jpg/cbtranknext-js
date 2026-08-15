@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -71,6 +71,7 @@ interface FormData {
 
 export default function ResultPage() {
   const router = useRouter();
+  const breakdownRef = useRef<HTMLDivElement>(null);
   const [resultData, setResultData] = useState<ResultData | null>(null);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [rightVal, setRightVal] = useState(1.0);
@@ -117,6 +118,40 @@ export default function ResultPage() {
       router.push('/');
     }
   }, [router]);
+
+  function handleStatusFilterChange(st: string, e: React.MouseEvent) {
+    e.preventDefault();
+    const currentScrollY = window.scrollY;
+    const topPos = breakdownRef.current ? breakdownRef.current.getBoundingClientRect().top + window.scrollY : null;
+    
+    setActiveStatusFilter(st);
+    
+    // Lock scroll position to prevent page jump
+    requestAnimationFrame(() => {
+      if (topPos !== null && currentScrollY > topPos) {
+        window.scrollTo({ top: topPos - 20, behavior: 'instant' as ScrollBehavior });
+      } else {
+        window.scrollTo({ top: currentScrollY, behavior: 'instant' as ScrollBehavior });
+      }
+    });
+  }
+
+  function handleSecTabChange(secName: string, e: React.MouseEvent) {
+    e.preventDefault();
+    const currentScrollY = window.scrollY;
+    const topPos = breakdownRef.current ? breakdownRef.current.getBoundingClientRect().top + window.scrollY : null;
+    
+    setActiveSecTab(secName);
+    
+    // Lock scroll position to prevent page jump
+    requestAnimationFrame(() => {
+      if (topPos !== null && currentScrollY > topPos) {
+        window.scrollTo({ top: topPos - 20, behavior: 'instant' as ScrollBehavior });
+      } else {
+        window.scrollTo({ top: currentScrollY, behavior: 'instant' as ScrollBehavior });
+      }
+    });
+  }
 
   function calcMarks(sections: Section[], rightMark: number, wrongMark: number) {
     let totalRight = 0, totalWrong = 0, totalUnattempted = 0;
@@ -371,7 +406,7 @@ export default function ResultPage() {
 
           {/* 4. Section-Wise Question Breakdown & Key Analysis */}
           {allQuestions.length > 0 && (
-            <div style={{ position: 'relative', zIndex: 1, marginTop: '24px', padding: '16px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <div ref={breakdownRef} id="question-breakdown-section" style={{ position: 'relative', zIndex: 1, marginTop: '24px', padding: '16px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               
               <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
                 <div>
@@ -389,10 +424,7 @@ export default function ResultPage() {
                     <button
                       key={st}
                       type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setActiveStatusFilter(st);
-                      }}
+                      onClick={(e) => handleStatusFilterChange(st, e)}
                       style={{
                         padding: '4px 10px',
                         borderRadius: '20px',
@@ -421,10 +453,7 @@ export default function ResultPage() {
                 <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveSecTab('ALL');
-                    }}
+                    onClick={(e) => handleSecTabChange('ALL', e)}
                     style={{
                       padding: '6px 14px',
                       borderRadius: '8px',
@@ -443,10 +472,7 @@ export default function ResultPage() {
                     <button
                       key={sec.name}
                       type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setActiveSecTab(sec.name);
-                      }}
+                      onClick={(e) => handleSecTabChange(sec.name, e)}
                       style={{
                         padding: '6px 14px',
                         borderRadius: '8px',
