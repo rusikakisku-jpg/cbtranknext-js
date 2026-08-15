@@ -37,8 +37,8 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
   }));
 
   return (
-    <main style={{ minHeight: '80vh', padding: '16px 0 48px' }}>
-      <div className="container" style={{ width: 'min(94%, 1140px)', margin: '0 auto' }}>
+    <main style={{ minHeight: '80vh', padding: '12px 0 36px' }}>
+      <div className="blog-main-container">
         <div className="blog-layout">
           
           {/* Main Content Area */}

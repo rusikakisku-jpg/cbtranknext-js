@@ -2568,3 +2568,21 @@ footer {
   background: #f8fafc;
   border-color: #94a3b8;
 }
+
+/* Single Unified Main Container for Blog */
+.blog-main-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  width: min(96%, 1160px);
+  margin: 24px auto;
+  padding: 28px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+@media only screen and (max-width: 640px) {
+  .blog-main-container {
+    padding: 16px 12px;
+    margin: 12px auto;
+    border-radius: 8px;
+  }
+}
