@@ -187,7 +187,7 @@ interface FormData {
 
 // ── CONFIGURATION: Control Telegram Dialogue visibility ──
 // Set to `true` to show the Telegram modal dialogue on /result page, or `false` to hide it completely.
-const ENABLE_TELEGRAM_DIALOG = true;
+const ENABLE_TELEGRAM_DIALOG = false;
 
 export default function ResultPage() {
   const router = useRouter();
