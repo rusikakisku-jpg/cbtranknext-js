@@ -214,28 +214,23 @@ export default function ResultPage() {
     }
   }
 
-  // ── Telegram Portal Modal: runs independently, does NOT depend on resultData ──
-  // NOTE: When no result data, this is now handled inside the data useEffect above
-  // to avoid race conditions with router.push redirect.
-
-  // ── Main data loading useEffect ──
+  // ── Main data loading + Modal trigger useEffect ──
   useEffect(() => {
     try {
       const rawResult = sessionStorage.getItem('cbtrank_result_data');
       const rawForm = sessionStorage.getItem('cbtrank_form_data');
 
       if (!rawResult) {
-        // Check if Telegram modal should show before redirecting
+        // No result data — user visited /result directly (not from /answerkey)
+        // Show modal first if cooldown elapsed, then redirect
         const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
         const now = Date.now();
         const twoMinutesMs = 2 * 60 * 1000;
         const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
         if (isCooldownElapsed) {
-          // Show modal first — redirect happens when user clicks Join
           pendingRedirect.current = true;
           setShowTelegramModal(true);
         } else {
-          // Cooldown active, redirect immediately
           router.push('/');
         }
         return;
@@ -265,6 +260,26 @@ export default function ResultPage() {
 
       setResultData(result);
       setFormData(form);
+
+      // ── Modal trigger when result data IS found ──
+      // If cbtrank_show_tg_popup flag is set (user came fresh from /answerkey),
+      // ALWAYS show modal regardless of cooldown.
+      // Otherwise use 2-min cooldown for repeat visits.
+      const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
+      if (showFlag === 'true') {
+        // Fresh calculation from /answerkey — always show
+        sessionStorage.removeItem('cbtrank_show_tg_popup');
+        setShowTelegramModal(true);
+      } else {
+        // Direct /result visit — use cooldown
+        const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+        const now = Date.now();
+        const twoMinutesMs = 2 * 60 * 1000;
+        const isCooldownElapsed = !lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs;
+        if (isCooldownElapsed) {
+          setShowTelegramModal(true);
+        }
+      }
     } catch (e) {
       router.push('/');
     }
