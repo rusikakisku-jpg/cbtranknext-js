@@ -88,7 +88,10 @@ export default function ResultPage() {
       const twoMinutesMs = 2 * 60 * 1000;
 
       if (!lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs) {
-        setShowTelegramModal(true);
+        const timer = setTimeout(() => {
+          setShowTelegramModal(true);
+        }, 400);
+        return () => clearTimeout(timer);
       }
     } catch (e) {}
   }, []);
