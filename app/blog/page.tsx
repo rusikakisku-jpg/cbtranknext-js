@@ -13,76 +13,188 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogIndexPage() {
+interface BlogPageProps {
+  searchParams?: Promise<{
+    q?: string;
+  }>;
+}
+
+export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const query = resolvedParams?.q || '';
+
+  const filteredPosts = query
+    ? BLOG_POSTS.filter(p =>
+        p.title.toLowerCase().includes(query.toLowerCase()) ||
+        p.excerpt.toLowerCase().includes(query.toLowerCase()) ||
+        p.category.toLowerCase().includes(query.toLowerCase())
+      )
+    : BLOG_POSTS;
+
+  const categories = Array.from(new Set(BLOG_POSTS.map(p => p.category))).map(cat => ({
+    category: cat,
+    count: BLOG_POSTS.filter(p => p.category === cat).length,
+  }));
+
   return (
-    <main>
-      <div className="result-main" style={{ maxWidth: '1000px', margin: '0 auto', padding: '16px 16px 48px' }}>
-        
-        {/* Page Header */}
-        <div style={{ marginBottom: '28px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a', marginBottom: '8px', letterSpacing: '-0.02em' }}>
-            Latest Exam Updates &amp; Analysis
-          </h1>
-          <p style={{ fontSize: '0.92rem', color: '#64748b', margin: 0 }}>
-            Stay updated with normalized mark calculations, shift trends, and category cut-offs
-          </p>
-        </div>
+    <main style={{ minHeight: '80vh', padding: '16px 0 48px' }}>
+      <div className="container" style={{ width: 'min(94%, 1140px)', margin: '0 auto' }}>
+        <div className="blog-layout">
+          
+          {/* Main Content Area */}
+          <div className="content-area">
+            <div className="section-head">
+              <h2 className="section-title">
+                {query ? `Search Results for "${query}"` : 'All Posts'}
+              </h2>
+            </div>
 
-        {/* Blog Grid */}
-        <div className="blog-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-          {BLOG_POSTS.map((post) => (
-            <article key={post.slug} className="blog-card" style={{ height: '100%', justifyContent: 'space-between' }}>
-              <div className="blog-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span style={{
-                    fontSize: '0.68rem',
-                    fontWeight: 800,
-                    color: '#2563eb',
-                    background: '#eff6ff',
-                    padding: '3px 10px',
-                    borderRadius: '999px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em'
-                  }}>
-                    {post.category}
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>
-                    {post.readTime}
-                  </span>
-                </div>
-
-                <h2 className="blog-title" style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', marginBottom: '10px', lineHeight: 1.4 }}>
-                  <Link href={`/blog/${post.slug}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                    {post.title}
-                  </Link>
-                </h2>
-
-                <p className="blog-desc" style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.55, flexGrow: 1, marginBottom: '16px' }}>
-                  {post.excerpt}
+            <div id="blog-entries">
+              {filteredPosts.length === 0 ? (
+                <p style={{ padding: '24px 0', color: '#64748b', fontSize: '0.9rem' }}>
+                  No posts found matching your search.
                 </p>
+              ) : (
+                filteredPosts.map((post) => (
+                  <article key={post.slug} className="hm-entry">
+                    <div className="entry-body" style={{ padding: '0 4px' }}>
+                      <div className="post-categories">
+                        <Link href="/blog">
+                          {post.category}
+                        </Link>
+                      </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
-                  <span className="blog-date" style={{ margin: 0, padding: 0, border: 'none' }}>
-                    {post.date}
-                  </span>
+                      <h2 className="entry-title">
+                        <Link href={`/blog/${post.slug}`}>
+                          {post.title}
+                        </Link>
+                      </h2>
 
-                  <Link href={`/blog/${post.slug}`} style={{
-                    fontSize: '0.78rem',
-                    fontWeight: 800,
-                    color: '#2563eb',
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    Read Article &rarr;
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
+                      <div className="entry-meta">
+                        <span className="byline">by Team CBTRANK</span>
+                        <span className="posted-on">
+                          &bull; {post.date}
+                        </span>
+                        <span>
+                          &bull; {post.readTime}
+                        </span>
+                      </div>
+
+                      <p className="entry-excerpt">
+                        {post.excerpt}
+                      </p>
+
+                      <div>
+                        <Link href={`/blog/${post.slug}`} className="read-more-link">
+                          Read More &rarr;
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="sidebar">
+            
+            {/* Answer Key Calculator Button Widget */}
+            <div className="widget widget-calc">
+              <Link
+                href="/answerkey"
+                className="calc-btn-link"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  width: '100%',
+                  padding: '14px 20px',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  fontSize: '0.95rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)',
+                  transition: 'all 0.2s ease',
+                  letterSpacing: '0.01em'
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="4" y="2" width="16" height="20" rx="2"/>
+                  <line x1="8" y1="6" x2="16" y2="6"/>
+                  <line x1="16" y1="14" x2="16" y2="18"/>
+                  <path d="M16 10h.01"/>
+                  <path d="M12 10h.01"/>
+                  <path d="M8 10h.01"/>
+                  <path d="M12 14h.01"/>
+                  <path d="M8 14h.01"/>
+                  <path d="M12 18h.01"/>
+                  <path d="M8 18h.01"/>
+                </svg>
+                Answer Key Calculator
+              </Link>
+            </div>
+
+            {/* Search Widget */}
+            <div className="widget widget-search">
+              <h3 className="widget-title">Search</h3>
+              <form action="/blog" method="GET" className="search-form">
+                <input
+                  type="search"
+                  name="q"
+                  className="search-input"
+                  placeholder="Search articles..."
+                  defaultValue={query}
+                />
+                <button type="submit" className="search-btn" aria-label="Submit Search">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            {/* Recent Posts Widget */}
+            <div className="widget widget-popular">
+              <h3 className="widget-title">Recent Posts</h3>
+              <ul className="popular-posts-list">
+                {BLOG_POSTS.slice(0, 5).map((post) => (
+                  <li key={post.slug} className="popular-item">
+                    <div className="popular-info">
+                      <Link href={`/blog/${post.slug}`} className="popular-title-link">
+                        {post.title}
+                      </Link>
+                      <span className="popular-date">{post.date}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Categories Widget */}
+            <div className="widget widget-categories">
+              <h3 className="widget-title">Categories</h3>
+              <ul className="cat-list">
+                {categories.map((cat) => (
+                  <li key={cat.category} className="cat-item">
+                    <Link href="/blog" className="cat-link">
+                      <span>{cat.category}</span>
+                    </Link>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '999px' }}>
+                      {cat.count}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </aside>
+
         </div>
-
       </div>
     </main>
   );
