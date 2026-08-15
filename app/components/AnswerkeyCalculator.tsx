@@ -485,11 +485,19 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   }, [examSlug]);
 
   function logInvalidUrl(url: string) {
-    fetch(`${WORKER_BASE}/invalid_answerkey_urls?url=${encodeURIComponent(url)}&action=insert`).catch(() => {});
+    fetch(`${WORKER_BASE}/invalid_answerkey_urls`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    }).catch(() => {});
   }
 
   function logValidUrl(url: string) {
-    fetch(`${WORKER_BASE}/valid_answerkey_urls?url=${encodeURIComponent(url)}&action=insert`).catch(() => {});
+    fetch(`${WORKER_BASE}/valid_answerkey_urls`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    }).catch(() => {});
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -540,18 +548,21 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
         if (smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
           parsedResult = normalizeSmartApiResponse(smartData, urlVal);
         } else if (smartData && (smartData.success === false || smartData.error)) {
+          logInvalidUrl(urlVal);
           showToast(smartData.error || 'Failed to fetch scorecard. Please try again.');
           setSubmitting(false);
           setBtnText('Calculate Marks & Rank');
           return;
         }
       } else {
+        logInvalidUrl(urlVal);
         showToast('Server response error. Please click Retry.');
         setSubmitting(false);
         setBtnText('Calculate Marks & Rank');
         return;
       }
     } catch (err) {
+      logInvalidUrl(urlVal);
       showToast('Network error while connecting to server. Please try again.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
@@ -559,6 +570,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     }
 
     if (!parsedResult) {
+      logInvalidUrl(urlVal);
       showToast('No data found or Invalid Answer Key URL. Please check and retry.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
