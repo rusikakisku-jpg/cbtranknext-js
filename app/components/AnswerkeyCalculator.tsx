@@ -429,8 +429,17 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   }
 
   async function loadDynamicLanguages() {
-    setLangLoading(true);
-    setLanguages([]);  // clear first — no static fallback
+    try {
+      const cached = localStorage.getItem('cbtrank_cached_languages');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setLanguages(parsed);
+          setLangLoading(false);
+        }
+      }
+    } catch (e) {}
+
     try {
       const res = await fetch(`${WORKER_BASE}/languages`);
       if (res.ok) {
@@ -441,10 +450,12 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
           const firstKey = Object.keys(data)[0];
           if (Array.isArray(data[firstKey])) list = data[firstKey];
         }
-        setLanguages(list.map((l: string | { name?: string }) => typeof l === 'string' ? l : (l.name || '')));
+        const mapped = list.map((l: string | { name?: string }) => typeof l === 'string' ? l : (l.name || ''));
+        setLanguages(mapped);
+        try { localStorage.setItem('cbtrank_cached_languages', JSON.stringify(mapped)); } catch (e) {}
       }
     } catch (e) {
-      setLanguages([]);  // API failed — no fallback
+      // API failed — keep current state or clear if empty
     } finally {
       setLangLoading(false);
     }
