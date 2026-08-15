@@ -348,10 +348,37 @@ export default function ResultPage() {
   const effectiveCommunity = authenticCommunityRow ? authenticCommunityRow.value : (formData?.category || 'UR');
 
   const allQuestions = resultData.questionsSummary || [];
-  const filteredQuestions = allQuestions.filter(q => {
-    const matchesSec = activeSecTab === 'ALL' || q.section === activeSecTab;
-    const matchesStatus = activeStatusFilter === 'ALL' || q.status === activeStatusFilter;
-    return matchesSec && matchesStatus;
+
+  // Find active section object from resultData.sections if specific section tab is selected
+  const selectedSecObj = activeSecTab !== 'ALL'
+    ? resultData.sections.find(s => s.name === activeSecTab || s.name.trim().toLowerCase() === activeSecTab.trim().toLowerCase())
+    : null;
+
+  // Filter questions belonging to the active section tab
+  const currentSecQuestions = activeSecTab === 'ALL'
+    ? allQuestions
+    : allQuestions.filter(q => (q.section || '').trim().toLowerCase() === activeSecTab.trim().toLowerCase());
+
+  // Dynamic pill counts for active section
+  const pillTotalCount = activeSecTab === 'ALL'
+    ? allQuestions.length
+    : (selectedSecObj ? selectedSecObj.total : currentSecQuestions.length);
+
+  const pillCorrectCount = activeSecTab === 'ALL'
+    ? totalRight
+    : (selectedSecObj ? selectedSecObj.correct : currentSecQuestions.filter(q => q.status === 'Correct').length);
+
+  const pillWrongCount = activeSecTab === 'ALL'
+    ? totalWrong
+    : (selectedSecObj ? selectedSecObj.wrong : currentSecQuestions.filter(q => q.status === 'Wrong').length);
+
+  const pillUnattemptedCount = activeSecTab === 'ALL'
+    ? totalUnattempted
+    : (selectedSecObj ? selectedSecObj.unattempted : currentSecQuestions.filter(q => q.status === 'Unattempted').length);
+
+  // Final question breakdown list filtered by section and status
+  const filteredQuestions = currentSecQuestions.filter(q => {
+    return activeStatusFilter === 'ALL' || q.status === activeStatusFilter;
   });
 
   return (
@@ -627,10 +654,10 @@ export default function ResultPage() {
                         color: activeStatusFilter === st ? '#ffffff' : '#475569'
                       }}
                     >
-                      {st === 'ALL' ? `All (${allQuestions.length})` : 
-                       st === 'Correct' ? `Correct (${totalRight})` : 
-                       st === 'Wrong' ? `Wrong (${totalWrong})` : 
-                       `Unattempted (${totalUnattempted})`}
+                      {st === 'ALL' ? `All (${pillTotalCount})` : 
+                       st === 'Correct' ? `Correct (${pillCorrectCount})` : 
+                       st === 'Wrong' ? `Wrong (${pillWrongCount})` : 
+                       `Unattempted (${pillUnattemptedCount})`}
                     </button>
                   ))}
                 </div>
