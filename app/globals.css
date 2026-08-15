@@ -1871,169 +1871,231 @@ footer {
 }
 
 /* ============================================================
-   SEC-TABLE — STACKED CARD LAYOUT ON MOBILE
-   No horizontal scroll — each row becomes a card.
-   CSS-only: no JSX/HTML changes needed.
-   Applies at ≤ 600px
+   EXACT SCREENSHOT LAYOUT MATCH FOR MOBILE RESULT PAGE (<=640px)
 ============================================================ */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
 
-  /* Remove horizontal scroll wrapper */
-  .table-responsive {
-    overflow-x: visible !important;
-    border: none !important;
-    border-radius: 0 !important;
-    background: transparent !important;
+  /* 1. Candidate Info Card — Table-style key-value list with blue border */
+  .info-section-header {
+    padding-bottom: 4px !important;
   }
 
-  /* Table itself - block layout */
-  .sec-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  /* Hide desktop column headers */
-  .sec-table thead {
-    display: none;
-  }
-
-  /* tbody and tfoot become block */
-  .sec-table tbody,
-  .sec-table tfoot {
-    display: block;
-    width: 100%;
-  }
-
-  /* ── TBODY rows: each section = a card ── */
-  .sec-table tbody tr {
-    display: block;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
-  }
-
-  /* Each td = a label-value row inside the card */
-  .sec-table tbody td {
+  .metadata-grid#metadata-grid {
     display: flex !important;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 14px !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-    font-size: 0.82rem !important;
-    font-weight: 700;
-    white-space: normal !important;
+    flex-direction: column !important;
+    border: 2px solid #2563eb !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+    background: #ffffff !important;
+    margin-top: 10px !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08) !important;
   }
 
-  .sec-table tbody td:last-child {
+  .metadata-grid .meta-box {
+    display: grid !important;
+    grid-template-columns: 125px 1fr !important;
+    padding: 0 !important;
+    border: none !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    margin: 0 !important;
+  }
+
+  .metadata-grid .meta-box:last-child {
     border-bottom: none !important;
   }
 
-  /* Section name td (1st) — card header */
-  .sec-table tbody td:nth-child(1) {
-    background: linear-gradient(135deg, #eff6ff 0%, #f0f4ff 100%);
-    font-size: 0.88rem !important;
+  .metadata-grid .meta-box label {
+    background: #f8fafc !important;
+    color: #334155 !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    padding: 9px 10px !important;
+    border-right: 1px solid #cbd5e1 !important;
+    display: flex !important;
+    align-items: center !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  .metadata-grid .meta-box span {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    padding: 9px 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.35 !important;
+  }
+
+  .metadata-grid .meta-box span.mono {
+    font-family: monospace !important;
+    color: #0044cc !important;
+  }
+
+  /* 2. Recalculation Bar — Centered card with blue border */
+  .recalc-header {
+    justify-content: center !important;
+    margin-top: 14px !important;
+  }
+
+  .recalc-header h3 {
+    display: none !important;
+  }
+
+  .recalc-controls {
+    width: 100 !important;
+    border: 2px solid #2563eb !important;
+    border-radius: 14px !important;
+    background: #f0f7ff !important;
+    padding: 10px 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 16px !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06) !important;
+  }
+
+  .recalc-controls label {
+    font-size: 0.84rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+  }
+
+  .recalc-controls input#right-val-input {
+    width: 54px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    color: #0f172a !important;
     font-weight: 900 !important;
-    color: #1e40af !important;
-    border-bottom: 2px solid #bfdbfe !important;
-    padding: 10px 14px !important;
-    justify-content: flex-start !important;
-    gap: 8px;
+    font-size: 0.85rem !important;
+    padding: 4px 6px !important;
   }
 
-  /* Book icon before section name */
-  .sec-table tbody td:nth-child(1)::before {
-    content: "📋";
-    font-size: 0.88rem;
-    flex-shrink: 0;
+  .recalc-controls input#wrong-val-input {
+    width: 54px !important;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    color: #dc2626 !important;
+    font-weight: 900 !important;
+    font-size: 0.85rem !important;
+    padding: 4px 6px !important;
   }
 
-  /* Labels for columns 2-7 via ::before */
-  .sec-table tbody td:nth-child(2)::before { content: "Total Questions"; }
-  .sec-table tbody td:nth-child(3)::before { content: "Attempted"; }
-  .sec-table tbody td:nth-child(4)::before { content: "Unattempted"; }
-  .sec-table tbody td:nth-child(5)::before { content: "Correct ✓"; }
-  .sec-table tbody td:nth-child(6)::before { content: "Wrong ✗"; }
-  .sec-table tbody td:nth-child(7)::before { content: "Marks"; }
-
-  /* Label style */
-  .sec-table tbody td:nth-child(2)::before,
-  .sec-table tbody td:nth-child(3)::before,
-  .sec-table tbody td:nth-child(4)::before,
-  .sec-table tbody td:nth-child(5)::before,
-  .sec-table tbody td:nth-child(6)::before,
-  .sec-table tbody td:nth-child(7)::before {
-    font-size: 0.68rem;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  /* 3. Performance Table — Solid Blue Header (Section | Question | R | W | Marks) */
+  .table-responsive {
+    overflow-x: visible !important;
+    border: 2px solid #2563eb !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    margin-top: 12px !important;
+    background: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08) !important;
   }
 
-  /* ── TFOOT row: TOTAL summary card ── */
-  .sec-table tfoot tr {
-    display: block;
-    background: #f0f4ff;
-    border: 2px solid #bfdbfe;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
-    margin-top: 4px;
+  .sec-table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .sec-table thead {
+    display: table-header-group !important;
+  }
+
+  .sec-table tbody {
+    display: table-row-group !important;
+  }
+
+  .sec-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .sec-table tr {
+    display: table-row !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+
+  .sec-table th,
+  .sec-table td {
+    display: table-cell !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    border-right: 1px solid #cbd5e1 !important;
+    padding: 9px 6px !important;
+    font-size: 0.8rem !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  .sec-table th:last-child,
+  .sec-table td:last-child {
+    border-right: none !important;
+  }
+
+  .sec-table th {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 0.76rem !important;
+    border-bottom: 2px solid #1d4ed8 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  /* Column 1: Section Name */
+  .sec-table th:nth-child(1),
+  .sec-table td:nth-child(1) {
+    text-align: left !important;
+    padding-left: 10px !important;
+    width: 38% !important;
+  }
+
+  /* Hide Attempted (col 3) & Unattempted (col 4) on mobile to match 5-col screenshot */
+  .sec-table th:nth-child(3),
+  .sec-table td:nth-child(3),
+  .sec-table th:nth-child(4),
+  .sec-table td:nth-child(4) {
+    display: none !important;
+  }
+
+  /* Column Headers text for mobile */
+  .sec-table th:nth-child(2) { font-size: 0 !important; }
+  .sec-table th:nth-child(2)::after { content: "Question"; font-size: 0.74rem !important; color: #fff; }
+
+  .sec-table th:nth-child(5) { font-size: 0 !important; }
+  .sec-table th:nth-child(5)::after { content: "R"; font-size: 0.8rem !important; color: #fff; }
+
+  .sec-table th:nth-child(6) { font-size: 0 !important; }
+  .sec-table th:nth-child(6)::after { content: "W"; font-size: 0.8rem !important; color: #fff; }
+
+  .sec-table tbody td {
+    font-weight: 800 !important;
+    color: #0f172a !important;
+  }
+
+  .sec-table tbody td:nth-child(1) {
+    font-weight: 600 !important;
+    color: #1e293b !important;
   }
 
   .sec-table tfoot td {
-    display: flex !important;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 14px !important;
-    border-bottom: 1px solid #dbeafe !important;
-    font-size: 0.82rem !important;
-    white-space: normal !important;
-  }
-
-  .sec-table tfoot td:last-child {
-    border-bottom: none !important;
-  }
-
-  /* Total header td */
-  .sec-table tfoot td:nth-child(1) {
-    background: #2563eb;
-    font-size: 0.82rem !important;
+    background: #e0edff !important;
     font-weight: 900 !important;
-    color: #ffffff !important;
-    border-bottom: 2px solid #1d4ed8 !important;
-    justify-content: center !important;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    color: #0f172a !important;
+    border-top: 2px solid #2563eb !important;
   }
-
-  /* tfoot labels */
-  .sec-table tfoot td:nth-child(2)::before { content: "Total Questions"; }
-  .sec-table tfoot td:nth-child(3)::before { content: "Attempted"; }
-  .sec-table tfoot td:nth-child(4)::before { content: "Unattempted"; }
-  .sec-table tfoot td:nth-child(5)::before { content: "Correct ✓"; }
-  .sec-table tfoot td:nth-child(6)::before { content: "Wrong ✗"; }
-  .sec-table tfoot td:nth-child(7)::before { content: "Total Marks"; }
-
-  .sec-table tfoot td:nth-child(2)::before,
-  .sec-table tfoot td:nth-child(3)::before,
-  .sec-table tfoot td:nth-child(4)::before,
-  .sec-table tfoot td:nth-child(5)::before,
-  .sec-table tfoot td:nth-child(6)::before,
-  .sec-table tfoot td:nth-child(7)::before {
-    font-size: 0.68rem;
-    font-weight: 800;
-    color: #1e40af;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  /* Preserve color classes on mobile */
-  .sec-table td.text-green { color: #16a34a !important; }
-  .sec-table td.text-red   { color: #dc2626 !important; }
-  .sec-table td.text-blue  { color: #2563eb !important; }
 }
 
