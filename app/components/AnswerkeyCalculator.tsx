@@ -488,6 +488,19 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examSlug]);
 
+  function triggerTelegramPopupCheck() {
+    try {
+      const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
+      const now = Date.now();
+      const twoMinutesMs = 2 * 60 * 1000; // 2 minutes cooldown
+
+      if (!lastPopupTime || (now - parseInt(lastPopupTime, 10)) > twoMinutesMs) {
+        localStorage.setItem('cbtrank_tg_popup_last_time', now.toString());
+        setShowTelegramModal(true);
+      }
+    } catch (e) {}
+  }
+
   function logInvalidUrl(url: string) {
     fetch(`${WORKER_BASE}/invalid_answerkey_urls`, {
       method: 'POST',
@@ -548,6 +561,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     setSubmitting(true);
     setBtnText('Processing...');
+    triggerTelegramPopupCheck();
 
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
@@ -870,6 +884,135 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
           </div>
         </div>
       </div>
+
+      {/* OneSignal Style Push / Telegram Subscription Modal */}
+      {showTelegramModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          animation: 'fadeInModal 0.25s ease-out'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '20px',
+            maxWidth: '420px',
+            width: '100%',
+            padding: '24px 20px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+            position: 'relative',
+            textAlign: 'center',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowTelegramModal(false)}
+              style={{
+                position: 'absolute',
+                top: '14px',
+                right: '14px',
+                background: '#f1f5f9',
+                border: 'none',
+                borderRadius: '50%',
+                width: '28px',
+                height: '28px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#64748b',
+                fontWeight: 900,
+                fontSize: '14px'
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Glowing OneSignal Style Telegram Bell Icon */}
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
+              margin: '0 auto 16px auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 24px rgba(0, 136, 204, 0.35)'
+            }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+            </div>
+
+            {/* Title & Sub-text */}
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.3 }}>
+              Get Instant Exam &amp; Rank Updates!
+            </h3>
+            <p style={{ fontSize: '0.84rem', color: '#475569', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+              Join our official Telegram Channel to get instant notifications about upcoming Answer Keys, Ranks &amp; Cut-offs updates!
+            </p>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <a
+                href="https://t.me/cbtrank"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowTelegramModal(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
+                  color: '#ffffff',
+                  padding: '12px 18px',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '0.92rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(0, 136, 204, 0.3)',
+                  transition: 'transform 0.15s ease'
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .54-1.43.53-.47-.01-1.38-.27-2.05-.49-.83-.27-1.49-.42-1.43-.88.03-.24.37-.49 1.02-.74 3.99-1.74 6.66-2.89 8.01-3.45 3.81-1.59 4.6-1.87 5.12-1.88.11 0 .37.03.54.18.14.12.18.29.2.46-.01.07.01.24-.02.4z"/>
+                </svg>
+                Join Official Telegram Channel
+              </a>
+
+              <button
+                type="button"
+                onClick={() => setShowTelegramModal(false)}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  color: '#64748b',
+                  padding: '10px',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Continue to Scorecard / Skip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
