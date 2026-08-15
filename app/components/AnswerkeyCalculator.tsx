@@ -913,49 +913,6 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
             textAlign: 'center',
             fontFamily: 'system-ui, -apple-system, sans-serif'
           }}>
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setShowTelegramModal(false)}
-              style={{
-                position: 'absolute',
-                top: '14px',
-                right: '14px',
-                background: '#f1f5f9',
-                border: 'none',
-                borderRadius: '50%',
-                width: '28px',
-                height: '28px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#64748b',
-                fontWeight: 900,
-                fontSize: '14px'
-              }}
-            >
-              ✕
-            </button>
-
-            {/* Glowing OneSignal Style Telegram Bell Icon */}
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0088cc 0%, #00a8ff 100%)',
-              margin: '0 auto 16px auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(0, 136, 204, 0.35)'
-            }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-            </div>
-
             {/* Title & Sub-text */}
             <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.3 }}>
               Get Instant Exam &amp; Rank Updates!
@@ -964,7 +921,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
               Join our official Telegram Channel to get instant notifications about upcoming Answer Keys, Ranks &amp; Cut-offs updates!
             </p>
 
-            {/* Action Buttons */}
+            {/* Action Button */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <a
                 href="https://t.me/cbtrank"
@@ -992,23 +949,6 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
                 </svg>
                 Join Official Telegram Channel
               </a>
-
-              <button
-                type="button"
-                onClick={() => setShowTelegramModal(false)}
-                style={{
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  color: '#64748b',
-                  padding: '10px',
-                  borderRadius: '12px',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Continue to Scorecard / Skip
-              </button>
             </div>
           </div>
         </div>
