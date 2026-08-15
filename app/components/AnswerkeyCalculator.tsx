@@ -516,7 +516,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     if (isCbexams) {
       logInvalidUrl(urlVal);
-      showToast('CBExams API integration is coming soon. Currently Digialm URLs are supported.');
+      showToast('CBExams server under maintenance. Please try again after some time.');
       return;
     }
 
