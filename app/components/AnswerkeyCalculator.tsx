@@ -517,27 +517,6 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
 
-    const isDigialm = isDigialmHost(urlVal);
-    const isCbexams = isCbexamsHost(urlVal);
-
-    if (!isDigialm && !isCbexams) {
-      logInvalidUrl(urlVal);
-      showToast('Enter Correct Answerkey Url From Official Website');
-      return;
-    }
-
-    if (isCbexams) {
-      logInvalidUrl(urlVal);
-      showToast('Server under maintenance. Please try again after some time.');
-      return;
-    }
-
-    if (isDigialm && !urlHasHtmlExtension(urlVal)) {
-      logInvalidUrl(urlVal);
-      showToast('Enter Correct Answerkey Url From Official Website');
-      return;
-    }
-
     setSubmitting(true);
     setBtnText('Processing...');
 
