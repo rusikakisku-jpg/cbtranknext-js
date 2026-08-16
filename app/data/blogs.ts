@@ -83,6 +83,35 @@ export const FALLBACK_BLOG_POSTS: BlogPost[] = [
 ];
 
 export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
+  // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://cbtrank.rusikakisku.workers.dev/blogs)
+  try {
+    const workerRes = await fetch("https://cbtrank.rusikakisku.workers.dev/blogs", {
+      next: { revalidate: 60 }
+    });
+    if (workerRes.ok) {
+      const json = await workerRes.json();
+      const rawBlogs = json?.data || json?.blogs || (Array.isArray(json) ? json : []);
+      if (Array.isArray(rawBlogs) && rawBlogs.length > 0) {
+        const blogsList: BlogPost[] = rawBlogs.map((b: any) => ({
+          slug: String(b.slug),
+          title: String(b.title),
+          excerpt: String(b.excerpt || b.description || b.title),
+          category: String(b.category || 'Exam Analysis'),
+          date: String(b.created_at || 'August 2026').split(' ')[0],
+          readTime: '4 min read',
+          author_name: String(b.author_name || b.author || 'Team CBTRANK'),
+          views: Number(b.views || 0),
+          coverImage: b.cover_image || b.image ? String(b.cover_image || b.image) : undefined,
+          content: String(b.content || b.description || b.title)
+        }));
+        return blogsList;
+      }
+    }
+  } catch (e) {
+    // Fallback to direct D1 REST API query
+  }
+
+  // 2. Secondary Fallback: Direct Cloudflare D1 REST API query
   const account_id = "38c7d789225e89652dd6bb111403db5d";
   const token = process.env.CF_D1_TOKEN || ["cfut_umhNZGH5mokB88O6AH", "QVSURuP6AW48AIry4wVFaW74f7f9b6"].join("");
   const headers = {
