@@ -91,7 +91,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   };
 
   async function queryD1(db_uuid: string, sql: string) {
-    try:
+    try {
       const url = `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${db_uuid}/query`;
       const res = await fetch(url, {
         method: "POST",
