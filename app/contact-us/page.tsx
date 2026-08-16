@@ -27,11 +27,16 @@ export default function ContactPage() {
     setStatus('sending');
 
     try {
-      // Send to Cloudflare Worker contact endpoint
-      const res = await fetch('https://cbtrank.rusikakisku.workers.dev/contact', {
+      // Send directly to Cloudflare D1 messages database table
+      const res = await fetch('https://cbtrank.rusikakisku.workers.dev/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formState),
+        body: JSON.stringify({
+          name: formState.name,
+          email: formState.email,
+          subject: 'Contact Form Submission',
+          message: formState.message
+        }),
       });
 
       if (res.ok) {
