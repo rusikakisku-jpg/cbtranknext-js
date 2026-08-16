@@ -110,43 +110,22 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   }
 
   try {
-    // 1. Fetch from rrbgroupdanswerkey D1 database (`posts` table)
-    const rrb_uuid = "5cc5ed2c-7809-44c7-911f-761546dfeadf";
-    const rrb_posts = await queryD1(rrb_uuid, "SELECT * FROM posts WHERE status='publish' ORDER BY id DESC;");
-
-    // 2. Fetch from cbtrank_db D1 database (`blogs` table)
+    // Strictly fetch ONLY from cbtrank_db D1 database (`blogs` table)
     const cbtrank_uuid = "fd29c541-3fd2-4fa8-8dc1-19809ab907c3";
     const cbt_blogs = await queryD1(cbtrank_uuid, "SELECT * FROM blogs ORDER BY id DESC;");
 
-    const combined: BlogPost[] = [];
-
-    for (const p of rrb_posts) {
-      if (!p.slug || !p.title) continue;
-      combined.push({
-        slug: String(p.slug),
-        title: String(p.title),
-        excerpt: String(p.excerpt || p.title),
-        category: String(p.category || 'Notification'),
-        date: String(p.created_at || 'August 2026').split(' ')[0],
-        readTime: '4 min read',
-        author_name: String(p.author_name || 'Team CBTRANK'),
-        views: Number(p.views || 0),
-        coverImage: p.cover_image ? String(p.cover_image) : undefined,
-        content: String(p.content || p.excerpt || p.title)
-      });
-    }
+    const blogsList: BlogPost[] = [];
 
     for (const b of cbt_blogs) {
       if (!b.slug || !b.title) continue;
-      if (combined.some(item => item.slug === b.slug)) continue;
 
-      combined.push({
+      blogsList.push({
         slug: String(b.slug),
         title: String(b.title),
         excerpt: String(b.description || b.title),
-        category: String(b.category || 'Updates'),
+        category: String(b.category || 'Exam Analysis'),
         date: String(b.created_at || 'August 2026').split(' ')[0],
-        readTime: '3 min read',
+        readTime: '4 min read',
         author_name: String(b.author || 'Team CBTRANK'),
         views: Number(b.views || 0),
         coverImage: b.image ? String(b.image) : undefined,
@@ -154,11 +133,11 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
       });
     }
 
-    if (combined.length > 0) {
-      return combined;
+    if (blogsList.length > 0) {
+      return blogsList;
     }
   } catch (err) {
-    // Silent error fallback to static posts
+    // Silent error fallback to static CBTRANK posts
   }
 
   return FALLBACK_BLOG_POSTS;
