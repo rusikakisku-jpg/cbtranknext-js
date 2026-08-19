@@ -28,7 +28,7 @@ export default function ContactPage() {
 
     try {
       // Send directly to Cloudflare D1 messages database table
-      const res = await fetch('https://cbtrank.rusikakisku.workers.dev/messages', {
+      const res = await fetch('https://api.cbtrank.com/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

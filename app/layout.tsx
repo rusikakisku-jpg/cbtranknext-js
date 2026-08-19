@@ -41,7 +41,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://cbtrank.rusikakisku.workers.dev" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.cbtrank.com" crossOrigin="anonymous" />
       </head>
       <body>
         <div className="page-body">
