@@ -586,44 +586,7 @@ export default function ResultPage() {
             </div>
           </div>
 
-          {/* 3. Overall Key Metric Cards */}
-          <div style={{ position: 'relative', zIndex: 1, padding: '12px 8px', borderRadius: '18px', background: 'rgba(248, 250, 252, 0.6)', border: '1px solid #e2e8f0' }}>
-            <h3 style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '12px', textAlign: 'center' }}>
-              Overall Key Analysis
-            </h3>
 
-            <div className="metrics-grid" style={{ position: 'relative', zIndex: 1 }}>
-              <div className="metric-card blue">
-                <span className="lbl">Raw Marks</span>
-                <span className="val" id="metric-raw-score">{raw.toFixed(2)}</span>
-                <span className="sub" id="metric-marks-sub">+{rightVal} / -{wrongVal}</span>
-              </div>
-
-              <div className="metric-card emerald">
-                <span className="lbl">Accuracy</span>
-                <span className="val" id="metric-norm-score">{accuracy}%</span>
-                <span className="sub" id="metric-pct-sub">Attempted: {totalAttempted}</span>
-              </div>
-
-              <div className="metric-card purple">
-                <span className="lbl">Overall Rank</span>
-                <span className="val" id="metric-overall-rank">#{resultData.overallRank}</span>
-                <span className="sub">All India Rank</span>
-              </div>
-
-              <div className="metric-card indigo">
-                <span className="lbl">Community Rank</span>
-                <span className="val" id="metric-cat-rank">#{resultData.categoryRank}</span>
-                <span className="sub" id="metric-cat-cand">Community: {effectiveCommunity}</span>
-              </div>
-
-              <div className="metric-card amber">
-                <span className="lbl">Shift Rank</span>
-                <span className="val" id="metric-shift-rank">#{resultData.shiftRank}</span>
-                <span className="sub">Shift Rank</span>
-              </div>
-            </div>
-          </div>
 
           {/* 4. Section-Wise Question Breakdown & Key Analysis */}
           {allQuestions.length > 0 && (
