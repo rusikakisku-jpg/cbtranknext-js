@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const WORKER_BASE = 'https://cbtrank.rusikakisku.workers.dev';
+const WORKER_BASE = 'https://api.cbtrank.com';
 // No static data — all locations and languages come from API only
 
 function isRRBSlug(slug: string): boolean {

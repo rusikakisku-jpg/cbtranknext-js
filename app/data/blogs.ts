@@ -83,9 +83,9 @@ export const FALLBACK_BLOG_POSTS: BlogPost[] = [
 ];
 
 export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
-  // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://cbtrank.rusikakisku.workers.dev/blogs)
+  // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://api.cbtrank.com/blogs)
   try {
-    const workerRes = await fetch("https://cbtrank.rusikakisku.workers.dev/blogs", {
+    const workerRes = await fetch("https://api.cbtrank.com/blogs", {
       next: { revalidate: 60 }
     });
     if (workerRes.ok) {
