@@ -751,10 +751,10 @@ export default function ResultPage() {
                                 padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
                                 fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                               }}>
-                                <div style={{ flex: 1 }}>
-                                  <span style={{ fontWeight: 800, marginRight: '6px' }}>{opt.option_no}.</span>
+                                <div style={{ flex: 1, display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontWeight: 800, flexShrink: 0 }}>{opt.option_no}.</span>
                                   {cleanOptHtml ? (
-                                    <span dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
+                                    <span style={{ display: 'inline-flex', alignItems: 'center' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
                                   ) : opt.option_image ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '40px', verticalAlign: 'middle' }} />

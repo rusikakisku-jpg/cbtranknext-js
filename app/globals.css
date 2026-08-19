@@ -113,6 +113,16 @@ img {
   transform: scale(1.05);
 }
 
+/* Option images & inline HTML elements alignment */
+span[dangerouslySetInnerHTML] img,
+div[style*="inline-flex"] img {
+  max-height: 48px;
+  width: auto;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 2px 0;
+}
+
 .logo-text {
   font-size: 22px;
   font-weight: 800;
