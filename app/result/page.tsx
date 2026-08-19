@@ -743,6 +743,9 @@ export default function ResultPage() {
                               badgeText = '✗ Your Answer';
                             }
 
+                            const cleanOptHtml = opt.option_html ? opt.option_html.replace(new RegExp(`^(\\s*(?:<[^>]+>\\s*)*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
+                            const cleanOptText = opt.option_text ? opt.option_text.replace(new RegExp(`^(\\s*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
+
                             return (
                               <div key={opt.option_no} style={{
                                 padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
@@ -750,13 +753,13 @@ export default function ResultPage() {
                               }}>
                                 <div style={{ flex: 1 }}>
                                   <span style={{ fontWeight: 800, marginRight: '6px' }}>{opt.option_no}.</span>
-                                  {opt.option_html ? (
-                                    <span dangerouslySetInnerHTML={{ __html: opt.option_html }} />
+                                  {cleanOptHtml ? (
+                                    <span dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
                                   ) : opt.option_image ? (
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '40px', verticalAlign: 'middle' }} />
                                   ) : (
-                                    <span>{opt.option_text}</span>
+                                    <span>{cleanOptText}</span>
                                   )}
                                 </div>
                                 {badgeText && (
