@@ -6,8 +6,12 @@ const nextConfig: NextConfig = {
     // Enable Edge Runtime compatibility
   },
   images: {
-    // Allow external images from CDN
+    // Allow external images from CDN & Cloudflare R2
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'upload.cbtrank.com',
+      },
       {
         protocol: 'https',
         hostname: 'cdn-icons-png.flaticon.com',
