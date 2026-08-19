@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   },
   description: "Calculate your marks, shift rank, and category cutoffs instantly with CBTRank's Answer Key Calculator.",
   keywords: ["CBT Rank", "Answer Key Calculator", "RRB", "SSC", "CBT exam", "rank predictor"],
+  icons: {
+    icon: [
+      { url: 'https://upload.cbtrank.com/logo.png', type: 'image/png' },
+    ],
+    shortcut: 'https://upload.cbtrank.com/logo.png',
+    apple: 'https://upload.cbtrank.com/logo.png',
+  },
   openGraph: {
     siteName: "CBT RANK",
     type: "website",
@@ -24,6 +31,8 @@ export default function RootLayout({
   return (
     <html lang="hi">
       <head>
+        <link rel="icon" href="https://upload.cbtrank.com/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="https://upload.cbtrank.com/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cbtrank.rusikakisku.workers.dev" crossOrigin="anonymous" />
