@@ -12,10 +12,14 @@ export const metadata: Metadata = {
   keywords: ["CBT Rank", "Answer Key Calculator", "RRB", "SSC", "CBT exam", "rank predictor"],
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.png', type: 'image/png' },
       { url: 'https://upload.cbtrank.com/logo.png', type: 'image/png' },
     ],
-    shortcut: 'https://upload.cbtrank.com/logo.png',
-    apple: 'https://upload.cbtrank.com/logo.png',
+    shortcut: ['/favicon.ico'],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   openGraph: {
     siteName: "CBT RANK",
@@ -31,8 +35,10 @@ export default function RootLayout({
   return (
     <html lang="hi">
       <head>
-        <link rel="icon" href="https://upload.cbtrank.com/logo.png" type="image/png" />
-        <link rel="apple-touch-icon" href="https://upload.cbtrank.com/logo.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cbtrank.rusikakisku.workers.dev" crossOrigin="anonymous" />
