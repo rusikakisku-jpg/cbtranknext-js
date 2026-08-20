@@ -248,36 +248,114 @@ export default function ReviewAnswerkeyPage() {
             </div>
           </div>
 
-          {/* Candidate & Exam Banner Summary */}
-          <div className="info-section-header" style={{ position: 'relative', zIndex: 1, marginBottom: '18px' }}>
-            {resultData.headerImgUrl ? (
-              <div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" />
-              </div>
-            ) : resultData.headerBannerText ? (
-              <h1 className="exam-name-title">{resultData.headerBannerText}</h1>
-            ) : (
-              resultData.examName && (
-                <h1 className="exam-name-title">{resultData.examName}</h1>
-              )
-            )}
+          {/* Candidate & Exam Banner Summary (Header Logo on Left, Full User Info on Right) */}
+          <div className="info-section-header" style={{
+            position: 'relative',
+            zIndex: 1,
+            marginBottom: '18px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: '16px'
+          }}>
+            {/* Left Column: Exam Banner / Logo */}
+            <div style={{ flex: '1 1 300px', minWidth: '240px' }}>
+              {resultData.headerImgUrl ? (
+                <div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" style={{ maxHeight: '70px', objectFit: 'contain' }} />
+                </div>
+              ) : resultData.headerBannerText ? (
+                <h1 className="exam-name-title" style={{ margin: 0 }}>{resultData.headerBannerText}</h1>
+              ) : (
+                resultData.examName && (
+                  <h1 className="exam-name-title" style={{ margin: 0 }}>{resultData.examName}</h1>
+                )
+              )}
+            </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 14px' }}>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, display: 'block' }}>Candidate Name</span>
-                <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{candidateName}</strong>
-              </div>
-              {rollNumber && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 14px' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, display: 'block' }}>Roll Number</span>
-                  <strong style={{ fontSize: '0.88rem', color: '#0f172a', fontFamily: 'monospace' }}>{rollNumber}</strong>
+            {/* Right Column: Full Candidate Information Box */}
+            <div style={{
+              flex: '1 1 420px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '10px',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '14px',
+              padding: '12px 16px'
+            }}>
+              {resultData.infoRows && resultData.infoRows.length > 0 ? (
+                resultData.infoRows.map((row, idx) => (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'capitalize' }}>
+                      {/community|caste|category/i.test(row.label) ? 'Community' : row.label}
+                    </span>
+                    <strong style={{
+                      fontSize: '0.82rem',
+                      color: '#0f172a',
+                      fontFamily: /roll|registration|number|id/i.test(row.label) ? 'monospace' : 'inherit',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {row.value}
+                    </strong>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Candidate Name</span>
+                    <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{candidateName}</strong>
+                  </div>
+                  {rollNumber && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Roll Number</span>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a', fontFamily: 'monospace' }}>{rollNumber}</strong>
+                    </div>
+                  )}
+                  {resultData.testDate && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Test Date</span>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{resultData.testDate}</strong>
+                    </div>
+                  )}
+                  {resultData.testTime && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Test Time</span>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{resultData.testTime}</strong>
+                    </div>
+                  )}
+                  {resultData.testCenter && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Test Center</span>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {resultData.testCenter}
+                      </strong>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Extra submitted details if not in infoRows */}
+              {formData?.state && !resultData.infoRows?.some(r => /state|zone|location/i.test(r.label)) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>{formData.location_label || 'State / UT'}</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{formData.state}</strong>
                 </div>
               )}
-              {resultData.testDate && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 14px' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, display: 'block' }}>Exam Date</span>
-                  <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{resultData.testDate}</strong>
+              {formData?.category && !resultData.infoRows?.some(r => /community|caste|category/i.test(r.label)) && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Community</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{formData.category}</strong>
+                </div>
+              )}
+              {formData?.gender && !resultData.infoRows?.some(r => r.label.toLowerCase() === 'gender') && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Gender</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a', textTransform: 'capitalize' }}>{formData.gender}</strong>
                 </div>
               )}
             </div>
@@ -286,87 +364,126 @@ export default function ReviewAnswerkeyPage() {
           {/* Question Breakdown Section */}
           <div ref={breakdownRef} id="question-breakdown-section" style={{ position: 'relative', zIndex: 1, padding: '14px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
             
-            {/* Colorful Filter Status Pills Header */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start', gap: '8px', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+            {/* Colorful Filter Status Pills & Download PDF Button Row */}
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px',
+              marginBottom: '14px',
+              borderBottom: '1px solid #f1f5f9',
+              paddingBottom: '12px'
+            }}>
               
-              {/* ALL Pill */}
-              <button
-                type="button"
-                onClick={(e) => handleStatusFilterChange('ALL', e)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  border: activeStatusFilter === 'ALL' ? '1px solid #1d4ed8' : '1px solid #bfdbfe',
-                  transition: 'all 0.2s ease',
-                  background: activeStatusFilter === 'ALL' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#eff6ff',
-                  color: activeStatusFilter === 'ALL' ? '#ffffff' : '#1d4ed8',
-                  boxShadow: activeStatusFilter === 'ALL' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
-                }}
-              >
-                All ({pillTotalCount})
-              </button>
+              {/* Left: Filter Pills */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* ALL Pill */}
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusFilterChange('ALL', e)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '16px',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    border: activeStatusFilter === 'ALL' ? '1px solid #1d4ed8' : '1px solid #bfdbfe',
+                    transition: 'all 0.2s ease',
+                    background: activeStatusFilter === 'ALL' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#eff6ff',
+                    color: activeStatusFilter === 'ALL' ? '#ffffff' : '#1d4ed8',
+                    boxShadow: activeStatusFilter === 'ALL' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
+                  }}
+                >
+                  All ({pillTotalCount})
+                </button>
 
-              {/* Correct Pill */}
-              <button
-                type="button"
-                onClick={(e) => handleStatusFilterChange('Correct', e)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  border: activeStatusFilter === 'Correct' ? '1px solid #047857' : '1px solid #a7f3d0',
-                  transition: 'all 0.2s ease',
-                  background: activeStatusFilter === 'Correct' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ecfdf5',
-                  color: activeStatusFilter === 'Correct' ? '#ffffff' : '#047857',
-                  boxShadow: activeStatusFilter === 'Correct' ? '0 2px 8px rgba(16, 185, 129, 0.35)' : 'none'
-                }}
-              >
-                Correct ({pillCorrectCount})
-              </button>
+                {/* Correct Pill */}
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusFilterChange('Correct', e)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '16px',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    border: activeStatusFilter === 'Correct' ? '1px solid #047857' : '1px solid #a7f3d0',
+                    transition: 'all 0.2s ease',
+                    background: activeStatusFilter === 'Correct' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ecfdf5',
+                    color: activeStatusFilter === 'Correct' ? '#ffffff' : '#047857',
+                    boxShadow: activeStatusFilter === 'Correct' ? '0 2px 8px rgba(16, 185, 129, 0.35)' : 'none'
+                  }}
+                >
+                  Correct ({pillCorrectCount})
+                </button>
 
-              {/* Wrong Pill */}
-              <button
-                type="button"
-                onClick={(e) => handleStatusFilterChange('Wrong', e)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  border: activeStatusFilter === 'Wrong' ? '1px solid #b91c1c' : '1px solid #fecaca',
-                  transition: 'all 0.2s ease',
-                  background: activeStatusFilter === 'Wrong' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : '#fef2f2',
-                  color: activeStatusFilter === 'Wrong' ? '#ffffff' : '#b91c1c',
-                  boxShadow: activeStatusFilter === 'Wrong' ? '0 2px 8px rgba(239, 68, 68, 0.35)' : 'none'
-                }}
-              >
-                Wrong ({pillWrongCount})
-              </button>
+                {/* Wrong Pill */}
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusFilterChange('Wrong', e)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '16px',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    border: activeStatusFilter === 'Wrong' ? '1px solid #b91c1c' : '1px solid #fecaca',
+                    transition: 'all 0.2s ease',
+                    background: activeStatusFilter === 'Wrong' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : '#fef2f2',
+                    color: activeStatusFilter === 'Wrong' ? '#ffffff' : '#b91c1c',
+                    boxShadow: activeStatusFilter === 'Wrong' ? '0 2px 8px rgba(239, 68, 68, 0.35)' : 'none'
+                  }}
+                >
+                  Wrong ({pillWrongCount})
+                </button>
 
-              {/* Unattempted Pill */}
+                {/* Unattempted Pill */}
+                <button
+                  type="button"
+                  onClick={(e) => handleStatusFilterChange('Unattempted', e)}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '16px',
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    border: activeStatusFilter === 'Unattempted' ? '1px solid #b45309' : '1px solid #fde68a',
+                    transition: 'all 0.2s ease',
+                    background: activeStatusFilter === 'Unattempted' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : '#fffbeb',
+                    color: activeStatusFilter === 'Unattempted' ? '#ffffff' : '#b45309',
+                    boxShadow: activeStatusFilter === 'Unattempted' ? '0 2px 8px rgba(245, 158, 11, 0.35)' : 'none'
+                  }}
+                >
+                  Unattempted ({pillUnattemptedCount})
+                </button>
+              </div>
+
+              {/* Right: Download PDF Button */}
               <button
                 type="button"
-                onClick={(e) => handleStatusFilterChange('Unattempted', e)}
+                onClick={() => window.print()}
                 style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  fontSize: '0.7rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  border: '1.5px solid #cbd5e1',
+                  padding: '5px 12px',
+                  borderRadius: '14px',
                   fontWeight: 800,
+                  fontSize: '0.72rem',
                   cursor: 'pointer',
-                  border: activeStatusFilter === 'Unattempted' ? '1px solid #b45309' : '1px solid #fde68a',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                   transition: 'all 0.2s ease',
-                  background: activeStatusFilter === 'Unattempted' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : '#fffbeb',
-                  color: activeStatusFilter === 'Unattempted' ? '#ffffff' : '#b45309',
-                  boxShadow: activeStatusFilter === 'Unattempted' ? '0 2px 8px rgba(245, 158, 11, 0.35)' : 'none'
+                  whiteSpace: 'nowrap'
                 }}
               >
-                Unattempted ({pillUnattemptedCount})
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download PDF
               </button>
 
             </div>
