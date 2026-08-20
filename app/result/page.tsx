@@ -186,6 +186,8 @@ export default function ResultPage() {
   const [rightVal, setRightVal] = useState(1.0);
   const [wrongVal, setWrongVal] = useState(0.25);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [isGeneratingImg, setIsGeneratingImg] = useState(false);
+  const [generatedImgUrl, setGeneratedImgUrl] = useState<string | null>(null);
   const pendingRedirect = useRef(false);
 
   function handleTelegramJoinClick() {
@@ -283,6 +285,48 @@ export default function ResultPage() {
     return (sec.correct * rightMark) - (sec.wrong * wrongMark);
   }
 
+  async function handleDownloadImageScorecard() {
+    const cardEl = document.getElementById('cbrank-scorecard-card');
+    if (!cardEl) return;
+
+    try {
+      setIsGeneratingImg(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const html2canvasModule = (await import('html2canvas')) as any;
+      const html2canvas = html2canvasModule.default || html2canvasModule;
+
+      const noPrintEls = cardEl.querySelectorAll('.no-print');
+      noPrintEls.forEach(el => ((el as HTMLElement).style.visibility = 'hidden'));
+
+      const canvas = await html2canvas(cardEl, {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+
+      noPrintEls.forEach(el => ((el as HTMLElement).style.visibility = ''));
+
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      setGeneratedImgUrl(imgData);
+
+      // Trigger download
+      const link = document.createElement('a');
+      const candidateName = resultData?.candidateName || resultData?.infoRows?.find(r => /name|candidate/i.test(r.label))?.value || 'Candidate';
+      const safeName = candidateName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      link.download = `scorecard_${safeName}.png`;
+      link.href = imgData;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Error generating image scorecard:', err);
+    } finally {
+      setIsGeneratingImg(false);
+    }
+  }
+
   if (!resultData) {
     return (ENABLE_TELEGRAM_DIALOG && showTelegramModal) ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
   }
@@ -294,6 +338,81 @@ export default function ResultPage() {
   return (
     <>
       {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
+
+      {/* High-Resolution Scorecard Image Preview Modal */}
+      {generatedImgUrl && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
+          zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: '16px', boxSizing: 'border-box'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '20px', maxWidth: '640px', width: '100%',
+            maxHeight: '90vh', overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)', position: 'relative'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>
+                  🖼️ Scorecard Image Ready!
+                </h3>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>High-Quality PNG format generated successfully</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGeneratedImgUrl(null)}
+                style={{
+                  background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px 10px',
+                  cursor: 'pointer', fontWeight: 900, color: '#475569', fontSize: '0.85rem'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Image View */}
+            <div style={{
+              borderRadius: '12px', border: '1px solid #cbd5e1', overflow: 'hidden',
+              background: '#f8fafc', maxHeight: '55vh', overflowY: 'auto', textAlign: 'center'
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={generatedImgUrl} alt="Scorecard Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
+            </div>
+
+            {/* Modal Action Buttons */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <a
+                href={generatedImgUrl}
+                download={`scorecard_${(resultData.candidateName || 'candidate').replace(/[^a-zA-Z0-9_-]/g, '_')}.png`}
+                style={{
+                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#ffffff',
+                  padding: '12px 18px', borderRadius: '12px', fontWeight: 800, fontSize: '0.88rem',
+                  textDecoration: 'none', textAlign: 'center'
+                }}
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download Image PNG
+              </a>
+              <button
+                type="button"
+                onClick={() => setGeneratedImgUrl(null)}
+                style={{
+                  background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1',
+                  padding: '12px 18px', borderRadius: '12px', fontWeight: 800, fontSize: '0.88rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main>
       <div className="result-main">
@@ -399,7 +518,7 @@ export default function ResultPage() {
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div className="recalc-header">
               <h3 style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject-Wise Performance Breakdown</h3>
-              <div className="recalc-controls">
+              <div className="recalc-controls no-print">
                 <label>
                   Right (+):{' '}
                   <input
@@ -449,37 +568,41 @@ export default function ResultPage() {
               <table className="sec-table">
                 <thead>
                   <tr>
-                    <th>Section / Subject</th>
-                    <th>Total Qs</th>
-                    <th>Attempted</th>
-                    <th>Unattempted</th>
-                    <th>Correct</th>
-                    <th>Wrong</th>
-                    <th>Marks</th>
+                    <th>Section</th>
+                    <th>Total</th>
+                    <th className="th-right">Right</th>
+                    <th className="th-wrong">Wrong</th>
+                    <th className="th-unatt">Unattempted</th>
+                    <th className="th-marks">Marks</th>
                   </tr>
                 </thead>
-                <tbody id="sec-table-body">
-                  {resultData.sections.map((sec, i) => (
-                    <tr key={i}>
-                      <td>{sec.name}</td>
-                      <td>{sec.total}</td>
-                      <td>{sec.correct + sec.wrong}</td>
-                      <td>{sec.unattempted}</td>
-                      <td className="text-green">{sec.correct}</td>
-                      <td className="text-red">{sec.wrong}</td>
-                      <td className="text-blue">{calcSectionMarks(sec, rightVal, wrongVal).toFixed(2)}</td>
-                    </tr>
-                  ))}
+                <tbody>
+                  {resultData.sections.map((sec, idx) => {
+                    const sm = calcSectionMarks(sec, rightVal, wrongVal);
+                    return (
+                      <tr key={idx}>
+                        <td className="td-sec-name">{sec.name}</td>
+                        <td>{sec.total}</td>
+                        <td className="td-right">{sec.correct}</td>
+                        <td className="td-wrong">{sec.wrong}</td>
+                        <td className="td-unatt">{sec.unattempted}</td>
+                        <td className={`td-marks ${sm < 0 ? 'neg' : ''}`}>
+                          {sm.toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
-                <tfoot id="sec-table-foot">
-                  <tr>
-                    <td><strong>Total</strong></td>
-                    <td><strong>{totalQuestions}</strong></td>
-                    <td><strong>{totalAttempted}</strong></td>
-                    <td><strong>{totalUnattempted}</strong></td>
-                    <td className="text-green"><strong>{totalRight}</strong></td>
-                    <td className="text-red"><strong>{totalWrong}</strong></td>
-                    <td className="text-blue"><strong>{raw.toFixed(2)}</strong></td>
+                <tfoot>
+                  <tr className="tfoot-row">
+                    <td>Total</td>
+                    <td>{totalQuestions}</td>
+                    <td className="td-right">{totalRight}</td>
+                    <td className="td-wrong">{totalWrong}</td>
+                    <td className="td-unatt">{totalUnattempted}</td>
+                    <td className={`td-marks ${raw < 0 ? 'neg' : ''}`}>
+                      {raw.toFixed(2)}
+                    </td>
                   </tr>
                 </tfoot>
               </table>
@@ -521,32 +644,39 @@ export default function ResultPage() {
               Review Answerkey
             </Link>
 
-            {/* Button 2: Download Scorecard */}
+            {/* Button 2: Download Scorecard (High-Res Image PNG Format) */}
             <button
               type="button"
-              onClick={() => window.print()}
+              disabled={isGeneratingImg}
+              onClick={handleDownloadImageScorecard}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                background: '#ffffff',
+                background: isGeneratingImg ? '#94a3b8' : '#ffffff',
                 color: '#0f172a',
                 border: '1.5px solid #cbd5e1',
                 padding: '14px 20px',
                 borderRadius: '14px',
                 fontWeight: 800,
                 fontSize: '0.92rem',
-                cursor: 'pointer',
+                cursor: isGeneratingImg ? 'wait' : 'pointer',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 transition: 'all 0.2s ease',
                 textAlign: 'center'
               }}
             >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download Scorecard
+              {isGeneratingImg ? (
+                <span>Generating Image...</span>
+              ) : (
+                <>
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Download Scorecard (Image)
+                </>
+              )}
             </button>
 
             {/* Button 3: View Your Rank */}
