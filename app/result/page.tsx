@@ -486,8 +486,8 @@ export default function ResultPage() {
             </div>
           </div>
 
-          {/* 3. Action Buttons Section (Review Answerkey, Download Scorecard, View Your Rank) */}
-          <div style={{
+          {/* 3 Action Buttons under Subject Breakdown (Hidden on Print) */}
+          <div className="no-print" style={{
             position: 'relative',
             zIndex: 1,
             display: 'grid',
