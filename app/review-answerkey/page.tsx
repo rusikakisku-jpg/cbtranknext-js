@@ -216,63 +216,28 @@ export default function ReviewAnswerkeyPage() {
           flexWrap: 'wrap'
         }}>
 
-          {/* LEFT MAIN CONTENT COLUMN (Questions + Controls) */}
+          {/* LEFT MAIN CONTENT COLUMN (Header Banner + Controls + Questions) */}
           <div style={{ flex: '1 1 680px', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-            {/* Top Navigation & Exam Header */}
-            <div className="scorecard-card" style={{ padding: '16px 20px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
-                <Link
-                  href="/result"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1',
-                    padding: '7px 12px', borderRadius: '10px', fontWeight: 800, fontSize: '0.8rem',
-                    textDecoration: 'none'
-                  }}
-                >
-                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  Back to Scorecard
-                </Link>
-
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <Link
-                    href="/rank"
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                      color: '#ffffff', padding: '7px 12px', borderRadius: '10px',
-                      fontWeight: 800, fontSize: '0.8rem', textDecoration: 'none'
-                    }}
-                  >
-                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                    View Your Rank
-                  </Link>
-                </div>
+            {/* Question Breakdown & Header Container */}
+            <div ref={breakdownRef} id="question-breakdown-section" style={{ padding: '18px 16px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+              
+              {/* Exam Logo / Title Banner (Placed properly right above the Filter Pills) */}
+              <div style={{ marginBottom: '16px', paddingBottom: '14px', borderBottom: '1px solid #f1f5f9' }}>
+                {resultData.headerImgUrl ? (
+                  <div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" style={{ maxHeight: '65px', objectFit: 'contain' }} />
+                  </div>
+                ) : resultData.headerBannerText ? (
+                  <h1 className="exam-name-title" style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>{resultData.headerBannerText}</h1>
+                ) : (
+                  resultData.examName && (
+                    <h1 className="exam-name-title" style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>{resultData.examName}</h1>
+                  )
+                )}
               </div>
 
-              {/* Exam Logo / Title Banner */}
-              {resultData.headerImgUrl ? (
-                <div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" style={{ maxHeight: '60px', objectFit: 'contain' }} />
-                </div>
-              ) : resultData.headerBannerText ? (
-                <h1 className="exam-name-title" style={{ margin: 0, fontSize: '1.2rem' }}>{resultData.headerBannerText}</h1>
-              ) : (
-                resultData.examName && (
-                  <h1 className="exam-name-title" style={{ margin: 0, fontSize: '1.2rem' }}>{resultData.examName}</h1>
-                )
-              )}
-            </div>
-
-            {/* Question Breakdown Section */}
-            <div ref={breakdownRef} id="question-breakdown-section" style={{ padding: '16px 14px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-              
               {/* Colorful Filter Status Pills & Download PDF Button Row */}
               <div style={{
                 display: 'flex',
@@ -285,7 +250,7 @@ export default function ReviewAnswerkeyPage() {
                 paddingBottom: '12px'
               }}>
                 
-                {/* Left: Filter Pills */}
+                {/* Left: Status Filter Pills (ALL, Correct, Wrong, Unattempted) */}
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {/* ALL Pill */}
                   <button
@@ -397,9 +362,9 @@ export default function ReviewAnswerkeyPage() {
 
               </div>
 
-              {/* Colorful Dynamic Section Selector Tabs */}
+              {/* Dynamic Section Selector Tabs with flex-wrap (NO horizontal scroll needed!) */}
               {resultData.sections && resultData.sections.length > 1 && (
-                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                   <button
                     type="button"
                     onClick={(e) => handleSecTabChange('ALL', e)}
@@ -558,7 +523,7 @@ export default function ReviewAnswerkeyPage() {
 
           </div>
 
-          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Score Card + Question Navigator) */}
+          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated View Your Rank Button + Score Card + Navigator) */}
           <div style={{
             flex: '0 0 310px',
             minWidth: '280px',
@@ -569,7 +534,7 @@ export default function ReviewAnswerkeyPage() {
             top: '20px'
           }}>
 
-            {/* Sidebar Card 1: 👤 User Information Profile */}
+            {/* Sidebar Card 1: 👤 User Information Profile with Integrated View Your Rank Button */}
             <div style={{
               background: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -653,6 +618,35 @@ export default function ReviewAnswerkeyPage() {
                   </div>
                 )}
               </div>
+
+              {/* Integrated View Your Rank Button directly below User Info */}
+              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+                <Link
+                  href="/rank"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    color: '#ffffff',
+                    padding: '11px 16px',
+                    borderRadius: '12px',
+                    fontWeight: 800,
+                    fontSize: '0.85rem',
+                    textDecoration: 'none',
+                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                    textAlign: 'center',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  View Your Rank
+                </Link>
+              </div>
+
             </div>
 
             {/* Sidebar Card 2: 📊 Quick Score & Performance Card */}
@@ -761,33 +755,6 @@ export default function ReviewAnswerkeyPage() {
                   );
                 })}
               </div>
-            </div>
-
-            {/* Sidebar Card 4: Quick Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link
-                href="/rank"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  color: '#ffffff',
-                  padding: '12px',
-                  borderRadius: '12px',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-                  textAlign: 'center'
-                }}
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-                View Your Rank
-              </Link>
             </div>
 
           </div>
