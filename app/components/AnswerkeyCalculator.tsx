@@ -567,7 +567,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     // Direct JSON extraction from https://api.cbtrank.com/digialm/digialm
     try {
-      const smartApiUrl = `https://api.cbtrank.com/digialm/digialm?url=${encodeURIComponent(urlVal)}`;
+      const smartApiUrl = `https://api.cbtrank.com/digialm/api/v12/calculate?url=${encodeURIComponent(urlVal)}`;
       const smartRes = await fetch(smartApiUrl);
       if (smartRes.ok) {
         const smartData = await smartRes.json();
