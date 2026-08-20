@@ -165,42 +165,16 @@ export default function RankPage() {
                 )}
               </div>
 
-              {/* Action Bar / Quick Filter Row */}
+              {/* Action Bar / Download PDF Button Row */}
               <div style={{
                 display: 'flex',
-                flexWrap: 'wrap',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-end',
                 gap: '8px',
                 marginBottom: '16px',
                 borderBottom: '1px solid #f1f5f9',
                 paddingBottom: '12px'
               }}>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    color: '#ffffff',
-                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)'
-                  }}>
-                    🏆 Official Rank Card
-                  </span>
-                  <span style={{
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    background: '#eff6ff',
-                    color: '#1d4ed8',
-                    border: '1px solid #bfdbfe'
-                  }}>
-                    Category: {effectiveCommunity}
-                  </span>
-                </div>
-
                 <button
                   type="button"
                   onClick={() => window.print()}
@@ -356,7 +330,7 @@ export default function RankPage() {
 
           </div>
 
-          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated Review Answerkey Button + Score Card) */}
+          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated Review Answerkey Button + Back to Scorecard) */}
           <div style={{
             flex: '0 0 310px',
             minWidth: '280px',
@@ -482,43 +456,7 @@ export default function RankPage() {
 
             </div>
 
-            {/* Sidebar Card 2: 📊 Quick Score & Accuracy Card */}
-            <div style={{
-              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-              color: '#ffffff',
-              borderRadius: '18px',
-              padding: '16px',
-              boxShadow: '0 6px 18px rgba(15, 23, 42, 0.15)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: 800 }}>
-                  Total Marks
-                </span>
-                <span style={{ fontSize: '0.72rem', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '2px 8px', borderRadius: '8px', fontWeight: 800 }}>
-                  {accuracy}% Accuracy
-                </span>
-              </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 900, lineHeight: 1 }}>
-                {rawMarks.toFixed(2)}
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginTop: '12px', textAlign: 'center' }}>
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#34d399', display: 'block', fontWeight: 700 }}>Correct</span>
-                  <strong style={{ fontSize: '0.85rem' }}>{totalRight}</strong>
-                </div>
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#f87171', display: 'block', fontWeight: 700 }}>Wrong</span>
-                  <strong style={{ fontSize: '0.85rem' }}>{totalWrong}</strong>
-                </div>
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#fbbf24', display: 'block', fontWeight: 700 }}>Skipped</span>
-                  <strong style={{ fontSize: '0.85rem' }}>{totalUnattempted}</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar Card 3: Back to Scorecard CTA */}
+            {/* Sidebar Card 2: Back to Scorecard CTA */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Link
                 href="/result"
