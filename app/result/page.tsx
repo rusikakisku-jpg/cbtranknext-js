@@ -4,12 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Metadata } from 'next';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TelegramPortalModal — renders directly into document.body via React Portal.
-// Completely independent of any parent component's render/null-guard/CSS.
-// ─────────────────────────────────────────────────────────────────────────────
 function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
   const [mounted, setMounted] = useState(false);
 
@@ -50,7 +45,6 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
         boxSizing: 'border-box',
       }}>
-        {/* Glowing Official Telegram Icon Header */}
         <div style={{
           width: '72px',
           height: '72px',
@@ -67,7 +61,6 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
           </svg>
         </div>
 
-        {/* Badge */}
         <div style={{
           display: 'inline-block',
           background: 'linear-gradient(90deg,#0088cc,#29b6f6)',
@@ -88,7 +81,6 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
           Join our official Telegram Channel to get instant notifications about upcoming <strong>Answer Keys</strong>, <strong>Ranks</strong> &amp; <strong>Cut-offs</strong> updates!
         </p>
 
-        {/* Join Button */}
         <a
           href="https://t.me/cbtrank"
           target="_blank"
@@ -185,23 +177,15 @@ interface FormData {
   marks_wrong?: number;
 }
 
-// ── CONFIGURATION: Control Telegram Dialogue visibility ──
-// Set to `true` to show the Telegram modal dialogue on /result page, or `false` to hide it completely.
 const ENABLE_TELEGRAM_DIALOG = false;
 
 export default function ResultPage() {
   const router = useRouter();
-  const breakdownRef = useRef<HTMLDivElement>(null);
   const [resultData, setResultData] = useState<ResultData | null>(null);
   const [formData, setFormData] = useState<FormData | null>(null);
   const [rightVal, setRightVal] = useState(1.0);
   const [wrongVal, setWrongVal] = useState(0.25);
-  const [noData, setNoData] = useState(false);
-  const [activeSecTab, setActiveSecTab] = useState('ALL');
-  const [activeStatusFilter, setActiveStatusFilter] = useState('ALL');
-  // Portal modal state — managed separately, independent of resultData
   const [showTelegramModal, setShowTelegramModal] = useState(false);
-  // Track if we need to redirect after modal is dismissed
   const pendingRedirect = useRef(false);
 
   function handleTelegramJoinClick() {
@@ -210,21 +194,18 @@ export default function ResultPage() {
       sessionStorage.removeItem('cbtrank_show_tg_popup');
     } catch (e) {}
     setShowTelegramModal(false);
-    // If no result data was found, redirect home after modal dismiss
     if (pendingRedirect.current) {
       pendingRedirect.current = false;
       router.push('/');
     }
   }
 
-  // ── Main data loading + Modal trigger useEffect ──
   useEffect(() => {
     try {
       const rawResult = sessionStorage.getItem('cbtrank_result_data');
       const rawForm = sessionStorage.getItem('cbtrank_form_data');
 
       if (!rawResult) {
-        // No result data — user visited /result directly (not from /answerkey)
         if (ENABLE_TELEGRAM_DIALOG) {
           const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
           const now = Date.now();
@@ -267,15 +248,12 @@ export default function ResultPage() {
       setResultData(result);
       setFormData(form);
 
-      // ── Modal trigger when result data IS found ──
       if (ENABLE_TELEGRAM_DIALOG) {
         const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
         if (showFlag === 'true') {
-          // Fresh calculation from /answerkey — always show
           sessionStorage.removeItem('cbtrank_show_tg_popup');
           setShowTelegramModal(true);
         } else {
-          // Direct /result visit — use cooldown
           const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
           const now = Date.now();
           const twoMinutesMs = 2 * 60 * 1000;
@@ -289,40 +267,6 @@ export default function ResultPage() {
       router.push('/');
     }
   }, [router]);
-
-  function handleStatusFilterChange(st: string, e: React.MouseEvent) {
-    e.preventDefault();
-    const currentScrollY = window.scrollY;
-    const topPos = breakdownRef.current ? breakdownRef.current.getBoundingClientRect().top + window.scrollY : null;
-    
-    setActiveStatusFilter(st);
-    
-    // Lock scroll position to prevent page jump
-    requestAnimationFrame(() => {
-      if (topPos !== null && currentScrollY > topPos) {
-        window.scrollTo({ top: topPos - 20, behavior: 'instant' as ScrollBehavior });
-      } else {
-        window.scrollTo({ top: currentScrollY, behavior: 'instant' as ScrollBehavior });
-      }
-    });
-  }
-
-  function handleSecTabChange(secName: string, e: React.MouseEvent) {
-    e.preventDefault();
-    const currentScrollY = window.scrollY;
-    const topPos = breakdownRef.current ? breakdownRef.current.getBoundingClientRect().top + window.scrollY : null;
-    
-    setActiveSecTab(secName);
-    
-    // Lock scroll position to prevent page jump
-    requestAnimationFrame(() => {
-      if (topPos !== null && currentScrollY > topPos) {
-        window.scrollTo({ top: topPos - 20, behavior: 'instant' as ScrollBehavior });
-      } else {
-        window.scrollTo({ top: currentScrollY, behavior: 'instant' as ScrollBehavior });
-      }
-    });
-  }
 
   function calcMarks(sections: Section[], rightMark: number, wrongMark: number) {
     let totalRight = 0, totalWrong = 0, totalUnattempted = 0;
@@ -340,56 +284,15 @@ export default function ResultPage() {
   }
 
   if (!resultData) {
-    // Even when resultData is loading, render the Portal Modal if enabled
     return (ENABLE_TELEGRAM_DIALOG && showTelegramModal) ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
   }
 
   const { raw, totalRight, totalWrong, totalUnattempted } = calcMarks(resultData.sections, rightVal, wrongVal);
   const totalAttempted = totalRight + totalWrong;
   const totalQuestions = totalRight + totalWrong + totalUnattempted;
-  const accuracy = totalAttempted > 0 ? Math.round((totalRight / totalAttempted) * 100) : 0;
-
-  // Determine authentic community from JSON infoRows first, fallback to user form category
-  const authenticCommunityRow = resultData.infoRows?.find(r => /community|caste|category/i.test(r.label));
-  const effectiveCommunity = authenticCommunityRow ? authenticCommunityRow.value : (formData?.category || 'UR');
-
-  const allQuestions = resultData.questionsSummary || [];
-
-  // Find active section object from resultData.sections if specific section tab is selected
-  const selectedSecObj = activeSecTab !== 'ALL'
-    ? resultData.sections.find(s => s.name === activeSecTab || s.name.trim().toLowerCase() === activeSecTab.trim().toLowerCase())
-    : null;
-
-  // Filter questions belonging to the active section tab
-  const currentSecQuestions = activeSecTab === 'ALL'
-    ? allQuestions
-    : allQuestions.filter(q => (q.section || '').trim().toLowerCase() === activeSecTab.trim().toLowerCase());
-
-  // Dynamic pill counts for active section
-  const pillTotalCount = activeSecTab === 'ALL'
-    ? allQuestions.length
-    : (selectedSecObj ? selectedSecObj.total : currentSecQuestions.length);
-
-  const pillCorrectCount = activeSecTab === 'ALL'
-    ? totalRight
-    : (selectedSecObj ? selectedSecObj.correct : currentSecQuestions.filter(q => q.status === 'Correct').length);
-
-  const pillWrongCount = activeSecTab === 'ALL'
-    ? totalWrong
-    : (selectedSecObj ? selectedSecObj.wrong : currentSecQuestions.filter(q => q.status === 'Wrong').length);
-
-  const pillUnattemptedCount = activeSecTab === 'ALL'
-    ? totalUnattempted
-    : (selectedSecObj ? selectedSecObj.unattempted : currentSecQuestions.filter(q => q.status === 'Unattempted').length);
-
-  // Final question breakdown list filtered by section and status
-  const filteredQuestions = currentSecQuestions.filter(q => {
-    return activeStatusFilter === 'ALL' || q.status === activeStatusFilter;
-  });
 
   return (
     <>
-      {/* Telegram Portal Modal — rendered via createPortal into document.body when enabled */}
       {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
 
       <main>
@@ -426,7 +329,6 @@ export default function ResultPage() {
 
             {/* Metadata Grid */}
             <div className="metadata-grid" id="metadata-grid">
-              {/* Dynamic Candidate Info Rows */}
               {resultData.infoRows && resultData.infoRows.length > 0 ? (
                 resultData.infoRows.map((row, idx) => (
                   <div className="meta-box" key={idx}>
@@ -471,7 +373,6 @@ export default function ResultPage() {
                 </>
               )}
 
-              {/* Submitted State / Location / RRB Zone */}
               {formData?.state && !resultData.infoRows?.some(r => /state|zone|location/i.test(r.label)) && (
                 <div className="meta-box">
                   <label>{formData.location_label || 'State / UT'}</label>
@@ -479,7 +380,6 @@ export default function ResultPage() {
                 </div>
               )}
 
-              {/* Submitted Community (Only if authentic JSON did NOT provide Community/Category) */}
               {formData?.category && !resultData.infoRows?.some(r => /community|caste|category/i.test(r.label)) && (
                 <div className="meta-box">
                   <label>Community</label>
@@ -586,199 +486,95 @@ export default function ResultPage() {
             </div>
           </div>
 
+          {/* 3. Action Buttons Section (Review Answerkey, Download Scorecard, View Your Rank) */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '14px',
+            marginTop: '24px'
+          }}>
+            {/* Button 1: Review Answerkey */}
+            <Link
+              href="/review-answerkey"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                padding: '14px 20px',
+                borderRadius: '14px',
+                fontWeight: 800,
+                fontSize: '0.92rem',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                transition: 'all 0.2s ease',
+                textAlign: 'center'
+              }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              Review Answerkey
+            </Link>
 
+            {/* Button 2: Download Scorecard */}
+            <button
+              type="button"
+              onClick={() => window.print()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: '#ffffff',
+                color: '#0f172a',
+                border: '1.5px solid #cbd5e1',
+                padding: '14px 20px',
+                borderRadius: '14px',
+                fontWeight: 800,
+                fontSize: '0.92rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                transition: 'all 0.2s ease',
+                textAlign: 'center'
+              }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download Scorecard
+            </button>
 
-          {/* 4. Section-Wise Question Breakdown & Key Analysis */}
-          {allQuestions.length > 0 && (
-            <div ref={breakdownRef} id="question-breakdown-section" style={{ position: 'relative', zIndex: 1, marginTop: '24px', padding: '16px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-              
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-                <div>
-                  <h3 style={{ fontSize: '0.88rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
-                    Question Wise Performance Breakdown
-                  </h3>
-                  <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '2px 0 0 0' }}>
-                    Section-wise detailed analysis of right, wrong & unattempted questions
-                  </p>
-                </div>
-
-                {/* Filter Status Pills */}
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  {['ALL', 'Correct', 'Wrong', 'Unattempted'].map(st => (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={(e) => handleStatusFilterChange(st, e)}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: '20px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                        border: 'none',
-                        transition: 'all 0.2s ease',
-                        background: activeStatusFilter === st ? (
-                          st === 'Correct' ? '#10b981' : st === 'Wrong' ? '#ef4444' : st === 'Unattempted' ? '#f59e0b' : '#2563eb'
-                        ) : '#f1f5f9',
-                        color: activeStatusFilter === st ? '#ffffff' : '#475569'
-                      }}
-                    >
-                      {st === 'ALL' ? `All (${pillTotalCount})` : 
-                       st === 'Correct' ? `Correct (${pillCorrectCount})` : 
-                       st === 'Wrong' ? `Wrong (${pillWrongCount})` : 
-                       `Unattempted (${pillUnattemptedCount})`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Section Selector Tabs */}
-              {resultData.sections && resultData.sections.length > 1 && (
-                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
-                  <button
-                    type="button"
-                    onClick={(e) => handleSecTabChange('ALL', e)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontSize: '0.78rem',
-                      fontWeight: 800,
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                      border: activeSecTab === 'ALL' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                      background: activeSecTab === 'ALL' ? '#eff6ff' : '#ffffff',
-                      color: activeSecTab === 'ALL' ? '#1d4ed8' : '#334155'
-                    }}
-                  >
-                    All Sections ({allQuestions.length})
-                  </button>
-                  {resultData.sections.map(sec => (
-                    <button
-                      key={sec.name}
-                      type="button"
-                      onClick={(e) => handleSecTabChange(sec.name, e)}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        fontSize: '0.78rem',
-                        fontWeight: 800,
-                        whiteSpace: 'nowrap',
-                        cursor: 'pointer',
-                        border: activeSecTab === sec.name ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                        background: activeSecTab === sec.name ? '#eff6ff' : '#ffffff',
-                        color: activeSecTab === sec.name ? '#1d4ed8' : '#334155'
-                      }}
-                    >
-                      {sec.name} ({sec.total})
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Question Cards List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {filteredQuestions.map((q, idx) => {
-                  const isCorrect = q.status === 'Correct';
-                  const isWrong = q.status === 'Wrong';
-
-                  return (
-                    <div key={idx} style={{
-                      borderRadius: '12px',
-                      border: isCorrect ? '1px solid #a7f3d0' : isWrong ? '1px solid #fecaca' : '1px solid #e2e8f0',
-                      background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : '#f8fafc',
-                      padding: '14px 16px'
-                    }}>
-                      {/* Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: 900, fontSize: '0.85rem', color: '#0f172a' }}>Q.{q.q_no}</span>
-                          <span style={{ fontSize: '0.72rem', background: '#e2e8f0', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                            {q.section}
-                          </span>
-                        </div>
-                        <span style={{
-                          fontSize: '0.75rem', fontWeight: 900, padding: '3px 10px', borderRadius: '12px',
-                          background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#64748b',
-                          color: '#ffffff'
-                        }}>
-                          {isCorrect ? `Correct (+${rightVal})` : isWrong ? `Wrong (-${wrongVal})` : 'Unattempted (0.0)'}
-                        </span>
-                      </div>
-
-                      {/* Question Text / Image / HTML */}
-                      <div style={{ fontSize: '0.88rem', color: '#1e293b', marginBottom: '12px', fontWeight: 600, lineHeight: 1.5 }}>
-                        {q.question_html ? (
-                          <div dangerouslySetInnerHTML={{ __html: q.question_html }} />
-                        ) : q.question_image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={q.question_image} alt={`Question ${q.q_no}`} style={{ maxWidth: '100%', borderRadius: '6px' }} />
-                        ) : (
-                          <div>{q.question_text}</div>
-                        )}
-                      </div>
-
-                      {/* Options List */}
-                      {q.options && q.options.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {q.options.map(opt => {
-                            const isOptRight = opt.is_correct;
-                            const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
-                                               (q.chosen_option && String(q.chosen_option) === String(opt.option_no));
-
-                            let bg = '#ffffff';
-                            let border = '1px solid #e2e8f0';
-                            let color = '#334155';
-                            let badgeText = '';
-
-                            if (isOptRight) {
-                              bg = '#d1fae5';
-                              border = '1.5px solid #10b981';
-                              color = '#065f46';
-                              badgeText = '✓ Correct Answer';
-                            }
-                            if (isOptChosen && !isOptRight) {
-                              bg = '#fee2e2';
-                              border = '1.5px solid #ef4444';
-                              color = '#991b1b';
-                              badgeText = '✗ Your Answer';
-                            }
-
-                            const cleanOptHtml = opt.option_html ? opt.option_html.replace(new RegExp(`^(\\s*(?:<[^>]+>\\s*)*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
-                            const cleanOptText = opt.option_text ? opt.option_text.replace(new RegExp(`^(\\s*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
-
-                            return (
-                              <div key={opt.option_no} style={{
-                                padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
-                                fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                              }}>
-                                <div style={{ flex: 1, display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                  <span style={{ fontWeight: 800, flexShrink: 0 }}>{opt.option_no}.</span>
-                                  {cleanOptHtml ? (
-                                    <span style={{ display: 'inline-flex', alignItems: 'center' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
-                                  ) : opt.option_image ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '40px', verticalAlign: 'middle' }} />
-                                  ) : (
-                                    <span>{cleanOptText}</span>
-                                  )}
-                                </div>
-                                {badgeText && (
-                                  <span style={{ fontSize: '0.7rem', fontWeight: 900, marginLeft: '8px', whiteSpace: 'nowrap' }}>
-                                    {badgeText}
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-            </div>
-          )}
+            {/* Button 3: View Your Rank */}
+            <Link
+              href="/rank"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                color: '#ffffff',
+                padding: '14px 20px',
+                borderRadius: '14px',
+                fontWeight: 800,
+                fontSize: '0.92rem',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+                transition: 'all 0.2s ease',
+                textAlign: 'center'
+              }}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+              View Your Rank
+            </Link>
+          </div>
 
         </div>
       </div>
