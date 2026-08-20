@@ -249,7 +249,7 @@ export default function ReviewAnswerkeyPage() {
           </div>
 
           {/* Candidate & Exam Banner Summary */}
-          <div className="info-section-header" style={{ position: 'relative', zIndex: 1, marginBottom: '20px' }}>
+          <div className="info-section-header" style={{ position: 'relative', zIndex: 1, marginBottom: '18px' }}>
             {resultData.headerImgUrl ? (
               <div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -283,94 +283,146 @@ export default function ReviewAnswerkeyPage() {
             </div>
           </div>
 
-          {/* Question Wise Performance Breakdown Section */}
-          <div ref={breakdownRef} id="question-breakdown-section" style={{ position: 'relative', zIndex: 1, padding: '16px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+          {/* Question Breakdown Section */}
+          <div ref={breakdownRef} id="question-breakdown-section" style={{ position: 'relative', zIndex: 1, padding: '14px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
             
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-              <div>
-                <h2 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
-                  Question Wise Performance Breakdown
-                </h2>
-                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '3px 0 0 0' }}>
-                  Section-wise detailed analysis of right, wrong &amp; unattempted questions
-                </p>
-              </div>
+            {/* Colorful Filter Status Pills Header */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start', gap: '8px', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+              
+              {/* ALL Pill */}
+              <button
+                type="button"
+                onClick={(e) => handleStatusFilterChange('ALL', e)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  border: activeStatusFilter === 'ALL' ? '1px solid #1d4ed8' : '1px solid #bfdbfe',
+                  transition: 'all 0.2s ease',
+                  background: activeStatusFilter === 'ALL' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#eff6ff',
+                  color: activeStatusFilter === 'ALL' ? '#ffffff' : '#1d4ed8',
+                  boxShadow: activeStatusFilter === 'ALL' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
+                }}
+              >
+                All ({pillTotalCount})
+              </button>
 
-              {/* Filter Status Pills */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {['ALL', 'Correct', 'Wrong', 'Unattempted'].map(st => (
-                  <button
-                    key={st}
-                    type="button"
-                    onClick={(e) => handleStatusFilterChange(st, e)}
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: '20px',
-                      fontSize: '0.74rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      border: 'none',
-                      transition: 'all 0.2s ease',
-                      background: activeStatusFilter === st ? (
-                        st === 'Correct' ? '#10b981' : st === 'Wrong' ? '#ef4444' : st === 'Unattempted' ? '#f59e0b' : '#2563eb'
-                      ) : '#f1f5f9',
-                      color: activeStatusFilter === st ? '#ffffff' : '#475569'
-                    }}
-                  >
-                    {st === 'ALL' ? `All (${pillTotalCount})` : 
-                     st === 'Correct' ? `Correct (${pillCorrectCount})` : 
-                     st === 'Wrong' ? `Wrong (${pillWrongCount})` : 
-                     `Unattempted (${pillUnattemptedCount})`}
-                  </button>
-                ))}
-              </div>
+              {/* Correct Pill */}
+              <button
+                type="button"
+                onClick={(e) => handleStatusFilterChange('Correct', e)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  border: activeStatusFilter === 'Correct' ? '1px solid #047857' : '1px solid #a7f3d0',
+                  transition: 'all 0.2s ease',
+                  background: activeStatusFilter === 'Correct' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ecfdf5',
+                  color: activeStatusFilter === 'Correct' ? '#ffffff' : '#047857',
+                  boxShadow: activeStatusFilter === 'Correct' ? '0 2px 8px rgba(16, 185, 129, 0.35)' : 'none'
+                }}
+              >
+                Correct ({pillCorrectCount})
+              </button>
+
+              {/* Wrong Pill */}
+              <button
+                type="button"
+                onClick={(e) => handleStatusFilterChange('Wrong', e)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  border: activeStatusFilter === 'Wrong' ? '1px solid #b91c1c' : '1px solid #fecaca',
+                  transition: 'all 0.2s ease',
+                  background: activeStatusFilter === 'Wrong' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : '#fef2f2',
+                  color: activeStatusFilter === 'Wrong' ? '#ffffff' : '#b91c1c',
+                  boxShadow: activeStatusFilter === 'Wrong' ? '0 2px 8px rgba(239, 68, 68, 0.35)' : 'none'
+                }}
+              >
+                Wrong ({pillWrongCount})
+              </button>
+
+              {/* Unattempted Pill */}
+              <button
+                type="button"
+                onClick={(e) => handleStatusFilterChange('Unattempted', e)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  border: activeStatusFilter === 'Unattempted' ? '1px solid #b45309' : '1px solid #fde68a',
+                  transition: 'all 0.2s ease',
+                  background: activeStatusFilter === 'Unattempted' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : '#fffbeb',
+                  color: activeStatusFilter === 'Unattempted' ? '#ffffff' : '#b45309',
+                  boxShadow: activeStatusFilter === 'Unattempted' ? '0 2px 8px rgba(245, 158, 11, 0.35)' : 'none'
+                }}
+              >
+                Unattempted ({pillUnattemptedCount})
+              </button>
+
             </div>
 
-            {/* Section Selector Tabs */}
+            {/* Colorful Dynamic Section Selector Tabs */}
             {resultData.sections && resultData.sections.length > 1 && (
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '14px' }}>
                 <button
                   type="button"
                   onClick={(e) => handleSecTabChange('ALL', e)}
                   style={{
-                    padding: '6px 14px',
-                    borderRadius: '8px',
-                    fontSize: '0.78rem',
+                    padding: '5px 12px',
+                    borderRadius: '10px',
+                    fontSize: '0.72rem',
                     fontWeight: 800,
                     whiteSpace: 'nowrap',
                     cursor: 'pointer',
-                    border: activeSecTab === 'ALL' ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                    background: activeSecTab === 'ALL' ? '#eff6ff' : '#ffffff',
-                    color: activeSecTab === 'ALL' ? '#1d4ed8' : '#334155'
+                    transition: 'all 0.2s ease',
+                    border: activeSecTab === 'ALL' ? '1px solid #4338ca' : '1px solid #e2e8f0',
+                    background: activeSecTab === 'ALL' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#f8fafc',
+                    color: activeSecTab === 'ALL' ? '#ffffff' : '#475569',
+                    boxShadow: activeSecTab === 'ALL' ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
                   }}
                 >
                   All Sections ({allQuestions.length})
                 </button>
-                {resultData.sections.map(sec => (
-                  <button
-                    key={sec.name}
-                    type="button"
-                    onClick={(e) => handleSecTabChange(sec.name, e)}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      fontSize: '0.78rem',
-                      fontWeight: 800,
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                      border: activeSecTab === sec.name ? '2px solid #2563eb' : '1px solid #cbd5e1',
-                      background: activeSecTab === sec.name ? '#eff6ff' : '#ffffff',
-                      color: activeSecTab === sec.name ? '#1d4ed8' : '#334155'
-                    }}
-                  >
-                    {sec.name} ({sec.total})
-                  </button>
-                ))}
+                {resultData.sections.map(sec => {
+                  const isActive = activeSecTab === sec.name;
+                  return (
+                    <button
+                      key={sec.name}
+                      type="button"
+                      onClick={(e) => handleSecTabChange(sec.name, e)}
+                      style={{
+                        padding: '5px 12px',
+                        borderRadius: '10px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        border: isActive ? '1px solid #4338ca' : '1px solid #e2e8f0',
+                        background: isActive ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#f8fafc',
+                        color: isActive ? '#ffffff' : '#475569',
+                        boxShadow: isActive ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
+                      }}
+                    >
+                      {sec.name} ({sec.total})
+                    </button>
+                  );
+                })}
               </div>
             )}
 
             {/* Question Cards List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {filteredQuestions.map((q, idx) => {
                 const isCorrect = q.status === 'Correct';
                 const isWrong = q.status === 'Wrong';
@@ -380,18 +432,18 @@ export default function ReviewAnswerkeyPage() {
                     borderRadius: '12px',
                     border: isCorrect ? '1px solid #a7f3d0' : isWrong ? '1px solid #fecaca' : '1px solid #e2e8f0',
                     background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : '#f8fafc',
-                    padding: '14px 16px'
+                    padding: '12px 14px'
                   }}>
                     {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: 900, fontSize: '0.85rem', color: '#0f172a' }}>Q.{q.q_no}</span>
-                        <span style={{ fontSize: '0.72rem', background: '#e2e8f0', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontWeight: 900, fontSize: '0.82rem', color: '#0f172a' }}>Q.{q.q_no}</span>
+                        <span style={{ fontSize: '0.68rem', background: '#e2e8f0', color: '#334155', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                           {q.section}
                         </span>
                       </div>
                       <span style={{
-                        fontSize: '0.75rem', fontWeight: 900, padding: '3px 10px', borderRadius: '12px',
+                        fontSize: '0.7rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px',
                         background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#64748b',
                         color: '#ffffff'
                       }}>
@@ -400,7 +452,7 @@ export default function ReviewAnswerkeyPage() {
                     </div>
 
                     {/* Question Text / Image / HTML */}
-                    <div style={{ fontSize: '0.88rem', color: '#1e293b', marginBottom: '12px', fontWeight: 600, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: '0.85rem', color: '#1e293b', marginBottom: '10px', fontWeight: 600, lineHeight: 1.45 }}>
                       {q.question_html ? (
                         <div dangerouslySetInnerHTML={{ __html: q.question_html }} />
                       ) : q.question_image ? (
@@ -413,7 +465,7 @@ export default function ReviewAnswerkeyPage() {
 
                     {/* Options List */}
                     {q.options && q.options.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         {q.options.map(opt => {
                           const isOptRight = opt.is_correct;
                           const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
@@ -442,8 +494,8 @@ export default function ReviewAnswerkeyPage() {
 
                           return (
                             <div key={opt.option_no} style={{
-                              padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
-                              fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                              padding: '6px 10px', borderRadius: '6px', background: bg, border: border, color: color,
+                              fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                             }}>
                               <div style={{ flex: 1, display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                 <span style={{ fontWeight: 800, flexShrink: 0 }}>{opt.option_no}.</span>
@@ -451,13 +503,13 @@ export default function ReviewAnswerkeyPage() {
                                   <span style={{ display: 'inline-flex', alignItems: 'center' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
                                 ) : opt.option_image ? (
                                   // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '40px', verticalAlign: 'middle' }} />
+                                  <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '36px', verticalAlign: 'middle' }} />
                                 ) : (
                                   <span>{cleanOptText}</span>
                                 )}
                               </div>
                               {badgeText && (
-                                <span style={{ fontSize: '0.7rem', fontWeight: 900, marginLeft: '8px', whiteSpace: 'nowrap' }}>
+                                <span style={{ fontSize: '0.68rem', fontWeight: 900, marginLeft: '6px', whiteSpace: 'nowrap' }}>
                                   {badgeText}
                                 </span>
                               )}
