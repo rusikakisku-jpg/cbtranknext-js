@@ -149,6 +149,13 @@ export default function ReviewAnswerkeyPage() {
     });
   }
 
+  function scrollToQuestion(qNo: number) {
+    const el = document.getElementById(`q-card-${qNo}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
   if (!resultData) {
     return null;
   }
@@ -161,6 +168,10 @@ export default function ReviewAnswerkeyPage() {
     totalWrong += s.wrong;
     totalUnattempted += s.unattempted;
   });
+
+  const rawMarks = (totalRight * rightVal) - (totalWrong * wrongVal);
+  const totalAttempted = totalRight + totalWrong;
+  const accuracy = totalAttempted > 0 ? Math.round((totalRight / totalAttempted) * 100) : 0;
 
   const selectedSecObj = activeSecTab !== 'ALL'
     ? resultData.sections.find(s => s.name === activeSecTab || s.name.trim().toLowerCase() === activeSecTab.trim().toLowerCase())
@@ -190,39 +201,586 @@ export default function ReviewAnswerkeyPage() {
     return activeStatusFilter === 'ALL' || q.status === activeStatusFilter;
   });
 
-  const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate/i.test(r.label))?.value || 'Candidate';
+  const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate/i.test(r.label))?.value || 'Verified Candidate';
   const rollNumber = resultData.rollNo || resultData.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
 
   return (
     <main>
-      <div className="result-main">
-        <div className="scorecard-card" style={{ position: 'relative', overflow: 'hidden' }}>
+      <div className="result-main" style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}>
 
-          {/* Navigation Bar / Quick Actions */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', paddingBottom: '14px', borderBottom: '1px solid #e2e8f0' }}>
-            <Link
-              href="/result"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1',
-                padding: '8px 14px', borderRadius: '10px', fontWeight: 800, fontSize: '0.82rem',
-                textDecoration: 'none'
-              }}
-            >
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Scorecard
-            </Link>
+        {/* 2-Column Responsive Layout with Right Sidebar */}
+        <div style={{
+          display: 'flex',
+          gap: '20px',
+          alignItems: 'flex-start',
+          flexWrap: 'wrap'
+        }}>
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {/* LEFT MAIN CONTENT COLUMN (Questions + Controls) */}
+          <div style={{ flex: '1 1 680px', minWidth: '320px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+            {/* Top Navigation & Exam Header */}
+            <div className="scorecard-card" style={{ padding: '16px 20px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                <Link
+                  href="/result"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1',
+                    padding: '7px 12px', borderRadius: '10px', fontWeight: 800, fontSize: '0.8rem',
+                    textDecoration: 'none'
+                  }}
+                >
+                  <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Back to Scorecard
+                </Link>
+
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <Link
+                    href="/rank"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      color: '#ffffff', padding: '7px 12px', borderRadius: '10px',
+                      fontWeight: 800, fontSize: '0.8rem', textDecoration: 'none'
+                    }}
+                  >
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    View Your Rank
+                  </Link>
+                </div>
+              </div>
+
+              {/* Exam Logo / Title Banner */}
+              {resultData.headerImgUrl ? (
+                <div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" style={{ maxHeight: '60px', objectFit: 'contain' }} />
+                </div>
+              ) : resultData.headerBannerText ? (
+                <h1 className="exam-name-title" style={{ margin: 0, fontSize: '1.2rem' }}>{resultData.headerBannerText}</h1>
+              ) : (
+                resultData.examName && (
+                  <h1 className="exam-name-title" style={{ margin: 0, fontSize: '1.2rem' }}>{resultData.examName}</h1>
+                )
+              )}
+            </div>
+
+            {/* Question Breakdown Section */}
+            <div ref={breakdownRef} id="question-breakdown-section" style={{ padding: '16px 14px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+              
+              {/* Colorful Filter Status Pills & Download PDF Button Row */}
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                marginBottom: '14px',
+                borderBottom: '1px solid #f1f5f9',
+                paddingBottom: '12px'
+              }}>
+                
+                {/* Left: Filter Pills */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* ALL Pill */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleStatusFilterChange('ALL', e)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '16px',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: activeStatusFilter === 'ALL' ? '1px solid #1d4ed8' : '1px solid #bfdbfe',
+                      transition: 'all 0.2s ease',
+                      background: activeStatusFilter === 'ALL' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#eff6ff',
+                      color: activeStatusFilter === 'ALL' ? '#ffffff' : '#1d4ed8',
+                      boxShadow: activeStatusFilter === 'ALL' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
+                    }}
+                  >
+                    All ({pillTotalCount})
+                  </button>
+
+                  {/* Correct Pill */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleStatusFilterChange('Correct', e)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '16px',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: activeStatusFilter === 'Correct' ? '1px solid #047857' : '1px solid #a7f3d0',
+                      transition: 'all 0.2s ease',
+                      background: activeStatusFilter === 'Correct' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ecfdf5',
+                      color: activeStatusFilter === 'Correct' ? '#ffffff' : '#047857',
+                      boxShadow: activeStatusFilter === 'Correct' ? '0 2px 8px rgba(16, 185, 129, 0.35)' : 'none'
+                    }}
+                  >
+                    Correct ({pillCorrectCount})
+                  </button>
+
+                  {/* Wrong Pill */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleStatusFilterChange('Wrong', e)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '16px',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: activeStatusFilter === 'Wrong' ? '1px solid #b91c1c' : '1px solid #fecaca',
+                      transition: 'all 0.2s ease',
+                      background: activeStatusFilter === 'Wrong' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : '#fef2f2',
+                      color: activeStatusFilter === 'Wrong' ? '#ffffff' : '#b91c1c',
+                      boxShadow: activeStatusFilter === 'Wrong' ? '0 2px 8px rgba(239, 68, 68, 0.35)' : 'none'
+                    }}
+                  >
+                    Wrong ({pillWrongCount})
+                  </button>
+
+                  {/* Unattempted Pill */}
+                  <button
+                    type="button"
+                    onClick={(e) => handleStatusFilterChange('Unattempted', e)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '16px',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: activeStatusFilter === 'Unattempted' ? '1px solid #b45309' : '1px solid #fde68a',
+                      transition: 'all 0.2s ease',
+                      background: activeStatusFilter === 'Unattempted' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : '#fffbeb',
+                      color: activeStatusFilter === 'Unattempted' ? '#ffffff' : '#b45309',
+                      boxShadow: activeStatusFilter === 'Unattempted' ? '0 2px 8px rgba(245, 158, 11, 0.35)' : 'none'
+                    }}
+                  >
+                    Unattempted ({pillUnattemptedCount})
+                  </button>
+                </div>
+
+                {/* Right: Download PDF Button */}
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#ffffff',
+                    color: '#0f172a',
+                    border: '1.5px solid #cbd5e1',
+                    padding: '5px 12px',
+                    borderRadius: '14px',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download PDF
+                </button>
+
+              </div>
+
+              {/* Colorful Dynamic Section Selector Tabs */}
+              {resultData.sections && resultData.sections.length > 1 && (
+                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSecTabChange('ALL', e)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: '10px',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      border: activeSecTab === 'ALL' ? '1px solid #4338ca' : '1px solid #e2e8f0',
+                      background: activeSecTab === 'ALL' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#f8fafc',
+                      color: activeSecTab === 'ALL' ? '#ffffff' : '#475569',
+                      boxShadow: activeSecTab === 'ALL' ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
+                    }}
+                  >
+                    All Sections ({allQuestions.length})
+                  </button>
+                  {resultData.sections.map(sec => {
+                    const isActive = activeSecTab === sec.name;
+                    return (
+                      <button
+                        key={sec.name}
+                        type="button"
+                        onClick={(e) => handleSecTabChange(sec.name, e)}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '10px',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          border: isActive ? '1px solid #4338ca' : '1px solid #e2e8f0',
+                          background: isActive ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#f8fafc',
+                          color: isActive ? '#ffffff' : '#475569',
+                          boxShadow: isActive ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
+                        }}
+                      >
+                        {sec.name} ({sec.total})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Question Cards List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {filteredQuestions.map((q, idx) => {
+                  const isCorrect = q.status === 'Correct';
+                  const isWrong = q.status === 'Wrong';
+
+                  return (
+                    <div
+                      key={idx}
+                      id={`q-card-${q.q_no}`}
+                      style={{
+                        borderRadius: '14px',
+                        border: isCorrect ? '1px solid #a7f3d0' : isWrong ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                        background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : '#f8fafc',
+                        padding: '14px 16px',
+                        scrollMarginTop: '20px'
+                      }}
+                    >
+                      {/* Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontWeight: 900, fontSize: '0.85rem', color: '#0f172a' }}>Q.{q.q_no}</span>
+                          <span style={{ fontSize: '0.68rem', background: '#e2e8f0', color: '#334155', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                            {q.section}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '0.72rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px',
+                          background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#64748b',
+                          color: '#ffffff'
+                        }}>
+                          {isCorrect ? `Correct (+${rightVal})` : isWrong ? `Wrong (-${wrongVal})` : 'Unattempted (0.0)'}
+                        </span>
+                      </div>
+
+                      {/* Question Text / Image / HTML */}
+                      <div style={{ fontSize: '0.88rem', color: '#1e293b', marginBottom: '12px', fontWeight: 600, lineHeight: 1.5 }}>
+                        {q.question_html ? (
+                          <div dangerouslySetInnerHTML={{ __html: q.question_html }} />
+                        ) : q.question_image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={q.question_image} alt={`Question ${q.q_no}`} style={{ maxWidth: '100%', borderRadius: '6px' }} />
+                        ) : (
+                          <div>{q.question_text}</div>
+                        )}
+                      </div>
+
+                      {/* Options List */}
+                      {q.options && q.options.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {q.options.map(opt => {
+                            const isOptRight = opt.is_correct;
+                            const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
+                                               (q.chosen_option && String(q.chosen_option) === String(opt.option_no));
+
+                            let bg = '#ffffff';
+                            let border = '1px solid #e2e8f0';
+                            let color = '#334155';
+                            let badgeText = '';
+
+                            if (isOptRight) {
+                              bg = '#d1fae5';
+                              border = '1.5px solid #10b981';
+                              color = '#065f46';
+                              badgeText = '✓ Correct Answer';
+                            }
+                            if (isOptChosen && !isOptRight) {
+                              bg = '#fee2e2';
+                              border = '1.5px solid #ef4444';
+                              color = '#991b1b';
+                              badgeText = '✗ Your Answer';
+                            }
+
+                            const cleanOptHtml = opt.option_html ? opt.option_html.replace(new RegExp(`^(\\s*(?:<[^>]+>\\s*)*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
+                            const cleanOptText = opt.option_text ? opt.option_text.replace(new RegExp(`^(\\s*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
+
+                            return (
+                              <div key={opt.option_no} style={{
+                                padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
+                                fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                              }}>
+                                <div style={{ flex: 1, display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontWeight: 800, flexShrink: 0 }}>{opt.option_no}.</span>
+                                  {cleanOptHtml ? (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
+                                  ) : opt.option_image ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '36px', verticalAlign: 'middle' }} />
+                                  ) : (
+                                    <span>{cleanOptText}</span>
+                                  )}
+                                </div>
+                                {badgeText && (
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 900, marginLeft: '6px', whiteSpace: 'nowrap' }}>
+                                    {badgeText}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Score Card + Question Navigator) */}
+          <div style={{
+            flex: '0 0 310px',
+            minWidth: '280px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            position: 'sticky',
+            top: '20px'
+          }}>
+
+            {/* Sidebar Card 1: 👤 User Information Profile */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '18px',
+              padding: '16px',
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 900,
+                  fontSize: '0.9rem'
+                }}>
+                  👤
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '0.86rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
+                    Candidate Profile
+                  </h3>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Response Sheet Details</span>
+                </div>
+              </div>
+
+              {/* Information Grid */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {resultData.infoRows && resultData.infoRows.length > 0 ? (
+                  resultData.infoRows.map((row, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px', fontSize: '0.76rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 600, flexShrink: 0, textTransform: 'capitalize' }}>
+                        {/community|caste|category/i.test(row.label) ? 'Community' : row.label}:
+                      </span>
+                      <strong style={{ color: '#0f172a', textAlign: 'right', wordBreak: 'break-word', fontFamily: /roll|registration|number|id/i.test(row.label) ? 'monospace' : 'inherit' }}>
+                        {row.value}
+                      </strong>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                      <span style={{ color: '#64748b', fontWeight: 600 }}>Name:</span>
+                      <strong style={{ color: '#0f172a' }}>{candidateName}</strong>
+                    </div>
+                    {rollNumber && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: '#64748b', fontWeight: 600 }}>Roll No:</span>
+                        <strong style={{ color: '#0f172a', fontFamily: 'monospace' }}>{rollNumber}</strong>
+                      </div>
+                    )}
+                    {resultData.testDate && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: '#64748b', fontWeight: 600 }}>Date:</span>
+                        <strong style={{ color: '#0f172a' }}>{resultData.testDate}</strong>
+                      </div>
+                    )}
+                    {resultData.testTime && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                        <span style={{ color: '#64748b', fontWeight: 600 }}>Time:</span>
+                        <strong style={{ color: '#0f172a' }}>{resultData.testTime}</strong>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {formData?.category && !resultData.infoRows?.some(r => /community|caste|category/i.test(r.label)) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Category:</span>
+                    <strong style={{ color: '#0f172a' }}>{formData.category}</strong>
+                  </div>
+                )}
+                {formData?.state && !resultData.infoRows?.some(r => /state|zone|location/i.test(r.label)) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>State:</span>
+                    <strong style={{ color: '#0f172a' }}>{formData.state}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Sidebar Card 2: 📊 Quick Score & Performance Card */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+              color: '#ffffff',
+              borderRadius: '18px',
+              padding: '16px',
+              boxShadow: '0 6px 18px rgba(15, 23, 42, 0.15)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: 800 }}>
+                  Total Marks
+                </span>
+                <span style={{ fontSize: '0.72rem', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '2px 8px', borderRadius: '8px', fontWeight: 800 }}>
+                  {accuracy}% Accuracy
+                </span>
+              </div>
+              <div style={{ fontSize: '1.8rem', fontWeight: 900, lineHeight: 1 }}>
+                {rawMarks.toFixed(2)}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginTop: '12px', textAlign: 'center' }}>
+                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
+                  <span style={{ fontSize: '0.62rem', color: '#34d399', display: 'block', fontWeight: 700 }}>Correct</span>
+                  <strong style={{ fontSize: '0.85rem' }}>{totalRight}</strong>
+                </div>
+                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
+                  <span style={{ fontSize: '0.62rem', color: '#f87171', display: 'block', fontWeight: 700 }}>Wrong</span>
+                  <strong style={{ fontSize: '0.85rem' }}>{totalWrong}</strong>
+                </div>
+                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
+                  <span style={{ fontSize: '0.62rem', color: '#fbbf24', display: 'block', fontWeight: 700 }}>Skipped</span>
+                  <strong style={{ fontSize: '0.85rem' }}>{totalUnattempted}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Card 3: 🎯 Interactive Question Palette (Jump to Question) */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              borderRadius: '18px',
+              padding: '14px',
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 900, color: '#0f172a', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Question Palette
+                </h4>
+                <span style={{ fontSize: '0.68rem', color: '#64748b' }}>({allQuestions.length} Qs)</span>
+              </div>
+
+              {/* Question Number Badges Grid */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(6, 1fr)',
+                gap: '5px',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                paddingRight: '4px'
+              }}>
+                {allQuestions.map(q => {
+                  const isCorrect = q.status === 'Correct';
+                  const isWrong = q.status === 'Wrong';
+
+                  let bg = '#f1f5f9';
+                  let color = '#475569';
+                  let border = '1px solid #cbd5e1';
+
+                  if (isCorrect) {
+                    bg = '#10b981';
+                    color = '#ffffff';
+                    border = '1px solid #059669';
+                  } else if (isWrong) {
+                    bg = '#ef4444';
+                    color = '#ffffff';
+                    border = '1px solid #dc2626';
+                  } else {
+                    bg = '#fef3c7';
+                    color = '#92400e';
+                    border = '1px solid #fde68a';
+                  }
+
+                  return (
+                    <button
+                      key={q.q_no}
+                      type="button"
+                      onClick={() => scrollToQuestion(q.q_no)}
+                      style={{
+                        padding: '4px 0',
+                        borderRadius: '6px',
+                        background: bg,
+                        color: color,
+                        border: border,
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'transform 0.1s ease'
+                      }}
+                      title={`Q.${q.q_no} - ${q.status}`}
+                    >
+                      {q.q_no}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Sidebar Card 4: Quick Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Link
                 href="/rank"
                 style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
                   background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  color: '#ffffff', padding: '8px 14px', borderRadius: '10px',
-                  fontWeight: 800, fontSize: '0.82rem', textDecoration: 'none'
+                  color: '#ffffff',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                  textAlign: 'center'
                 }}
               >
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -230,435 +788,12 @@ export default function ReviewAnswerkeyPage() {
                 </svg>
                 View Your Rank
               </Link>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  background: '#ffffff', color: '#0f172a', border: '1px solid #cbd5e1',
-                  padding: '8px 14px', borderRadius: '10px', fontWeight: 800, fontSize: '0.82rem',
-                  cursor: 'pointer'
-                }}
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Print / PDF
-              </button>
-            </div>
-          </div>
-
-          {/* Candidate & Exam Banner Summary (Header Logo on Left, Full User Info on Right) */}
-          <div className="info-section-header" style={{
-            position: 'relative',
-            zIndex: 1,
-            marginBottom: '18px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: '16px'
-          }}>
-            {/* Left Column: Exam Banner / Logo */}
-            <div style={{ flex: '1 1 300px', minWidth: '240px' }}>
-              {resultData.headerImgUrl ? (
-                <div>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" style={{ maxHeight: '70px', objectFit: 'contain' }} />
-                </div>
-              ) : resultData.headerBannerText ? (
-                <h1 className="exam-name-title" style={{ margin: 0 }}>{resultData.headerBannerText}</h1>
-              ) : (
-                resultData.examName && (
-                  <h1 className="exam-name-title" style={{ margin: 0 }}>{resultData.examName}</h1>
-                )
-              )}
             </div>
 
-            {/* Right Column: Full Candidate Information Box */}
-            <div style={{
-              flex: '1 1 420px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '10px',
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '14px',
-              padding: '12px 16px'
-            }}>
-              {resultData.infoRows && resultData.infoRows.length > 0 ? (
-                resultData.infoRows.map((row, idx) => (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'capitalize' }}>
-                      {/community|caste|category/i.test(row.label) ? 'Community' : row.label}
-                    </span>
-                    <strong style={{
-                      fontSize: '0.82rem',
-                      color: '#0f172a',
-                      fontFamily: /roll|registration|number|id/i.test(row.label) ? 'monospace' : 'inherit',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {row.value}
-                    </strong>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Candidate Name</span>
-                    <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{candidateName}</strong>
-                  </div>
-                  {rollNumber && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Roll Number</span>
-                      <strong style={{ fontSize: '0.82rem', color: '#0f172a', fontFamily: 'monospace' }}>{rollNumber}</strong>
-                    </div>
-                  )}
-                  {resultData.testDate && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Test Date</span>
-                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{resultData.testDate}</strong>
-                    </div>
-                  )}
-                  {resultData.testTime && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Test Time</span>
-                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{resultData.testTime}</strong>
-                    </div>
-                  )}
-                  {resultData.testCenter && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Test Center</span>
-                      <strong style={{ fontSize: '0.82rem', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {resultData.testCenter}
-                      </strong>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Extra submitted details if not in infoRows */}
-              {formData?.state && !resultData.infoRows?.some(r => /state|zone|location/i.test(r.label)) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>{formData.location_label || 'State / UT'}</span>
-                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{formData.state}</strong>
-                </div>
-              )}
-              {formData?.category && !resultData.infoRows?.some(r => /community|caste|category/i.test(r.label)) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Community</span>
-                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{formData.category}</strong>
-                </div>
-              )}
-              {formData?.gender && !resultData.infoRows?.some(r => r.label.toLowerCase() === 'gender') && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Gender</span>
-                  <strong style={{ fontSize: '0.82rem', color: '#0f172a', textTransform: 'capitalize' }}>{formData.gender}</strong>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Question Breakdown Section */}
-          <div ref={breakdownRef} id="question-breakdown-section" style={{ position: 'relative', zIndex: 1, padding: '14px 12px', borderRadius: '18px', background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-            
-            {/* Colorful Filter Status Pills & Download PDF Button Row */}
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
-              marginBottom: '14px',
-              borderBottom: '1px solid #f1f5f9',
-              paddingBottom: '12px'
-            }}>
-              
-              {/* Left: Filter Pills */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-                {/* ALL Pill */}
-                <button
-                  type="button"
-                  onClick={(e) => handleStatusFilterChange('ALL', e)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    border: activeStatusFilter === 'ALL' ? '1px solid #1d4ed8' : '1px solid #bfdbfe',
-                    transition: 'all 0.2s ease',
-                    background: activeStatusFilter === 'ALL' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#eff6ff',
-                    color: activeStatusFilter === 'ALL' ? '#ffffff' : '#1d4ed8',
-                    boxShadow: activeStatusFilter === 'ALL' ? '0 2px 8px rgba(37, 99, 235, 0.35)' : 'none'
-                  }}
-                >
-                  All ({pillTotalCount})
-                </button>
-
-                {/* Correct Pill */}
-                <button
-                  type="button"
-                  onClick={(e) => handleStatusFilterChange('Correct', e)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    border: activeStatusFilter === 'Correct' ? '1px solid #047857' : '1px solid #a7f3d0',
-                    transition: 'all 0.2s ease',
-                    background: activeStatusFilter === 'Correct' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#ecfdf5',
-                    color: activeStatusFilter === 'Correct' ? '#ffffff' : '#047857',
-                    boxShadow: activeStatusFilter === 'Correct' ? '0 2px 8px rgba(16, 185, 129, 0.35)' : 'none'
-                  }}
-                >
-                  Correct ({pillCorrectCount})
-                </button>
-
-                {/* Wrong Pill */}
-                <button
-                  type="button"
-                  onClick={(e) => handleStatusFilterChange('Wrong', e)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    border: activeStatusFilter === 'Wrong' ? '1px solid #b91c1c' : '1px solid #fecaca',
-                    transition: 'all 0.2s ease',
-                    background: activeStatusFilter === 'Wrong' ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : '#fef2f2',
-                    color: activeStatusFilter === 'Wrong' ? '#ffffff' : '#b91c1c',
-                    boxShadow: activeStatusFilter === 'Wrong' ? '0 2px 8px rgba(239, 68, 68, 0.35)' : 'none'
-                  }}
-                >
-                  Wrong ({pillWrongCount})
-                </button>
-
-                {/* Unattempted Pill */}
-                <button
-                  type="button"
-                  onClick={(e) => handleStatusFilterChange('Unattempted', e)}
-                  style={{
-                    padding: '4px 10px',
-                    borderRadius: '16px',
-                    fontSize: '0.7rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    border: activeStatusFilter === 'Unattempted' ? '1px solid #b45309' : '1px solid #fde68a',
-                    transition: 'all 0.2s ease',
-                    background: activeStatusFilter === 'Unattempted' ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' : '#fffbeb',
-                    color: activeStatusFilter === 'Unattempted' ? '#ffffff' : '#b45309',
-                    boxShadow: activeStatusFilter === 'Unattempted' ? '0 2px 8px rgba(245, 158, 11, 0.35)' : 'none'
-                  }}
-                >
-                  Unattempted ({pillUnattemptedCount})
-                </button>
-              </div>
-
-              {/* Right: Download PDF Button */}
-              <button
-                type="button"
-                onClick={() => window.print()}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: '#ffffff',
-                  color: '#0f172a',
-                  border: '1.5px solid #cbd5e1',
-                  padding: '5px 12px',
-                  borderRadius: '14px',
-                  fontWeight: 800,
-                  fontSize: '0.72rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download PDF
-              </button>
-
-            </div>
-
-            {/* Colorful Dynamic Section Selector Tabs */}
-            {resultData.sections && resultData.sections.length > 1 && (
-              <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '14px' }}>
-                <button
-                  type="button"
-                  onClick={(e) => handleSecTabChange('ALL', e)}
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: '10px',
-                    fontSize: '0.72rem',
-                    fontWeight: 800,
-                    whiteSpace: 'nowrap',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    border: activeSecTab === 'ALL' ? '1px solid #4338ca' : '1px solid #e2e8f0',
-                    background: activeSecTab === 'ALL' ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#f8fafc',
-                    color: activeSecTab === 'ALL' ? '#ffffff' : '#475569',
-                    boxShadow: activeSecTab === 'ALL' ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
-                  }}
-                >
-                  All Sections ({allQuestions.length})
-                </button>
-                {resultData.sections.map(sec => {
-                  const isActive = activeSecTab === sec.name;
-                  return (
-                    <button
-                      key={sec.name}
-                      type="button"
-                      onClick={(e) => handleSecTabChange(sec.name, e)}
-                      style={{
-                        padding: '5px 12px',
-                        borderRadius: '10px',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        whiteSpace: 'nowrap',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        border: isActive ? '1px solid #4338ca' : '1px solid #e2e8f0',
-                        background: isActive ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#f8fafc',
-                        color: isActive ? '#ffffff' : '#475569',
-                        boxShadow: isActive ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
-                      }}
-                    >
-                      {sec.name} ({sec.total})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Question Cards List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {filteredQuestions.map((q, idx) => {
-                const isCorrect = q.status === 'Correct';
-                const isWrong = q.status === 'Wrong';
-
-                return (
-                  <div key={idx} style={{
-                    borderRadius: '12px',
-                    border: isCorrect ? '1px solid #a7f3d0' : isWrong ? '1px solid #fecaca' : '1px solid #e2e8f0',
-                    background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : '#f8fafc',
-                    padding: '12px 14px'
-                  }}>
-                    {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontWeight: 900, fontSize: '0.82rem', color: '#0f172a' }}>Q.{q.q_no}</span>
-                        <span style={{ fontSize: '0.68rem', background: '#e2e8f0', color: '#334155', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                          {q.section}
-                        </span>
-                      </div>
-                      <span style={{
-                        fontSize: '0.7rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px',
-                        background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#64748b',
-                        color: '#ffffff'
-                      }}>
-                        {isCorrect ? `Correct (+${rightVal})` : isWrong ? `Wrong (-${wrongVal})` : 'Unattempted (0.0)'}
-                      </span>
-                    </div>
-
-                    {/* Question Text / Image / HTML */}
-                    <div style={{ fontSize: '0.85rem', color: '#1e293b', marginBottom: '10px', fontWeight: 600, lineHeight: 1.45 }}>
-                      {q.question_html ? (
-                        <div dangerouslySetInnerHTML={{ __html: q.question_html }} />
-                      ) : q.question_image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={q.question_image} alt={`Question ${q.q_no}`} style={{ maxWidth: '100%', borderRadius: '6px' }} />
-                      ) : (
-                        <div>{q.question_text}</div>
-                      )}
-                    </div>
-
-                    {/* Options List */}
-                    {q.options && q.options.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        {q.options.map(opt => {
-                          const isOptRight = opt.is_correct;
-                          const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
-                                             (q.chosen_option && String(q.chosen_option) === String(opt.option_no));
-
-                          let bg = '#ffffff';
-                          let border = '1px solid #e2e8f0';
-                          let color = '#334155';
-                          let badgeText = '';
-
-                          if (isOptRight) {
-                            bg = '#d1fae5';
-                            border = '1.5px solid #10b981';
-                            color = '#065f46';
-                            badgeText = '✓ Correct Answer';
-                          }
-                          if (isOptChosen && !isOptRight) {
-                            bg = '#fee2e2';
-                            border = '1.5px solid #ef4444';
-                            color = '#991b1b';
-                            badgeText = '✗ Your Answer';
-                          }
-
-                          const cleanOptHtml = opt.option_html ? opt.option_html.replace(new RegExp(`^(\\s*(?:<[^>]+>\\s*)*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
-                          const cleanOptText = opt.option_text ? opt.option_text.replace(new RegExp(`^(\\s*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
-
-                          return (
-                            <div key={opt.option_no} style={{
-                              padding: '6px 10px', borderRadius: '6px', background: bg, border: border, color: color,
-                              fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                            }}>
-                              <div style={{ flex: 1, display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <span style={{ fontWeight: 800, flexShrink: 0 }}>{opt.option_no}.</span>
-                                {cleanOptHtml ? (
-                                  <span style={{ display: 'inline-flex', alignItems: 'center' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
-                                ) : opt.option_image ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '36px', verticalAlign: 'middle' }} />
-                                ) : (
-                                  <span>{cleanOptText}</span>
-                                )}
-                              </div>
-                              {badgeText && (
-                                <span style={{ fontSize: '0.68rem', fontWeight: 900, marginLeft: '6px', whiteSpace: 'nowrap' }}>
-                                  {badgeText}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-          </div>
-
-          {/* Bottom Navigation */}
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-            <Link
-              href="/result"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                color: '#ffffff', padding: '12px 24px', borderRadius: '12px',
-                fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.3)'
-              }}
-            >
-              ← Back to Scorecard
-            </Link>
           </div>
 
         </div>
+
       </div>
     </main>
   );
