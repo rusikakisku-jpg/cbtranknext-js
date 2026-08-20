@@ -162,10 +162,6 @@ export default function ReviewAnswerkeyPage() {
     totalUnattempted += s.unattempted;
   });
 
-  const rawMarks = (totalRight * rightVal) - (totalWrong * wrongVal);
-  const totalAttempted = totalRight + totalWrong;
-  const accuracy = totalAttempted > 0 ? Math.round((totalRight / totalAttempted) * 100) : 0;
-
   const selectedSecObj = activeSecTab !== 'ALL'
     ? resultData.sections.find(s => s.name === activeSecTab || s.name.trim().toLowerCase() === activeSecTab.trim().toLowerCase())
     : null;
@@ -558,7 +554,7 @@ export default function ReviewAnswerkeyPage() {
 
           </div>
 
-          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated View Your Rank Button + Score Card) */}
+          {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated View Your Rank Button + Back to Scorecard) */}
           <div style={{
             flex: '0 0 310px',
             minWidth: '280px',
@@ -684,40 +680,32 @@ export default function ReviewAnswerkeyPage() {
 
             </div>
 
-            {/* Sidebar Card 2: 📊 Quick Score & Performance Card */}
-            <div style={{
-              background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-              color: '#ffffff',
-              borderRadius: '18px',
-              padding: '16px',
-              boxShadow: '0 6px 18px rgba(15, 23, 42, 0.15)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: 800 }}>
-                  Total Marks
-                </span>
-                <span style={{ fontSize: '0.72rem', background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', padding: '2px 8px', borderRadius: '8px', fontWeight: 800 }}>
-                  {accuracy}% Accuracy
-                </span>
-              </div>
-              <div style={{ fontSize: '1.8rem', fontWeight: 900, lineHeight: 1 }}>
-                {rawMarks.toFixed(2)}
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginTop: '12px', textAlign: 'center' }}>
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#34d399', display: 'block', fontWeight: 700 }}>Correct</span>
-                  <strong style={{ fontSize: '0.85rem' }}>{totalRight}</strong>
-                </div>
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#f87171', display: 'block', fontWeight: 700 }}>Wrong</span>
-                  <strong style={{ fontSize: '0.85rem' }}>{totalWrong}</strong>
-                </div>
-                <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '8px', padding: '6px 4px' }}>
-                  <span style={{ fontSize: '0.62rem', color: '#fbbf24', display: 'block', fontWeight: 700 }}>Skipped</span>
-                  <strong style={{ fontSize: '0.85rem' }}>{totalUnattempted}</strong>
-                </div>
-              </div>
+            {/* Sidebar Card 2: Back to Scorecard CTA */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Link
+                href="/result"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  border: '1.5px solid #cbd5e1',
+                  padding: '11px',
+                  borderRadius: '12px',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  textAlign: 'center'
+                }}
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Scorecard
+              </Link>
             </div>
 
           </div>
