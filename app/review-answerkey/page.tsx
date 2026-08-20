@@ -243,8 +243,20 @@ export default function ReviewAnswerkeyPage() {
                 )}
               </div>
 
-              {/* Colorful Filter Status Pills & Download PDF Button Row */}
-              <div style={{
+              {/* Printable-Only Candidate Header (Visible ONLY on PDF / Print) */}
+              <div className="print-only" style={{ marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '9pt' }}>
+                  <div><strong>Candidate:</strong> {candidateName}</div>
+                  {rollNumber && <div><strong>Roll No:</strong> {rollNumber}</div>}
+                  {resultData.testDate && <div><strong>Date:</strong> {resultData.testDate}</div>}
+                  {resultData.testTime && <div><strong>Time:</strong> {resultData.testTime}</div>}
+                  {formData?.category && <div><strong>Category:</strong> {formData.category}</div>}
+                  {formData?.state && <div><strong>State:</strong> {formData.state}</div>}
+                </div>
+              </div>
+
+              {/* Colorful Filter Status Pills & Download PDF Button Row (Hidden on Print) */}
+              <div className="no-print" style={{
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
@@ -367,9 +379,9 @@ export default function ReviewAnswerkeyPage() {
 
               </div>
 
-              {/* Dynamic Section Selector Tabs with flex-wrap (NO horizontal scroll needed!) */}
+              {/* Dynamic Section Selector Tabs (Hidden on Print) */}
               {resultData.sections && resultData.sections.length > 1 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
                   <button
                     type="button"
                     onClick={(e) => handleSecTabChange('ALL', e)}
@@ -555,7 +567,7 @@ export default function ReviewAnswerkeyPage() {
           </div>
 
           {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated View Your Rank Button + Back to Scorecard) */}
-          <div style={{
+          <div className="review-right-sidebar no-print" style={{
             flex: '0 0 310px',
             minWidth: '280px',
             display: 'flex',

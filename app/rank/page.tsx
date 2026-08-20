@@ -165,8 +165,20 @@ export default function RankPage() {
                 )}
               </div>
 
-              {/* Action Bar / Download PDF Button Row */}
-              <div style={{
+              {/* Printable-Only Candidate Header (Visible ONLY on PDF / Print) */}
+              <div className="print-only" style={{ marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '9pt' }}>
+                  <div><strong>Candidate:</strong> {candidateName}</div>
+                  {rollNumber && <div><strong>Roll No:</strong> {rollNumber}</div>}
+                  {resultData.testDate && <div><strong>Date:</strong> {resultData.testDate}</div>}
+                  {resultData.testTime && <div><strong>Time:</strong> {resultData.testTime}</div>}
+                  {effectiveCommunity && <div><strong>Category:</strong> {effectiveCommunity}</div>}
+                  {formData?.state && <div><strong>State:</strong> {formData.state}</div>}
+                </div>
+              </div>
+
+              {/* Action Bar / Download PDF Button Row (Hidden on Print) */}
+              <div className="no-print" style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
@@ -331,7 +343,7 @@ export default function RankPage() {
           </div>
 
           {/* RIGHT SIDEBAR COLUMN (Candidate Info + Integrated Review Answerkey Button + Back to Scorecard) */}
-          <div style={{
+          <div className="review-right-sidebar no-print" style={{
             flex: '0 0 310px',
             minWidth: '280px',
             display: 'flex',
