@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { APP_FEATURE_FLAGS } from '../config/features';
 
 function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
   const [mounted, setMounted] = useState(false);
@@ -334,6 +335,44 @@ export default function ResultPage() {
   const candidateTestTime = resultData.testTime || resultData.infoRows?.find(r => /time|shift/i.test(r.label))?.value || '';
   const candidateTestCenter = resultData.testCenter || resultData.infoRows?.find(r => /center|venue/i.test(r.label))?.value || '';
 
+  // Dynamically compute all Candidate & Examination details without dropping any field
+  const displayRows: Array<{ label: string; value: string }> = [];
+  const existingKeySet = new Set<string>();
+
+  if (resultData?.infoRows && resultData.infoRows.length > 0) {
+    resultData.infoRows.forEach(row => {
+      if (row.label && row.value && String(row.value).trim() !== '') {
+        displayRows.push({ label: row.label, value: String(row.value) });
+        existingKeySet.add(row.label.toLowerCase().trim());
+      }
+    });
+  } else {
+    if (resultData.candidateName) displayRows.push({ label: 'Candidate Name', value: resultData.candidateName });
+    if (resultData.rollNo) displayRows.push({ label: 'Roll / Reg. Number', value: resultData.rollNo });
+    if (resultData.examName) displayRows.push({ label: 'Subject / Exam', value: resultData.examName });
+    if (resultData.testDate) displayRows.push({ label: 'Test Date', value: resultData.testDate });
+    if (resultData.testTime) displayRows.push({ label: 'Test Time', value: resultData.testTime });
+    if (resultData.testCenter) displayRows.push({ label: 'Test Center / Venue', value: resultData.testCenter });
+  }
+
+  // Complement with user-submitted form data if not already included in candidate_info
+  if (formData?.category && !Array.from(existingKeySet).some(k => k.includes('category') || k.includes('community') || k.includes('caste'))) {
+    displayRows.push({ label: 'Category', value: formData.category });
+  }
+  const formHz = formData?.horizontal_category?.trim();
+  if (formHz && !['none', 'na', 'n/a', 'null', '--', 'not applicable', 'no'].includes(formHz.toLowerCase()) && !Array.from(existingKeySet).some(k => k.includes('horizontal'))) {
+    displayRows.push({ label: 'Horizontal Reservation', value: formHz });
+  }
+  if (formData?.gender && !Array.from(existingKeySet).some(k => k.includes('gender') || k.includes('sex'))) {
+    displayRows.push({ label: 'Gender', value: formData.gender });
+  }
+  if (formData?.state && !Array.from(existingKeySet).some(k => k.includes('state') || k.includes('zone') || k.includes('region'))) {
+    displayRows.push({ label: formData.location_label || 'State / Zone', value: formData.state });
+  }
+  if (formData?.paper_language && !Array.from(existingKeySet).some(k => k.includes('language') || k.includes('medium'))) {
+    displayRows.push({ label: 'Paper Language', value: formData.paper_language });
+  }
+
   return (
     <>
       {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
@@ -382,98 +421,29 @@ export default function ResultPage() {
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ width: '35%', background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                      Candidate Name
-                    </th>
-                    <td style={{ width: '65%', background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                      {candidateName}
-                    </td>
-                  </tr>
-
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                      Roll / Reg. Number
-                    </th>
-                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace', textAlign: 'left' }}>
-                      {candidateRollNo || 'N/A'}
-                    </td>
-                  </tr>
-
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                      Category / Community
-                    </th>
-                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                      {candidateCategory}
-                    </td>
-                  </tr>
-
-                  {formData?.gender && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Gender
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize', textAlign: 'left' }}>
-                        {formData.gender}
-                      </td>
-                    </tr>
-                  )}
-
-                  {candidateTestDate && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Exam Date
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                        {candidateTestDate}
-                      </td>
-                    </tr>
-                  )}
-
-                  {candidateTestTime && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Exam Shift / Time
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                        {candidateTestTime}
-                      </td>
-                    </tr>
-                  )}
-
-                  {formData?.state && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        {formData.location_label || 'State / Zone'}
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                        {formData.state}
-                      </td>
-                    </tr>
-                  )}
-
-                  {formData?.paper_language && (
-                    <tr style={{ borderBottom: candidateTestCenter ? '1px solid #e2e8f0' : 'none' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Paper Language
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize', textAlign: 'left' }}>
-                        {formData.paper_language}
-                      </td>
-                    </tr>
-                  )}
-
-                  {candidateTestCenter && (
-                    <tr>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Exam Center / Venue
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 700, color: '#334155', fontSize: '0.8rem', textAlign: 'left' }}>
-                        {candidateTestCenter}
-                      </td>
-                    </tr>
-                  )}
+                  {displayRows.map((row, idx) => {
+                    const isLast = idx === displayRows.length - 1;
+                    const isRoll = /roll|registration|id|participant\s*id|applicant/i.test(row.label);
+                    return (
+                      <tr key={idx} style={{ borderBottom: isLast ? 'none' : '1px solid #e2e8f0' }}>
+                        <th style={{ width: '35%', background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                          {row.label}
+                        </th>
+                        <td style={{
+                          width: '65%',
+                          background: '#ffffff',
+                          padding: '8px 12px',
+                          fontWeight: isRoll ? 900 : 800,
+                          color: isRoll ? '#0044cc' : '#0f172a',
+                          fontFamily: isRoll ? 'monospace' : 'inherit',
+                          textAlign: 'left',
+                          fontSize: row.label.toLowerCase().includes('center') || row.label.toLowerCase().includes('venue') ? '0.8rem' : 'inherit'
+                        }}>
+                          {row.value}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -529,29 +499,33 @@ export default function ResultPage() {
               </div>
             </div>
 
+            {/* Subject-Wise Performance Table: Section | Total | Attempted | Unattempted | Right | Wrong | Marks */}
             <div className="table-responsive" style={{ marginTop: '10px' }}>
               <table className="sec-table">
                 <thead>
                   <tr>
-                    <th>Section</th>
-                    <th>Total</th>
-                    <th className="th-right">Right</th>
-                    <th className="th-wrong">Wrong</th>
-                    <th className="th-unatt">Unattempted</th>
-                    <th className="th-marks">Marks</th>
+                    <th style={{ textAlign: 'left' }}>Section</th>
+                    <th style={{ textAlign: 'center' }}>Total</th>
+                    <th style={{ textAlign: 'center' }}>Attempted</th>
+                    <th style={{ textAlign: 'center' }}>Unattempted</th>
+                    <th className="th-right" style={{ textAlign: 'center', color: '#16a34a' }}>Right (+{rightVal})</th>
+                    <th className="th-wrong" style={{ textAlign: 'center', color: '#dc2626' }}>Wrong (-{wrongVal})</th>
+                    <th className="th-marks" style={{ textAlign: 'right' }}>Marks</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resultData.sections.map((sec, idx) => {
                     const sm = calcSectionMarks(sec, rightVal, wrongVal);
+                    const secAttempted = sec.correct + sec.wrong;
                     return (
                       <tr key={idx}>
-                        <td className="td-sec-name">{sec.name}</td>
-                        <td>{sec.total}</td>
-                        <td className="td-right">{sec.correct}</td>
-                        <td className="td-wrong">{sec.wrong}</td>
-                        <td className="td-unatt">{sec.unattempted}</td>
-                        <td className={`td-marks ${sm < 0 ? 'neg' : ''}`}>
+                        <td className="td-sec-name" style={{ textAlign: 'left', wordBreak: 'break-word' }}>{sec.name}</td>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{sec.total}</td>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 800 }}>{secAttempted}</td>
+                        <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#d97706' }}>{sec.unattempted}</td>
+                        <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#16a34a', fontWeight: 800 }}>{sec.correct}</td>
+                        <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#dc2626', fontWeight: 800 }}>{sec.wrong}</td>
+                        <td className={`td-marks ${sm < 0 ? 'neg' : ''}`} style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 900, color: sm < 0 ? '#dc2626' : '#0f172a' }}>
                           {sm.toFixed(2)}
                         </td>
                       </tr>
@@ -560,12 +534,13 @@ export default function ResultPage() {
                 </tbody>
                 <tfoot>
                   <tr className="tfoot-row">
-                    <td>Total</td>
-                    <td>{totalQuestions}</td>
-                    <td className="td-right">{totalRight}</td>
-                    <td className="td-wrong">{totalWrong}</td>
-                    <td className="td-unatt">{totalUnattempted}</td>
-                    <td className={`td-marks ${raw < 0 ? 'neg' : ''}`}>
+                    <td style={{ textAlign: 'left', fontWeight: 900 }}>Total</td>
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalQuestions}</td>
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalAttempted}</td>
+                    <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#d97706' }}>{totalUnattempted}</td>
+                    <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#16a34a' }}>{totalRight}</td>
+                    <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#dc2626' }}>{totalWrong}</td>
+                    <td className={`td-marks ${raw < 0 ? 'neg' : ''}`} style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 900, color: raw < 0 ? '#dc2626' : '#0044cc', fontSize: '0.92rem' }}>
                       {raw.toFixed(2)}
                     </td>
                   </tr>
@@ -574,7 +549,7 @@ export default function ResultPage() {
             </div>
           </div>
 
-          {/* 3 Action Buttons under Subject Breakdown (Hidden on Print / Hidden on Downloaded Image) */}
+          {/* Action Buttons under Subject Breakdown (Hidden on Print / Hidden on Downloaded Image) */}
           <div className="no-print" style={{
             position: 'relative',
             zIndex: 1,
@@ -584,91 +559,97 @@ export default function ResultPage() {
             marginTop: '24px'
           }}>
             {/* Button 1: Review Answerkey */}
-            <Link
-              href="/review-answerkey"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                color: '#ffffff',
-                padding: '14px 20px',
-                borderRadius: '14px',
-                fontWeight: 800,
-                fontSize: '0.92rem',
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
-                transition: 'all 0.2s ease',
-                textAlign: 'center'
-              }}
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              Review Answerkey
-            </Link>
+            {APP_FEATURE_FLAGS.SHOW_REVIEW_ANSWERKEY && (
+              <Link
+                href="/review-answerkey"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  padding: '14px 20px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '0.92rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center'
+                }}
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Review Answerkey
+              </Link>
+            )}
 
             {/* Button 2: Download Scorecard */}
-            <button
-              type="button"
-              disabled={isGeneratingImg}
-              onClick={handleDownloadImageScorecard}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background: isGeneratingImg ? '#94a3b8' : '#ffffff',
-                color: '#0f172a',
-                border: '1.5px solid #cbd5e1',
-                padding: '14px 20px',
-                borderRadius: '14px',
-                fontWeight: 800,
-                fontSize: '0.92rem',
-                cursor: isGeneratingImg ? 'wait' : 'pointer',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                textAlign: 'center'
-              }}
-            >
-              {isGeneratingImg ? (
-                <span>Generating Scorecard...</span>
-              ) : (
-                <>
-                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Download Scorecard
-                </>
-              )}
-            </button>
+            {APP_FEATURE_FLAGS.SHOW_DOWNLOAD_SCORECARD && (
+              <button
+                type="button"
+                disabled={isGeneratingImg}
+                onClick={handleDownloadImageScorecard}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: isGeneratingImg ? '#94a3b8' : '#ffffff',
+                  color: '#0f172a',
+                  border: '1.5px solid #cbd5e1',
+                  padding: '14px 20px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '0.92rem',
+                  cursor: isGeneratingImg ? 'wait' : 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center'
+                }}
+              >
+                {isGeneratingImg ? (
+                  <span>Generating Scorecard...</span>
+                ) : (
+                  <>
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Download Scorecard
+                  </>
+                )}
+              </button>
+            )}
 
             {/* Button 3: View Your Rank */}
-            <Link
-              href="/rank"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#ffffff',
-                padding: '14px 20px',
-                borderRadius: '14px',
-                fontWeight: 800,
-                fontSize: '0.92rem',
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
-                transition: 'all 0.2s ease',
-                textAlign: 'center'
-              }}
-            >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              View Your Rank
-            </Link>
+            {APP_FEATURE_FLAGS.SHOW_VIEW_RANK && (
+              <Link
+                href="/rank"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  padding: '14px 20px',
+                  borderRadius: '14px',
+                  fontWeight: 800,
+                  fontSize: '0.92rem',
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+                  transition: 'all 0.2s ease',
+                  textAlign: 'center'
+                }}
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                View Your Rank
+              </Link>
+            )}
           </div>
 
         </div>
@@ -765,98 +746,29 @@ export default function ResultPage() {
         borderBottom: '2px solid #0044cc'
       }}>
         <tbody>
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ width: '38%', background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Candidate Name
-            </th>
-            <td style={{ width: '62%', background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {candidateName}
-            </td>
-          </tr>
-
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Roll / Reg. Number
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
-              {candidateRollNo || 'N/A'}
-            </td>
-          </tr>
-
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Category / Community
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {candidateCategory}
-            </td>
-          </tr>
-
-          {formData?.gender && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Gender
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-                {formData.gender}
-              </td>
-            </tr>
-          )}
-
-          {candidateTestDate && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Date
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-                {candidateTestDate}
-              </td>
-            </tr>
-          )}
-
-          {candidateTestTime && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Shift / Time
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-                {candidateTestTime}
-              </td>
-            </tr>
-          )}
-
-          {formData?.state && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                State / Zone
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-                {formData.state}
-              </td>
-            </tr>
-          )}
-
-          {formData?.paper_language && (
-            <tr style={{ borderBottom: candidateTestCenter ? '1px solid #cbd5e1' : 'none' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Paper Language
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-                {formData.paper_language}
-              </td>
-            </tr>
-          )}
-
-          {candidateTestCenter && (
-            <tr>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Center / Venue
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 700, color: '#334155', fontSize: '0.75rem' }}>
-                {candidateTestCenter}
-              </td>
-            </tr>
-          )}
+          {displayRows.map((row, idx) => {
+            const isLast = idx === displayRows.length - 1;
+            const isRoll = /roll|registration|id|participant\s*id|applicant/i.test(row.label);
+            return (
+              <tr key={idx} style={{ borderBottom: isLast ? 'none' : '1px solid #cbd5e1' }}>
+                <th style={{ width: '38%', background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                  {row.label}
+                </th>
+                <td style={{
+                  width: '62%',
+                  background: '#ffffff',
+                  padding: '6px 12px',
+                  fontWeight: isRoll ? 900 : 800,
+                  color: isRoll ? '#0044cc' : '#0f172a',
+                  fontFamily: isRoll ? 'monospace' : 'inherit',
+                  textAlign: 'left',
+                  fontSize: row.label.toLowerCase().includes('center') || row.label.toLowerCase().includes('venue') ? '0.75rem' : 'inherit'
+                }}>
+                  {row.value}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
@@ -872,12 +784,12 @@ export default function ResultPage() {
       }}>
         <thead>
           <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            <th style={{ padding: '8px 12px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
+            <th style={{ padding: '8px 10px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
             <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Total</th>
             <th style={{ padding: '8px 4px', color: '#4ade80', borderRight: '1px solid #334155' }}>Right (+{rightVal})</th>
             <th style={{ padding: '8px 4px', color: '#f87171', borderRight: '1px solid #334155' }}>Wrong (-{wrongVal})</th>
-            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skipped</th>
-            <th style={{ padding: '8px 12px', textAlign: 'right' }}>Score</th>
+            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skip</th>
+            <th style={{ padding: '8px 10px', textAlign: 'right' }}>Score</th>
           </tr>
         </thead>
         <tbody>
@@ -885,12 +797,12 @@ export default function ResultPage() {
             const sm = calcSectionMarks(sec, rightVal, wrongVal);
             return (
               <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                <td style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{sec.name}</td>
+                <td style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1', wordBreak: 'break-word' }}>{sec.name}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>{sec.total}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{sec.correct}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{sec.wrong}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
-                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
+                <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
                   {sm.toFixed(2)}
                 </td>
               </tr>
@@ -899,12 +811,12 @@ export default function ResultPage() {
         </tbody>
         <tfoot>
           <tr style={{ background: '#eff6ff', borderTop: '2px solid #3b82f6', fontWeight: 900, fontSize: '0.82rem' }}>
-            <td style={{ padding: '9px 12px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
+            <td style={{ padding: '9px 10px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
             <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalQuestions}</td>
             <td style={{ padding: '9px 4px', color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{totalRight}</td>
             <td style={{ padding: '9px 4px', color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{totalWrong}</td>
             <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
-            <td style={{ padding: '9px 12px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
+            <td style={{ padding: '9px 10px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
               {raw.toFixed(2)}
             </td>
           </tr>

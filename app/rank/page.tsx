@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { APP_FEATURE_FLAGS } from '../config/features';
 
 interface Section {
   name: string;
@@ -361,45 +362,73 @@ export default function RankPage() {
               </div>
 
               {/* Subject-Wise Performance Breakdown Table */}
-              {resultData.sections && resultData.sections.length > 0 && (
-                <div style={{ borderRadius: '14px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                  <div style={{ background: '#f8fafc', padding: '12px 14px', borderBottom: '1px solid #e2e8f0' }}>
-                    <h3 style={{ fontSize: '0.86rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
-                      📑 Section-Wise Performance Breakdown
-                    </h3>
-                  </div>
+              {resultData.sections && resultData.sections.length > 0 && (() => {
+                const totQuestions = resultData.sections.reduce((acc, s) => acc + (s.total || 0), 0);
+                const totUnattempted = resultData.sections.reduce((acc, s) => acc + (s.unattempted || 0), 0);
+                const totAttempted = totQuestions - totUnattempted;
+                const totCorrect = resultData.sections.reduce((acc, s) => acc + (s.correct || 0), 0);
+                const totWrong = resultData.sections.reduce((acc, s) => acc + (s.wrong || 0), 0);
+                const totScore = (totCorrect * rightVal) - (totWrong * wrongVal);
 
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'center' }}>
-                      <thead>
-                        <tr style={{ background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: '0.72rem', textTransform: 'uppercase' }}>
-                          <th style={{ padding: '10px 12px', textAlign: 'left' }}>Section / Subject</th>
-                          <th style={{ padding: '10px 8px' }}>Total</th>
-                          <th style={{ padding: '10px 8px', color: '#059669' }}>Correct</th>
-                          <th style={{ padding: '10px 8px', color: '#ef4444' }}>Wrong</th>
-                          <th style={{ padding: '10px 8px', color: '#d97706' }}>Skipped</th>
-                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>Score</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {resultData.sections.map((sec, idx) => {
-                          const secScore = (sec.correct * rightVal) - (sec.wrong * wrongVal);
-                          return (
-                            <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfd' }}>
-                              <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
-                              <td style={{ padding: '10px 8px', fontWeight: 700 }}>{sec.total}</td>
-                              <td style={{ padding: '10px 8px', fontWeight: 800, color: '#059669' }}>{sec.correct}</td>
-                              <td style={{ padding: '10px 8px', fontWeight: 800, color: '#ef4444' }}>{sec.wrong}</td>
-                              <td style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
-                              <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>{secScore.toFixed(2)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                return (
+                  <div style={{ borderRadius: '14px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                    <div style={{ background: '#f8fafc', padding: '12px 14px', borderBottom: '1px solid #e2e8f0' }}>
+                      <h3 style={{ fontSize: '0.86rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+                        📑 Section-Wise Performance Breakdown
+                      </h3>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'center' }}>
+                        <thead>
+                          <tr style={{ background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: '0.72rem', textTransform: 'uppercase' }}>
+                            <th style={{ padding: '10px 12px', textAlign: 'left' }}>Section / Subject</th>
+                            <th style={{ padding: '10px 8px' }}>Total</th>
+                            <th className="rank-desktop-col" style={{ padding: '10px 8px' }}>Attempted</th>
+                            <th className="rank-desktop-col" style={{ padding: '10px 8px', color: '#d97706' }}>Unattempted</th>
+                            <th style={{ padding: '10px 8px', color: '#059669' }}>Correct</th>
+                            <th style={{ padding: '10px 8px', color: '#ef4444' }}>Wrong</th>
+                            <th className="rank-mobile-col" style={{ padding: '10px 8px', color: '#d97706' }}>Skip</th>
+                            <th style={{ padding: '10px 12px', textAlign: 'right' }}>Score</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {resultData.sections.map((sec, idx) => {
+                            const secAttempted = sec.total - sec.unattempted;
+                            const secScore = (sec.correct * rightVal) - (sec.wrong * wrongVal);
+                            return (
+                              <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfd' }}>
+                                <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
+                                <td style={{ padding: '10px 8px', fontWeight: 700 }}>{sec.total}</td>
+                                <td className="rank-desktop-col" style={{ padding: '10px 8px', fontWeight: 700 }}>{secAttempted}</td>
+                                <td className="rank-desktop-col" style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
+                                <td style={{ padding: '10px 8px', fontWeight: 800, color: '#059669' }}>{sec.correct}</td>
+                                <td style={{ padding: '10px 8px', fontWeight: 800, color: '#ef4444' }}>{sec.wrong}</td>
+                                <td className="rank-mobile-col" style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
+                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 900, color: secScore < 0 ? '#ef4444' : '#0f172a' }}>{secScore.toFixed(2)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr style={{ background: '#f8fafc', borderTop: '2px solid #cbd5e1', fontWeight: 900, color: '#0f172a', fontSize: '0.82rem' }}>
+                            <td style={{ padding: '12px 12px', textAlign: 'left', fontWeight: 900, color: '#0f172a' }}>Total</td>
+                            <td style={{ padding: '12px 8px', fontWeight: 900 }}>{totQuestions}</td>
+                            <td className="rank-desktop-col" style={{ padding: '12px 8px', fontWeight: 900 }}>{totAttempted}</td>
+                            <td className="rank-desktop-col" style={{ padding: '12px 8px', fontWeight: 900, color: '#d97706' }}>{totUnattempted}</td>
+                            <td style={{ padding: '12px 8px', fontWeight: 900, color: '#059669' }}>{totCorrect}</td>
+                            <td style={{ padding: '12px 8px', fontWeight: 900, color: '#ef4444' }}>{totWrong}</td>
+                            <td className="rank-mobile-col" style={{ padding: '12px 8px', fontWeight: 900, color: '#d97706' }}>{totUnattempted}</td>
+                            <td style={{ padding: '12px 12px', textAlign: 'right', fontWeight: 900, color: totScore < 0 ? '#ef4444' : '#0f172a', fontSize: '0.88rem' }}>
+                              {totScore.toFixed(2)}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
             </div>
 
@@ -502,32 +531,34 @@ export default function RankPage() {
               </div>
 
               {/* Integrated Review Answerkey Button directly below User Info */}
-              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
-                <Link
-                  href="/review-answerkey"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    color: '#ffffff',
-                    padding: '11px 16px',
-                    borderRadius: '12px',
-                    fontWeight: 800,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none',
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-                    textAlign: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                  Review Answerkey
-                </Link>
-              </div>
+              {APP_FEATURE_FLAGS.SHOW_REVIEW_ANSWERKEY && (
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+                  <Link
+                    href="/review-answerkey"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: '#ffffff',
+                      padding: '11px 16px',
+                      borderRadius: '12px',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                      textAlign: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Review Answerkey
+                  </Link>
+                </div>
+              )}
 
             </div>
 

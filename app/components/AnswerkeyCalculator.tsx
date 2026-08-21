@@ -238,14 +238,14 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const score = data.score_summary || {};
   const secSummary = data.section_summary || {};
   
-  const candidateName = info['Candidate Name'] || info['Participant Name'] || data.candidateName || data.name || 'Verified Candidate';
-  const rollNo = info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*no|ticket/i.test(k))?.[1] || data.rollNo || data.exam_info?.user_id || '';
-  const testDate = info['Test Date'] || data.testDate || '';
-  const testTime = info['Test Time'] || data.testTime || '';
-  const testCenter = info['Test Centre Name'] || info['Test Center Name'] || info['Venue'] || data.testCenter || '';
-  const examName = info['Subject'] || info['Exam'] || data.examName || '';
+  const candidateName = info['Applicant Name'] || info['Candidate Name'] || info['Participant Name'] || info['Name'] || data.candidateName || data.name || 'Verified Candidate';
+  const rollNo = info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Application Id'] || info['Application ID'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*(id|no)|ticket/i.test(k))?.[1] || data.rollNo || data.exam_info?.user_id || '';
+  const testDate = info['Test Date'] || info['Exam Date'] || info['Date of Exam'] || data.testDate || data.exam_info?.exam_date || '';
+  const testTime = info['Test Time'] || info['Exam Time'] || info['Shift'] || info['Shift Timing'] || data.testTime || data.exam_info?.exam_time || '';
+  const testCenter = info['Test Centre Name'] || info['Test Center Name'] || info['Test Centre'] || info['Venue'] || data.testCenter || '';
+  const examName = info['Subject'] || info['Assessment Name'] || info['Post Name'] || info['Exam Name'] || info['Exam'] || data.header_banner_text || data.exam_info?.detected_exam_name || data.examName || '';
   const headerImgUrl = data.header_banner_img || data.header_image || data.headerImgUrl || data.logo || '';
-  const headerBannerText = data.header_banner_text || data.headerBannerText || '';
+  const headerBannerText = data.header_banner_text || data.headerBannerText || examName || '';
   const questionsSummary = data.questions_summary || data.questions || [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -615,7 +615,19 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       const examPaperCode = (rawSmartData?.exam_info?.exam_id) || '';
       const testExamDate = (rawSmartData?.exam_info?.exam_date) || (parsedResult.testDate) || '';
       const testExamTime = (rawSmartData?.exam_info?.exam_time) || (parsedResult.testTime) || '';
-      const rawScoreVal = (parsedResult.correctCount * 1.0) - (parsedResult.wrongCount * 0.25);
+      const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
+      const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
+
+      const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
+      const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
+      const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
+        ? parseFloat(savedRight)
+        : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
+      const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+        ? parseFloat(savedWrong)
+        : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
+
+      const rawScoreVal = (parsedResult.correctCount * marksRight) - (parsedResult.wrongCount * marksWrong);
 
       logUserRank({
         user_id: userRoll,
@@ -641,10 +653,16 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     const isDigialm = isDigialmHost(urlVal);
     const providerType = isDigialm ? 'Digialm' : (isCbexams ? 'CBExams' : 'Official Portal');
 
+    const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
+    const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
     const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
     const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
-    const marksRight = savedRight ? parseFloat(savedRight) : 1.0;
-    const marksWrong = savedWrong ? parseFloat(savedWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25);
+    const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
+      ? parseFloat(savedRight)
+      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
+    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+      ? parseFloat(savedWrong)
+      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
 
     try {
       sessionStorage.setItem('cbtrank_form_data', JSON.stringify({

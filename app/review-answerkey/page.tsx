@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { APP_FEATURE_FLAGS } from '../config/features';
 
 interface Section {
   name: string;
@@ -513,8 +514,10 @@ export default function ReviewAnswerkeyPage() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {q.options.map(opt => {
                               const isOptRight = opt.is_correct;
+                              const chosenLetter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][opt.option_no - 1] || '';
                               const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
-                                                 (q.chosen_option && String(q.chosen_option) === String(opt.option_no));
+                                                 (q.chosen_option && String(q.chosen_option).trim().toLowerCase() === String(opt.option_no).trim().toLowerCase()) ||
+                                                 (q.chosen_option && chosenLetter && String(q.chosen_option).trim().toUpperCase() === chosenLetter);
 
                               let bg = '#ffffff';
                               let border = '1px solid #e2e8f0';
@@ -670,32 +673,34 @@ export default function ReviewAnswerkeyPage() {
               </div>
 
               {/* Integrated View Your Rank Button directly below User Info */}
-              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
-                <Link
-                  href="/rank"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                    color: '#ffffff',
-                    padding: '11px 16px',
-                    borderRadius: '12px',
-                    fontWeight: 800,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none',
-                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-                    textAlign: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  View Your Rank
-                </Link>
-              </div>
+              {APP_FEATURE_FLAGS.SHOW_VIEW_RANK && (
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+                  <Link
+                    href="/rank"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      color: '#ffffff',
+                      padding: '11px 16px',
+                      borderRadius: '12px',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                      textAlign: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    View Your Rank
+                  </Link>
+                </div>
+              )}
 
             </div>
 
