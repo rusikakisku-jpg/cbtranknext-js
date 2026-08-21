@@ -299,9 +299,7 @@ export default function ResultPage() {
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: false,
-        width: 520,
-        windowWidth: 520
+        logging: false
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -645,8 +643,11 @@ export default function ResultPage() {
         color: '#0f172a',
         padding: 0,
         boxSizing: 'border-box',
-        border: '2px solid #0044cc',
-        borderRadius: '12px',
+        border: '3px solid #0044cc',
+        borderTop: '3px solid #0044cc',
+        borderRight: '3px solid #0044cc',
+        borderBottom: '3px solid #0044cc',
+        borderLeft: '3px solid #0044cc',
         overflow: 'hidden'
       }}
     >
