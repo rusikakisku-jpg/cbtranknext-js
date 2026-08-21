@@ -513,8 +513,10 @@ export default function ReviewAnswerkeyPage() {
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {q.options.map(opt => {
                               const isOptRight = opt.is_correct;
+                              const chosenLetter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][opt.option_no - 1] || '';
                               const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
-                                                 (q.chosen_option && String(q.chosen_option) === String(opt.option_no));
+                                                 (q.chosen_option && String(q.chosen_option).trim().toLowerCase() === String(opt.option_no).trim().toLowerCase()) ||
+                                                 (q.chosen_option && chosenLetter && String(q.chosen_option).trim().toUpperCase() === chosenLetter);
 
                               let bg = '#ffffff';
                               let border = '1px solid #e2e8f0';
