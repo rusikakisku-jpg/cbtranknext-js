@@ -121,7 +121,9 @@ function parseResponseSheetHtml(htmlText: string, baseUrl: string): ParseResult 
           infoRows.push({ label: lbl, value: val });
           const lowerLbl = lbl.toLowerCase();
           if (lowerLbl.includes('participant name') || lowerLbl.includes('candidate name')) candidateName = val;
-          else if (lowerLbl.includes('roll no') || lowerLbl.includes('roll number')) rollNo = val;
+          else if (/roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*no|ticket/i.test(lowerLbl)) {
+            if (!rollNo) rollNo = val;
+          }
           else if (lowerLbl.includes('test date')) testDate = val;
           else if (lowerLbl.includes('test time')) testTime = val;
           else if (lowerLbl.includes('center') || lowerLbl.includes('venue')) testCenter = val;
@@ -237,7 +239,7 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const secSummary = data.section_summary || {};
   
   const candidateName = info['Candidate Name'] || info['Participant Name'] || data.candidateName || data.name || 'Verified Candidate';
-  const rollNo = info['Roll Number'] || info['Roll No'] || info['Registration Number'] || data.rollNo || '';
+  const rollNo = info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*no|ticket/i.test(k))?.[1] || data.rollNo || data.exam_info?.user_id || '';
   const testDate = info['Test Date'] || data.testDate || '';
   const testTime = info['Test Time'] || data.testTime || '';
   const testCenter = info['Test Centre Name'] || info['Test Center Name'] || info['Venue'] || data.testCenter || '';

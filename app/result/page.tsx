@@ -327,6 +327,13 @@ export default function ResultPage() {
   const totalQuestions = totalRight + totalWrong + totalUnattempted;
   const accuracy = totalAttempted > 0 ? ((totalRight / totalAttempted) * 100).toFixed(1) : '0.0';
 
+  const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate|participant/i.test(r.label))?.value || 'Verified Candidate';
+  const candidateRollNo = resultData.rollNo || resultData.infoRows?.find(r => /roll|registration|id|applicant|user|ticket/i.test(r.label))?.value || formData?.ans_key_url?.match(/[\/=](\d{8,12})/)?.[1] || formData?.ans_key_url?.match(/\/pub\/([^\/]+)\//i)?.[1] || '';
+  const candidateCategory = resultData.infoRows?.find(r => /community|caste|category/i.test(r.label))?.value || formData?.category || 'UR';
+  const candidateTestDate = resultData.testDate || resultData.infoRows?.find(r => /date/i.test(r.label))?.value || '';
+  const candidateTestTime = resultData.testTime || resultData.infoRows?.find(r => /time|shift/i.test(r.label))?.value || '';
+  const candidateTestCenter = resultData.testCenter || resultData.infoRows?.find(r => /center|venue/i.test(r.label))?.value || '';
+
   return (
     <>
       {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
@@ -363,71 +370,110 @@ export default function ResultPage() {
               )
             )}
 
-            {/* Metadata Grid */}
-            <div className="metadata-grid" id="metadata-grid">
-              {resultData.infoRows && resultData.infoRows.length > 0 ? (
-                resultData.infoRows.map((row, idx) => (
-                  <div className="meta-box" key={idx}>
-                    <label>{/community|caste|category/i.test(row.label) ? 'Community' : row.label}</label>
-                    <span className={/roll|registration|number|id/i.test(row.label) ? 'mono' : ''}>
-                      {row.value}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="meta-box">
-                    <label>Candidate Name</label>
-                    <span>{resultData.candidateName || 'Verified Candidate'}</span>
-                  </div>
-                  {resultData.rollNo && (
-                    <div className="meta-box">
-                      <label>Roll Number</label>
-                      <span className="mono">{resultData.rollNo}</span>
-                    </div>
-                  )}
-                  {resultData.testDate && (
-                    <div className="meta-box">
-                      <label>Test Date</label>
-                      <span>{resultData.testDate}</span>
-                    </div>
-                  )}
-                  {resultData.testTime && (
-                    <div className="meta-box">
-                      <label>Test Time</label>
-                      <span>{resultData.testTime}</span>
-                    </div>
-                  )}
-                  {resultData.testCenter && (
-                    <div className="meta-box">
-                      <label>Test Center</label>
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {resultData.testCenter}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
+            {/* Candidate & Examination Info Table (2-Column Format: Label | Value) */}
+            <div style={{
+              borderRadius: '10px',
+              border: '1.5px solid #e2e8f0',
+              overflow: 'hidden',
+              marginTop: '12px',
+              background: '#ffffff'
+            }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
+                <tbody>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ width: '35%', background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                      Candidate Name
+                    </th>
+                    <td style={{ width: '65%', background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                      {candidateName}
+                    </td>
+                  </tr>
 
-              {formData?.state && !resultData.infoRows?.some(r => /state|zone|location/i.test(r.label)) && (
-                <div className="meta-box">
-                  <label>{formData.location_label || 'State / UT'}</label>
-                  <span>{formData.state}</span>
-                </div>
-              )}
+                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                      Roll / Reg. Number
+                    </th>
+                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
+                      {candidateRollNo || 'N/A'}
+                    </td>
+                  </tr>
 
-              {formData?.category && !resultData.infoRows?.some(r => /community|caste|category/i.test(r.label)) && (
-                <div className="meta-box">
-                  <label>Community</label>
-                  <span>{formData.category}</span>
-                </div>
-              )}
-              {formData?.gender && !resultData.infoRows?.some(r => r.label.toLowerCase() === 'gender') && (
-                <div className="meta-box">
-                  <label>Gender</label>
-                  <span style={{ textTransform: 'capitalize' }}>{formData.gender}</span>
-                </div>
-              )}
+                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                      Category / Community
+                    </th>
+                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                      {candidateCategory}
+                    </td>
+                  </tr>
+
+                  {formData?.gender && (
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                        Gender
+                      </th>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+                        {formData.gender}
+                      </td>
+                    </tr>
+                  )}
+
+                  {candidateTestDate && (
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                        Exam Date
+                      </th>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                        {candidateTestDate}
+                      </td>
+                    </tr>
+                  )}
+
+                  {candidateTestTime && (
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                        Exam Shift / Time
+                      </th>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                        {candidateTestTime}
+                      </td>
+                    </tr>
+                  )}
+
+                  {formData?.state && (
+                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                        {formData.location_label || 'State / Zone'}
+                      </th>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                        {formData.state}
+                      </td>
+                    </tr>
+                  )}
+
+                  {formData?.paper_language && (
+                    <tr style={{ borderBottom: candidateTestCenter ? '1px solid #e2e8f0' : 'none' }}>
+                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                        Paper Language
+                      </th>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+                        {formData.paper_language}
+                      </td>
+                    </tr>
+                  )}
+
+                  {candidateTestCenter && (
+                    <tr>
+                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                        Exam Center / Venue
+                      </th>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 700, color: '#334155', fontSize: '0.8rem' }}>
+                        {candidateTestCenter}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -651,27 +697,45 @@ export default function ResultPage() {
         overflow: 'hidden'
       }}
     >
-      {/* Prominent Watermark Overlay Text: CBT Rank */}
+      {/* Multiple Repeating Security Watermarks: CBT Rank */}
       <div
         style={{
           position: 'absolute',
-          top: '55%',
-          left: '50%',
-          transform: 'translate(-50%, -50%) rotate(-30deg)',
-          fontSize: '4.8rem',
-          fontWeight: 900,
-          color: '#0044cc',
-          opacity: 0.14,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateRows: 'repeat(5, 1fr)',
+          gap: '24px 10px',
+          alignItems: 'center',
+          justifyItems: 'center',
           pointerEvents: 'none',
           userSelect: 'none',
           zIndex: 99,
-          whiteSpace: 'nowrap',
-          fontFamily: 'system-ui, -apple-system, sans-serif'
+          overflow: 'hidden',
+          padding: '16px'
         }}
       >
-        CBT Rank
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              transform: 'rotate(-25deg)',
+              fontSize: '1.45rem',
+              fontWeight: 900,
+              color: '#0044cc',
+              opacity: 0.13,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+              fontFamily: 'system-ui, -apple-system, sans-serif'
+            }}
+          >
+            CBT Rank
+          </div>
+        ))}
       </div>
 
       {/* 1. Header Section (Exam Name, Full Width, Flush) */}
@@ -704,7 +768,7 @@ export default function ResultPage() {
               Candidate Name
             </th>
             <td style={{ width: '62%', background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {resultData.candidateName || 'Verified Candidate'}
+              {candidateName}
             </td>
           </tr>
 
@@ -713,7 +777,7 @@ export default function ResultPage() {
               Roll / Reg. Number
             </th>
             <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
-              {resultData.rollNo || 'N/A'}
+              {candidateRollNo || 'N/A'}
             </td>
           </tr>
 
@@ -722,62 +786,72 @@ export default function ResultPage() {
               Category / Community
             </th>
             <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {formData?.category || 'UR'}
+              {candidateCategory}
             </td>
           </tr>
 
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Gender
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-              {formData?.gender || 'N/A'}
-            </td>
-          </tr>
+          {formData?.gender && (
+            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                Gender
+              </th>
+              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+                {formData.gender}
+              </td>
+            </tr>
+          )}
 
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Exam Date
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {resultData.testDate || 'N/A'}
-            </td>
-          </tr>
+          {candidateTestDate && (
+            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                Exam Date
+              </th>
+              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
+                {candidateTestDate}
+              </td>
+            </tr>
+          )}
 
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Exam Shift / Time
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {resultData.testTime || 'N/A'}
-            </td>
-          </tr>
+          {candidateTestTime && (
+            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                Exam Shift / Time
+              </th>
+              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
+                {candidateTestTime}
+              </td>
+            </tr>
+          )}
 
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              State / Zone
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {formData?.state || 'All India'}
-            </td>
-          </tr>
+          {formData?.state && (
+            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                State / Zone
+              </th>
+              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
+                {formData.state}
+              </td>
+            </tr>
+          )}
 
-          <tr style={{ borderBottom: resultData.testCenter ? '1px solid #cbd5e1' : 'none' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Paper Language
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-              {formData?.paper_language || 'English'}
-            </td>
-          </tr>
+          {formData?.paper_language && (
+            <tr style={{ borderBottom: candidateTestCenter ? '1px solid #cbd5e1' : 'none' }}>
+              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                Paper Language
+              </th>
+              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+                {formData.paper_language}
+              </td>
+            </tr>
+          )}
 
-          {resultData.testCenter && (
+          {candidateTestCenter && (
             <tr>
               <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
                 Exam Center / Venue
               </th>
               <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 700, color: '#334155', fontSize: '0.75rem' }}>
-                {resultData.testCenter}
+                {candidateTestCenter}
               </td>
             </tr>
           )}
