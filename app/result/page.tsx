@@ -301,8 +301,8 @@ export default function ResultPage() {
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        width: 820,
-        windowWidth: 820
+        width: 520,
+        windowWidth: 520
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -810,7 +810,7 @@ export default function ResultPage() {
     </main>
 
     {/* ─────────────────────────────────────────────────────────── */}
-    {/* Dedicated High-Res Scorecard Template (RankGuruji Design)  */}
+    {/* Dedicated Portrait Scorecard Template (RankGuruji Design)  */}
     {/* Captured by html2canvas when "Download Scorecard" is clicked */}
     {/* ─────────────────────────────────────────────────────────── */}
     <div
@@ -819,11 +819,11 @@ export default function ResultPage() {
         position: 'fixed',
         left: '-9999px',
         top: 0,
-        width: '820px',
+        width: '520px',
         background: '#ffffff',
         fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: '#0f172a',
-        padding: '24px',
+        padding: '18px 20px',
         boxSizing: 'border-box',
         border: '2px solid #0044cc',
         borderRadius: '16px',
@@ -835,169 +835,169 @@ export default function ResultPage() {
         background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
         color: '#ffffff',
         borderRadius: '12px',
-        padding: '16px 20px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '16px'
+        padding: '14px 16px',
+        marginBottom: '14px'
       }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ background: '#f59e0b', color: '#0f172a', fontSize: '0.72rem', fontWeight: 900, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ background: '#f59e0b', color: '#0f172a', fontSize: '0.7rem', fontWeight: 900, padding: '2px 7px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
               CBT RANK
             </span>
-            <span style={{ fontSize: '0.75rem', opacity: 0.85, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700 }}>
-              Official Scorecard &amp; Marks Report
+            <span style={{ fontSize: '0.72rem', opacity: 0.85, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.03em' }}>
+              Scorecard Report
             </span>
           </div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, margin: '6px 0 0', letterSpacing: '0.01em', color: '#ffffff' }}>
-            {resultData.examName || resultData.headerBannerText || 'CBT Competitive Examination'}
-          </h2>
-        </div>
 
-        <div style={{
-          background: 'rgba(255,255,255,0.12)',
-          border: '1px solid rgba(255,255,255,0.25)',
-          borderRadius: '10px',
-          padding: '8px 14px',
-          textAlign: 'center'
-        }}>
-          <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 800, color: '#38bdf8' }}>Verified Status</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#10b981', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
-            <span>✔</span> AUTHENTIC
+          <div style={{
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            borderRadius: '6px',
+            padding: '2px 8px',
+            fontSize: '0.68rem',
+            fontWeight: 900,
+            color: '#10b981',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '3px'
+          }}>
+            <span>✔</span> VERIFIED
           </div>
         </div>
+
+        <h2 style={{ fontSize: '1.08rem', fontWeight: 900, margin: '4px 0 0', lineHeight: 1.3, color: '#ffffff' }}>
+          {resultData.examName || resultData.headerBannerText || 'CBT Competitive Examination'}
+        </h2>
       </div>
 
-      {/* Candidate Information Box */}
+      {/* Candidate Information Box (2-Column Portrait Grid) */}
       <div style={{
         background: '#f8fafc',
         border: '1px solid #e2e8f0',
         borderRadius: '12px',
-        padding: '14px 16px',
-        marginBottom: '16px'
+        padding: '12px 14px',
+        marginBottom: '14px'
       }}>
-        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#0044cc', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
-          👤 Candidate &amp; Examination Details
+        <div style={{ fontSize: '0.72rem', fontWeight: 900, color: '#0044cc', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '8px' }}>
+          👤 Candidate Details
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px 14px', fontSize: '0.82rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px 12px', fontSize: '0.8rem' }}>
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Candidate Name</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{resultData.candidateName || 'Verified Candidate'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Candidate Name</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>{resultData.candidateName || 'Verified Candidate'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Roll / Reg. Number</div>
-            <div style={{ fontWeight: 900, color: '#0044cc', fontFamily: 'monospace', marginTop: '2px' }}>{resultData.rollNo || 'N/A'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Roll / Reg. Number</div>
+            <div style={{ fontWeight: 900, color: '#0044cc', fontFamily: 'monospace', marginTop: '1px' }}>{resultData.rollNo || 'N/A'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Category / Community</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{formData?.category || 'UR'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Category / Community</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>{formData?.category || 'UR'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Gender</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px', textTransform: 'capitalize' }}>{formData?.gender || 'N/A'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Gender</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px', textTransform: 'capitalize' }}>{formData?.gender || 'N/A'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Date</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{resultData.testDate || 'N/A'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Date</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>{resultData.testDate || 'N/A'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Shift / Time</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{resultData.testTime || 'N/A'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Shift / Time</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>{resultData.testTime || 'N/A'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>State / Zone</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{formData?.state || 'All India'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>State / Zone</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px' }}>{formData?.state || 'All India'}</div>
           </div>
 
           <div>
-            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Paper Language</div>
-            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px', textTransform: 'capitalize' }}>{formData?.paper_language || 'English'}</div>
+            <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Paper Language</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '1px', textTransform: 'capitalize' }}>{formData?.paper_language || 'English'}</div>
           </div>
 
           {resultData.testCenter && (
-            <div style={{ gridColumn: 'span 4' }}>
-              <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Center / Venue</div>
-              <div style={{ fontWeight: 700, color: '#334155', marginTop: '2px' }}>{resultData.testCenter}</div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Center / Venue</div>
+              <div style={{ fontWeight: 700, color: '#334155', marginTop: '1px', fontSize: '0.78rem' }}>{resultData.testCenter}</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Performance & Score Highlight Badges (RankGuruji 6-Tile Grid) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '16px' }}>
+      {/* Performance & Score Highlight Badges (3-Column x 2-Row Portrait Grid) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '14px' }}>
         {/* Raw Score */}
-        <div style={{ background: '#eff6ff', border: '1.5px solid #3b82f6', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase' }}>RAW MARKS</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: raw >= 0 ? '#1d4ed8' : '#dc2626', marginTop: '2px', fontFamily: 'monospace' }}>
+        <div style={{ background: '#eff6ff', border: '1.5px solid #3b82f6', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase' }}>RAW MARKS</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: raw >= 0 ? '#1d4ed8' : '#dc2626', marginTop: '1px', fontFamily: 'monospace' }}>
             {raw.toFixed(2)}
           </div>
         </div>
 
         {/* Accuracy */}
-        <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>ACCURACY</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#047857', marginTop: '2px' }}>
+        <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>ACCURACY</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#047857', marginTop: '1px' }}>
             {accuracy}%
           </div>
         </div>
 
         {/* Overall Rank */}
-        <div style={{ background: '#f5f3ff', border: '1.5px solid #8b5cf6', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#6d28d9', textTransform: 'uppercase' }}>OVERALL RANK</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#6d28d9', marginTop: '2px' }}>
+        <div style={{ background: '#f5f3ff', border: '1.5px solid #8b5cf6', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#6d28d9', textTransform: 'uppercase' }}>OVERALL RANK</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#6d28d9', marginTop: '1px' }}>
             #{resultData.overallRank || 12}
           </div>
         </div>
 
         {/* Category Rank */}
-        <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>CAT. RANK</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#b45309', marginTop: '2px' }}>
+        <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>CAT. RANK</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309', marginTop: '1px' }}>
             #{resultData.categoryRank || 5}
           </div>
         </div>
 
         {/* Shift Rank */}
-        <div style={{ background: '#fdf2f8', border: '1.5px solid #ec4899', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#be185d', textTransform: 'uppercase' }}>SHIFT RANK</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#be185d', marginTop: '2px' }}>
+        <div style={{ background: '#fdf2f8', border: '1.5px solid #ec4899', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#be185d', textTransform: 'uppercase' }}>SHIFT RANK</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#be185d', marginTop: '1px' }}>
             #{resultData.shiftRank || 3}
           </div>
         </div>
 
         {/* Total Attempted */}
-        <div style={{ background: '#f8fafc', border: '1.5px solid #94a3b8', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>ATTEMPTED</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>
+        <div style={{ background: '#f8fafc', border: '1.5px solid #94a3b8', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>ATTEMPTED</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', marginTop: '1px' }}>
             {totalAttempted}/{totalQuestions}
           </div>
         </div>
       </div>
 
-      {/* Subject-Wise Performance Breakdown Table */}
+      {/* Subject-Wise Performance Breakdown Table (Portrait Optimized) */}
       <div style={{
-        borderRadius: '12px',
+        borderRadius: '10px',
         border: '1px solid #cbd5e1',
         overflow: 'hidden',
-        marginBottom: '16px'
+        marginBottom: '14px'
       }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'center' }}>
           <thead>
-            <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-              <th style={{ padding: '10px 14px', textAlign: 'left' }}>Subject / Section</th>
-              <th style={{ padding: '10px 8px' }}>Total Qs</th>
-              <th style={{ padding: '10px 8px', color: '#4ade80' }}>Correct (+{rightVal})</th>
-              <th style={{ padding: '10px 8px', color: '#f87171' }}>Wrong (-{wrongVal})</th>
-              <th style={{ padding: '10px 8px', color: '#fbbf24' }}>Unattempted</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right' }}>Section Score</th>
+            <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+              <th style={{ padding: '8px 10px', textAlign: 'left' }}>Section</th>
+              <th style={{ padding: '8px 4px' }}>Total</th>
+              <th style={{ padding: '8px 4px', color: '#4ade80' }}>Right (+{rightVal})</th>
+              <th style={{ padding: '8px 4px', color: '#f87171' }}>Wrong (-{wrongVal})</th>
+              <th style={{ padding: '8px 4px', color: '#fbbf24' }}>Blank</th>
+              <th style={{ padding: '8px 10px', textAlign: 'right' }}>Score</th>
             </tr>
           </thead>
           <tbody>
@@ -1005,12 +1005,12 @@ export default function ResultPage() {
               const sm = calcSectionMarks(sec, rightVal, wrongVal);
               return (
                 <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                  <td style={{ padding: '9px 14px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
-                  <td style={{ padding: '9px 8px', fontWeight: 700 }}>{sec.total}</td>
-                  <td style={{ padding: '9px 8px', fontWeight: 800, color: '#16a34a' }}>{sec.correct}</td>
-                  <td style={{ padding: '9px 8px', fontWeight: 800, color: '#dc2626' }}>{sec.wrong}</td>
-                  <td style={{ padding: '9px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
-                  <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
+                  <td style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 700 }}>{sec.total}</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a' }}>{sec.correct}</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626' }}>{sec.wrong}</td>
+                  <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
+                  <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
                     {sm.toFixed(2)}
                   </td>
                 </tr>
@@ -1018,13 +1018,13 @@ export default function ResultPage() {
             })}
           </tbody>
           <tfoot>
-            <tr style={{ background: '#f1f5f9', borderTop: '2px solid #cbd5e1', fontWeight: 900, fontSize: '0.85rem' }}>
-              <td style={{ padding: '11px 14px', textAlign: 'left', color: '#0f172a' }}>GRAND TOTAL</td>
-              <td style={{ padding: '11px 8px', color: '#0f172a' }}>{totalQuestions}</td>
-              <td style={{ padding: '11px 8px', color: '#16a34a' }}>{totalRight}</td>
-              <td style={{ padding: '11px 8px', color: '#dc2626' }}>{totalWrong}</td>
-              <td style={{ padding: '11px 8px', color: '#d97706' }}>{totalUnattempted}</td>
-              <td style={{ padding: '11px 14px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '1rem', fontFamily: 'monospace' }}>
+            <tr style={{ background: '#f1f5f9', borderTop: '2px solid #cbd5e1', fontWeight: 900, fontSize: '0.82rem' }}>
+              <td style={{ padding: '10px 10px', textAlign: 'left', color: '#0f172a' }}>TOTAL</td>
+              <td style={{ padding: '10px 4px', color: '#0f172a' }}>{totalQuestions}</td>
+              <td style={{ padding: '10px 4px', color: '#16a34a' }}>{totalRight}</td>
+              <td style={{ padding: '10px 4px', color: '#dc2626' }}>{totalWrong}</td>
+              <td style={{ padding: '10px 4px', color: '#d97706' }}>{totalUnattempted}</td>
+              <td style={{ padding: '10px 10px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
                 {raw.toFixed(2)}
               </td>
             </tr>
@@ -1037,17 +1037,17 @@ export default function ResultPage() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: '10px',
+        paddingTop: '8px',
         borderTop: '1px solid #e2e8f0',
-        fontSize: '0.72rem',
+        fontSize: '0.68rem',
         color: '#64748b'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
-          <strong>CBTRANK.COM</strong> — India's Premier CBT Exam Rank &amp; Score Predictor
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
+          <strong>CBTRANK.COM</strong> — Official Scorecard Report
         </div>
-        <div style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#475569' }}>
-          Generated on: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+        <div style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: '#475569' }}>
+          {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
       </div>
     </div>
