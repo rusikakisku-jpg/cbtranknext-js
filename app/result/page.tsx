@@ -630,7 +630,7 @@ export default function ResultPage() {
     </main>
 
     {/* ─────────────────────────────────────────────────────────── */}
-    {/* Dedicated Full-Table Scorecard Template (RankGuruji Design) */}
+    {/* Dedicated Full-Bleed Table Scorecard (RankGuruji Design)    */}
     {/* Captured by html2canvas when "Download Scorecard" is clicked */}
     {/* ─────────────────────────────────────────────────────────── */}
     <div
@@ -643,10 +643,10 @@ export default function ResultPage() {
         background: '#ffffff',
         fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: '#0f172a',
-        padding: '16px',
+        padding: 0,
         boxSizing: 'border-box',
-        border: '2.5px solid #0044cc',
-        borderRadius: '14px',
+        border: '2px solid #0044cc',
+        borderRadius: '12px',
         overflow: 'hidden'
       }}
     >
@@ -654,13 +654,13 @@ export default function ResultPage() {
       <div
         style={{
           position: 'absolute',
-          top: '52%',
+          top: '55%',
           left: '50%',
           transform: 'translate(-50%, -50%) rotate(-30deg)',
           fontSize: '4.8rem',
           fontWeight: 900,
           color: '#0044cc',
-          opacity: 0.15,
+          opacity: 0.14,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           pointerEvents: 'none',
@@ -673,15 +673,14 @@ export default function ResultPage() {
         CBT Rank
       </div>
 
-      {/* Top Branding Header */}
+      {/* 1. Header Section (Full Width, Flush) */}
       <div style={{
         position: 'relative',
         zIndex: 1,
         background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
         color: '#ffffff',
-        borderRadius: '10px',
-        padding: '12px 14px',
-        marginBottom: '12px'
+        padding: '14px 16px',
+        borderBottom: '2px solid #0044cc'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -714,178 +713,181 @@ export default function ResultPage() {
         </h2>
       </div>
 
-      {/* 1. Candidate Details Table (Pure Table with Colored Borders) */}
+      {/* 2. Candidate & Exam Details Section Title Bar */}
       <div style={{
         position: 'relative',
         zIndex: 1,
-        border: '1.5px solid #93c5fd',
-        borderRadius: '10px',
-        overflow: 'hidden',
-        marginBottom: '12px'
+        background: '#e0e7ff',
+        padding: '6px 14px',
+        fontSize: '0.72rem',
+        fontWeight: 900,
+        color: '#1e3a8a',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        borderBottom: '1px solid #93c5fd'
       }}>
-        <div style={{
-          background: '#e0e7ff',
-          padding: '6px 10px',
-          fontSize: '0.7rem',
-          fontWeight: 900,
-          color: '#1e3a8a',
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-          borderBottom: '1.5px solid #93c5fd'
-        }}>
-          👤 Candidate &amp; Examination Details
-        </div>
+        👤 Candidate &amp; Examination Details
+      </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
-          <tbody>
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ width: '25%', background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Candidate Name
+      {/* Candidate Details Table (Edge to Edge, 100% Flush) */}
+      <table style={{
+        position: 'relative',
+        zIndex: 1,
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '0.78rem',
+        borderBottom: '1.5px solid #93c5fd'
+      }}>
+        <tbody>
+          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+            <th style={{ width: '25%', background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Candidate Name
+            </th>
+            <td style={{ width: '25%', background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
+              {resultData.candidateName || 'Verified Candidate'}
+            </td>
+            <th style={{ width: '25%', background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Roll / Reg. No.
+            </th>
+            <td style={{ width: '25%', background: '#ffffff', padding: '7px 10px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
+              {resultData.rollNo || 'N/A'}
+            </td>
+          </tr>
+
+          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+            <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Category
+            </th>
+            <td style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
+              {formData?.category || 'UR'}
+            </td>
+            <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Gender
+            </th>
+            <td style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+              {formData?.gender || 'N/A'}
+            </td>
+          </tr>
+
+          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
+            <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Exam Date
+            </th>
+            <td style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
+              {resultData.testDate || 'N/A'}
+            </td>
+            <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Exam Shift
+            </th>
+            <td style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a' }}>
+              {resultData.testTime || 'N/A'}
+            </td>
+          </tr>
+
+          <tr style={{ borderBottom: resultData.testCenter ? '1px solid #cbd5e1' : 'none' }}>
+            <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              State / Zone
+            </th>
+            <td style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
+              {formData?.state || 'All India'}
+            </td>
+            <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+              Language
+            </th>
+            <td style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+              {formData?.paper_language || 'English'}
+            </td>
+          </tr>
+
+          {resultData.testCenter && (
+            <tr>
+              <th style={{ background: '#f8fafc', padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                Exam Center
               </th>
-              <td style={{ width: '25%', background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                {resultData.candidateName || 'Verified Candidate'}
-              </td>
-              <th style={{ width: '25%', background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Roll / Reg. No.
-              </th>
-              <td style={{ width: '25%', background: '#ffffff', padding: '7px 8px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
-                {resultData.rollNo || 'N/A'}
+              <td colSpan={3} style={{ background: '#ffffff', padding: '7px 10px', fontWeight: 700, color: '#334155', fontSize: '0.75rem' }}>
+                {resultData.testCenter}
               </td>
             </tr>
+          )}
+        </tbody>
+      </table>
 
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Category
-              </th>
-              <td style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                {formData?.category || 'UR'}
-              </td>
-              <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Gender
-              </th>
-              <td style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-                {formData?.gender || 'N/A'}
-              </td>
-            </tr>
+      {/* 3. Subject-Wise Performance Breakdown Section Title Bar */}
+      <div style={{
+        position: 'relative',
+        zIndex: 1,
+        background: '#e0e7ff',
+        padding: '6px 14px',
+        fontSize: '0.72rem',
+        fontWeight: 900,
+        color: '#1e3a8a',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        borderBottom: '1px solid #93c5fd'
+      }}>
+        📊 Subject-Wise Performance Breakdown
+      </div>
 
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Date
-              </th>
-              <td style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                {resultData.testDate || 'N/A'}
-              </td>
-              <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Shift
-              </th>
-              <td style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a' }}>
-                {resultData.testTime || 'N/A'}
-              </td>
-            </tr>
-
-            <tr style={{ borderBottom: resultData.testCenter ? '1px solid #cbd5e1' : 'none' }}>
-              <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                State / Zone
-              </th>
-              <td style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>
-                {formData?.state || 'All India'}
-              </td>
-              <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Language
-              </th>
-              <td style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-                {formData?.paper_language || 'English'}
-              </td>
-            </tr>
-
-            {resultData.testCenter && (
-              <tr>
-                <th style={{ background: '#f8fafc', padding: '7px 8px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                  Exam Center
-                </th>
-                <td colSpan={3} style={{ background: '#ffffff', padding: '7px 8px', fontWeight: 700, color: '#334155', fontSize: '0.75rem' }}>
-                  {resultData.testCenter}
+      {/* Subject-Wise Performance Table (Edge to Edge, 100% Flush) */}
+      <table style={{
+        position: 'relative',
+        zIndex: 1,
+        width: '100%',
+        borderCollapse: 'collapse',
+        fontSize: '0.78rem',
+        textAlign: 'center',
+        borderBottom: '1px solid #cbd5e1'
+      }}>
+        <thead>
+          <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+            <th style={{ padding: '8px 12px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
+            <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Total</th>
+            <th style={{ padding: '8px 4px', color: '#4ade80', borderRight: '1px solid #334155' }}>Right (+{rightVal})</th>
+            <th style={{ padding: '8px 4px', color: '#f87171', borderRight: '1px solid #334155' }}>Wrong (-{wrongVal})</th>
+            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skipped</th>
+            <th style={{ padding: '8px 12px', textAlign: 'right' }}>Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {resultData.sections.map((sec, idx) => {
+            const sm = calcSectionMarks(sec, rightVal, wrongVal);
+            return (
+              <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                <td style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{sec.name}</td>
+                <td style={{ padding: '8px 4px', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>{sec.total}</td>
+                <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{sec.correct}</td>
+                <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{sec.wrong}</td>
+                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
+                  {sm.toFixed(2)}
                 </td>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            );
+          })}
+        </tbody>
+        <tfoot>
+          <tr style={{ background: '#eff6ff', borderTop: '2px solid #3b82f6', fontWeight: 900, fontSize: '0.82rem' }}>
+            <td style={{ padding: '9px 12px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
+            <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalQuestions}</td>
+            <td style={{ padding: '9px 4px', color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{totalRight}</td>
+            <td style={{ padding: '9px 4px', color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{totalWrong}</td>
+            <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
+            <td style={{ padding: '9px 12px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
+              {raw.toFixed(2)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
 
-      {/* 2. Subject-Wise Performance Breakdown Table (Pure Table with Colored Borders) */}
+      {/* 4. Scorecard Footer (Full Bleed at Bottom) */}
       <div style={{
         position: 'relative',
         zIndex: 1,
-        border: '1.5px solid #93c5fd',
-        borderRadius: '10px',
-        overflow: 'hidden',
-        marginBottom: '12px'
-      }}>
-        <div style={{
-          background: '#e0e7ff',
-          padding: '6px 10px',
-          fontSize: '0.7rem',
-          fontWeight: 900,
-          color: '#1e3a8a',
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-          borderBottom: '1.5px solid #93c5fd'
-        }}>
-          📊 Subject-Wise Performance Breakdown
-        </div>
-
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'center' }}>
-          <thead>
-            <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-              <th style={{ padding: '8px 10px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
-              <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Total</th>
-              <th style={{ padding: '8px 4px', color: '#4ade80', borderRight: '1px solid #334155' }}>Right (+{rightVal})</th>
-              <th style={{ padding: '8px 4px', color: '#f87171', borderRight: '1px solid #334155' }}>Wrong (-{wrongVal})</th>
-              <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skipped</th>
-              <th style={{ padding: '8px 10px', textAlign: 'right' }}>Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resultData.sections.map((sec, idx) => {
-              const sm = calcSectionMarks(sec, rightVal, wrongVal);
-              return (
-                <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                  <td style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{sec.name}</td>
-                  <td style={{ padding: '8px 4px', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>{sec.total}</td>
-                  <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{sec.correct}</td>
-                  <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{sec.wrong}</td>
-                  <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
-                  <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
-                    {sm.toFixed(2)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr style={{ background: '#eff6ff', borderTop: '2px solid #3b82f6', fontWeight: 900, fontSize: '0.82rem' }}>
-              <td style={{ padding: '9px 10px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
-              <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalQuestions}</td>
-              <td style={{ padding: '9px 4px', color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{totalRight}</td>
-              <td style={{ padding: '9px 4px', color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{totalWrong}</td>
-              <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
-              <td style={{ padding: '9px 10px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
-                {raw.toFixed(2)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      {/* Scorecard Footer Verification & Branding */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
+        background: '#f8fafc',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: '6px',
-        borderTop: '1px solid #e2e8f0',
+        padding: '8px 14px',
         fontSize: '0.68rem',
         color: '#64748b'
       }}>
