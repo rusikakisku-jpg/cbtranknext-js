@@ -777,28 +777,25 @@ export default function ResultPage() {
       }}>
         <thead>
           <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            <th style={{ padding: '8px 8px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
+            <th style={{ padding: '8px 10px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
             <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Total</th>
-            <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Attempted</th>
-            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Unattempted</th>
             <th style={{ padding: '8px 4px', color: '#4ade80', borderRight: '1px solid #334155' }}>Right (+{rightVal})</th>
             <th style={{ padding: '8px 4px', color: '#f87171', borderRight: '1px solid #334155' }}>Wrong (-{wrongVal})</th>
-            <th style={{ padding: '8px 8px', textAlign: 'right' }}>Score</th>
+            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skip</th>
+            <th style={{ padding: '8px 10px', textAlign: 'right' }}>Score</th>
           </tr>
         </thead>
         <tbody>
           {resultData.sections.map((sec, idx) => {
             const sm = calcSectionMarks(sec, rightVal, wrongVal);
-            const secAttempted = sec.correct + sec.wrong;
             return (
               <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                <td style={{ padding: '8px 8px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1', wordBreak: 'break-word' }}>{sec.name}</td>
+                <td style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1', wordBreak: 'break-word' }}>{sec.name}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>{sec.total}</td>
-                <td style={{ padding: '8px 4px', fontWeight: 800, borderRight: '1px solid #cbd5e1' }}>{secAttempted}</td>
-                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{sec.correct}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{sec.wrong}</td>
-                <td style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
+                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
+                <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
                   {sm.toFixed(2)}
                 </td>
               </tr>
@@ -807,13 +804,12 @@ export default function ResultPage() {
         </tbody>
         <tfoot>
           <tr style={{ background: '#eff6ff', borderTop: '2px solid #3b82f6', fontWeight: 900, fontSize: '0.82rem' }}>
-            <td style={{ padding: '9px 8px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
+            <td style={{ padding: '9px 10px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
             <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalQuestions}</td>
-            <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalAttempted}</td>
-            <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
             <td style={{ padding: '9px 4px', color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{totalRight}</td>
             <td style={{ padding: '9px 4px', color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{totalWrong}</td>
-            <td style={{ padding: '9px 8px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
+            <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
+            <td style={{ padding: '9px 10px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
               {raw.toFixed(2)}
             </td>
           </tr>
