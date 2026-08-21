@@ -2713,3 +2713,21 @@ footer {
     border-radius: 8px;
   }
 }
+
+/* Responsive /rank Section-Wise Performance Breakdown Table */
+.rank-desktop-col {
+  display: table-cell;
+}
+.rank-mobile-col {
+  display: none;
+}
+
+@media only screen and (max-width: 640px) {
+  .rank-desktop-col {
+    display: none !important;
+  }
+  .rank-mobile-col {
+    display: table-cell !important;
+  }
+}
+
