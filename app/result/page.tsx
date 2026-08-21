@@ -643,11 +643,11 @@ export default function ResultPage() {
         color: '#0f172a',
         padding: 0,
         boxSizing: 'border-box',
-        border: '3px solid #0044cc',
-        borderTop: '3px solid #0044cc',
-        borderRight: '3px solid #0044cc',
-        borderBottom: '3px solid #0044cc',
-        borderLeft: '3px solid #0044cc',
+        border: '5px solid #0044cc',
+        borderTop: '5px solid #0044cc',
+        borderRight: '5px solid #0044cc',
+        borderBottom: '5px solid #0044cc',
+        borderLeft: '5px solid #0044cc',
         overflow: 'hidden'
       }}
     >
@@ -880,23 +880,25 @@ export default function ResultPage() {
         </tfoot>
       </table>
 
-      {/* 4. Scorecard Footer (Full Bleed at Bottom) */}
+      {/* 4. Scorecard Footer (With Colored Top Border and Framed Badges) */}
       <div style={{
         position: 'relative',
         zIndex: 1,
-        background: '#f8fafc',
+        background: '#eff6ff',
+        borderTop: '2px solid #0044cc',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '8px 14px',
-        fontSize: '0.68rem',
-        color: '#64748b'
+        padding: '9px 14px',
+        fontSize: '0.7rem',
+        color: '#1e3a8a'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
-          <strong>CBTRANK.COM</strong> — Official Scorecard Report
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
+          <strong style={{ color: '#0044cc', letterSpacing: '0.02em' }}>CBTRANK.COM</strong>
+          <span style={{ color: '#64748b' }}>— Official Scorecard Report</span>
         </div>
-        <div style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: '#475569' }}>
+        <div style={{ fontFamily: 'monospace', fontSize: '0.7rem', fontWeight: 800, color: '#0044cc', background: '#dbeafe', padding: '2px 8px', borderRadius: '4px', border: '1px solid #93c5fd' }}>
           {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
         </div>
       </div>
