@@ -838,52 +838,270 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
           </div>
         </div>
 
-        {/* Info Cards */}
-        <div className="details-wrapper">
-          <div className="info-card">
-            <h3 id="info-how-to-title">⭐ How to Check Your Marks &amp; Rank on CBTRank</h3>
-            <p>You can calculate your marks and check your rank on CBTRank easily by following these steps:</p>
-            <ul>
-              <li>First, open your exam official answer key and copy its URL.</li>
-              <li>Visit the CBTRank Score Calculator (this page).</li>
-              <li>You will find an input box &ldquo;Answer Key URL&rdquo; — paste your copied link here.</li>
-              <li>Select your category and horizontal category.</li>
-              <li>Choose your paper language (optional) and State/UT.</li>
-              <li>Click the Calculate Marks &amp; Rank button.</li>
-            </ul>
+        {/* Rich SEO & Informational Content Cards */}
+        <div className="details-wrapper" style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+          
+          {/* Card 1: Hero Welcome & Overview */}
+          <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#eff6ff', color: '#1d4ed8', fontSize: '0.72rem', fontWeight: 800, padding: '4px 10px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '10px' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2563eb', display: 'inline-block' }} />
+              All-India Exam Evaluation Portal
+            </div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: '0 0 10px 0', letterSpacing: '-0.02em', lineHeight: 1.3 }}>
+              Latest Government Exam Answer Keys &amp; Score Calculator 2025–2026
+            </h2>
+            <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.65, margin: 0, fontWeight: 500 }}>
+              Welcome to <strong>CBTRank</strong> — your premier online platform to check the latest government recruitment answer keys, calculate accurate normalized &amp; raw scores, and evaluate your category and shift-wise performance. We support major competitive examinations conducted by <strong>SSC, RRB (Railways), Banking (IBPS &amp; SBI), State PSCs, Defence, and Teaching</strong> recruitment authorities.
+            </p>
+            <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.65, margin: '10px 0 0 0', fontWeight: 500 }}>
+              Candidates can easily paste their official response sheet links to get an instant section-wise breakdown, accurate negative marking deductions, and rank predictions before official merit lists are declared.
+            </p>
           </div>
 
-          <div className="info-card">
-            <h3>⭐ What Information You Will See on CBTRank</h3>
-            <p>After submitting your details, CBTRank will display a detailed performance report including:</p>
-            <div className="feature-grid">
+          {/* Card 2: Popular Exams Grid */}
+          <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+              🏆 Popular Competitive Exams Supported on CBTRank
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 16px 0' }}>
+              Access automated score calculation and answer key analysis for top national and state examinations:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+              
+              {/* Railway Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#0369a1', marginBottom: '6px' }}>
+                  🚆 Railway Recruitment (RRB)
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 }}>
+                  RRB NTPC (UG/Grad), RRB ALP, RRB Technician, RRB Group D, RRB JE, RPF SI &amp; Constable.
+                </div>
+              </div>
+
+              {/* SSC Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #2563eb', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#1d4ed8', marginBottom: '6px' }}>
+                  🏛️ Staff Selection Commission (SSC)
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 }}>
+                  SSC CGL, SSC CHSL, SSC MTS, SSC GD Constable, SSC CPO SI, SSC Stenographer, Selection Posts.
+                </div>
+              </div>
+
+              {/* Banking Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #059669', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#047857', marginBottom: '6px' }}>
+                  🏦 Banking &amp; Financial Boards
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 }}>
+                  IBPS PO &amp; Clerk, SBI PO &amp; Clerk, IBPS RRB Scale I &amp; Assistant, RBI Assistant, SEBI &amp; NABARD.
+                </div>
+              </div>
+
+              {/* Teaching Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #7c3aed', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#6d28d9', marginBottom: '6px' }}>
+                  🎓 Teaching &amp; Education Boards
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 }}>
+                  CTET, State TETs (UPTET, REET, BTET), DSSSB PRT/TGT/PGT, KVS, NVS, EMRS exams.
+                </div>
+              </div>
+
+              {/* State PSC Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #d97706', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#b45309', marginBottom: '6px' }}>
+                  📋 State PSC &amp; Subordinate Boards
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 }}>
+                  UPPSC, BPSC, MPPSC, RPSC, WBCS, APPSC, TSPSC, UPSSSC, OSSSC &amp; State Police Recruitments.
+                </div>
+              </div>
+
+              {/* Defence Box */}
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #dc2626', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: '#b91c1c', marginBottom: '6px' }}>
+                  🛡️ Defence &amp; Police Services
+                </div>
+                <div style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.55 }}>
+                  NDA, CDS, AFCAT, Indian Navy, Indian Army Agniveer, State Police Sub-Inspector &amp; Constables.
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Card 3: Step-by-Step Guide */}
+          <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <h3 id="info-how-to-title" style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+              📋 How to Check Answer Key &amp; Calculate Your Marks on CBTRank
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 16px 0' }}>
+              Follow these simple steps to calculate your exact marks, accuracy percentage, and shift rankings:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+              
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.8rem' }}>1</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>Copy Response Link</strong>
+                </div>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Open your official exam candidate portal and copy the response sheet / answer key URL from your browser address bar.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.8rem' }}>2</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>Paste URL Above</strong>
+                </div>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Paste the copied link into the <strong>&ldquo;Answer Key URL&rdquo;</strong> input field in our calculator above.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#2563eb', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.8rem' }}>3</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>Select Details</strong>
+                </div>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Choose your applicable <strong>Category</strong> (UR/OBC/EWS/SC/ST), <strong>Gender</strong>, and <strong>State / UT</strong>.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ width: '26px', height: '26px', borderRadius: '50%', background: '#059669', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.8rem' }}>4</span>
+                  <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>View Instant Report</strong>
+                </div>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Click <strong>&ldquo;Calculate Marks &amp; Rank&rdquo;</strong> to instantly view your verified score, negative marks, and rank analysis.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Card 4: Key Benefits & Features */}
+          <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+              ⭐ Key Benefits of Using the CBTRank Answer Key Calculator
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 16px 0' }}>
+              Why thousands of government exam aspirants trust CBTRank for score evaluation:
+            </p>
+
+            <div className="feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
               <div className="feature-box blue">
-                <h4>Rank Details</h4>
-                <ul>
-                  <li>✔ Overall Rank</li>
-                  <li>✔ Shift Rank</li>
-                  <li>✔ Category (Vertical) Rank</li>
-                </ul>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>⚡ Instant Automated Calculation</h4>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Eliminates manual error by applying exact exam marking schemes including negative marking rules (+1, -0.25, -0.33, etc.) automatically.
+                </p>
               </div>
+
               <div className="feature-box green">
-                <h4>Score Details</h4>
-                <ul>
-                  <li>✔ Total Marks</li>
-                  <li>✔ Overall Average Marks</li>
-                  <li>✔ Shift Average Marks</li>
-                  <li>✔ Category Average Marks</li>
-                </ul>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>📊 Section-Wise Deep Breakdown</h4>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Get complete subject-by-subject insights with precise counts of Correct, Wrong, and Unattempted questions.
+                </p>
               </div>
+
               <div className="feature-box purple">
-                <h4>Detailed Scorecard</h4>
-                <ul>
-                  <li>✔ Total attempted questions</li>
-                  <li>✔ Not attempted questions</li>
-                  <li>✔ Right &amp; wrong count</li>
-                </ul>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>🎯 Shift &amp; Category Ranking</h4>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Benchmark your performance across all candidates in your shift session and reservation category quota.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '14px' }}>
+                <h4 style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#d97706', marginBottom: '8px' }}>
+                  📄 1-Click PDF / Image Scorecard
+                </h4>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Download a beautifully formatted, official-style scorecard PDF/image directly to your device for future records.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '14px' }}>
+                <h4 style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0284c7', marginBottom: '8px' }}>
+                  🔒 100% Free &amp; Zero Sign-Up
+                </h4>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  No mandatory registration or personal credentials needed. Completely free public evaluation utility for all candidates.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '14px' }}>
+                <h4 style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#ec4899', marginBottom: '8px' }}>
+                  📱 Ultra-Fast &amp; Mobile Responsive
+                </h4>
+                <p style={{ fontSize: '0.76rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+                  Engineered for lightning-fast parsing on mobile phones, tablets, and desktop computers without delays.
+                </p>
               </div>
             </div>
           </div>
+
+          {/* Card 5: Objection Process & Next Steps */}
+          <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+              📝 Answer Key Objection &amp; Challenge Process
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+              Most recruitment authorities (such as SSC, RRB, and NTA) offer a provisional objection window (typically 3 to 7 days) allowing candidates to challenge disputed questions. If you find any discrepancies:
+            </p>
+            <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '0.8rem', color: '#334155', lineHeight: 1.7 }}>
+              <li><strong>Verify with Standard References:</strong> Double-check the disputed question against standard NCERT or recognized authoritative reference books.</li>
+              <li><strong>Note Question &amp; Option IDs:</strong> Identify the unique Question ID and Option ID displayed in your official response sheet.</li>
+              <li><strong>Submit on Official Board Portal:</strong> Log in to the official exam authority&apos;s objection management portal within the specified challenge dates.</li>
+              <li><strong>Attach Documentary Proof:</strong> Upload clear scanned pages of your reference material and pay the prescribed fee per question (refundable if the challenge is accepted).</li>
+              <li><strong>Final Answer Key Updates:</strong> The board reviews all challenges with subject matter experts before releasing the final normalized merit list.</li>
+            </ul>
+          </div>
+
+          {/* Card 6: Why Evaluating Score Early Matters */}
+          <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 8px 0' }}>
+              💡 Why Checking Your Answer Key Early is Essential
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.6, margin: '0 0 12px 0' }}>
+              Evaluating your performance immediately after the official key release offers significant tactical advantages:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '12px' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px' }}>
+                <strong style={{ fontSize: '0.8rem', color: '#0f172a', display: 'block', marginBottom: '4px' }}>🎯 Estimate Selection Cut-Offs</strong>
+                <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
+                  Compare your raw score with expected category cut-offs to understand your qualifying chances.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px' }}>
+                <strong style={{ fontSize: '0.8rem', color: '#0f172a', display: 'block', marginBottom: '4px' }}>📚 Plan Tier-II &amp; Skill Tests</strong>
+                <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
+                  Begin early targeted preparation for Mains, Typing, PET, or Interview rounds without losing crucial weeks.
+                </p>
+              </div>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 14px' }}>
+                <strong style={{ fontSize: '0.8rem', color: '#0f172a', display: 'block', marginBottom: '4px' }}>🔍 Identify Negative Mark Traps</strong>
+                <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0, lineHeight: 1.45 }}>
+                  Analyze weak chapters or recurring mistakes to optimize your question selection strategy for upcoming exams.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 7: Legal Disclaimer */}
+          <div className="info-card" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '16px 18px' }}>
+            <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0, lineHeight: 1.6, textAlign: 'center' }}>
+              <strong>⚖️ Disclaimer:</strong> CBTRank is an independent educational score estimation and rank analysis utility created to help candidates calculate indicative scores. CBTRank is not associated with, affiliated with, or endorsed by any government department, board, or examination authority. Official final results, normalized marks, cut-offs, and merit lists are published exclusively by the respective recruitment boards.
+            </p>
+          </div>
+
         </div>
       </div>
     </main>
