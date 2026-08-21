@@ -512,80 +512,7 @@ export default function ResultPage() {
             </div>
           </div>
 
-          {/* 2. Performance & Accuracy Score Summary Cards (RankGuruji Scorecard UI) */}
-          <div style={{ position: 'relative', zIndex: 1, margin: '18px 0 20px' }}>
-            <div style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '16px',
-              padding: '16px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '1.1rem' }}>📊</span>
-                  <h3 style={{ fontSize: '0.86rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
-                    Score &amp; Performance Summary
-                  </h3>
-                </div>
-                <span style={{ fontSize: '0.72rem', background: '#e0e7ff', color: '#3730a3', padding: '3px 10px', borderRadius: '6px', fontWeight: 800 }}>
-                  Total Questions: {totalQuestions}
-                </span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '10px', textAlign: 'center' }}>
-                {/* Total Raw Score */}
-                <div style={{ background: '#ffffff', border: '1.5px solid #0044cc', borderRadius: '12px', padding: '12px 6px', boxShadow: '0 2px 6px rgba(0,68,204,0.08)' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#0044cc', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.02em' }}>Raw Marks</span>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: raw >= 0 ? '#0044cc' : '#dc2626', marginTop: '2px', fontFamily: 'monospace' }}>
-                    {raw.toFixed(2)}
-                  </div>
-                </div>
-
-                {/* Accuracy */}
-                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 6px' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Accuracy</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#10b981', marginTop: '2px' }}>
-                    {accuracy}%
-                  </div>
-                </div>
-
-                {/* Attempted */}
-                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 6px' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Attempted</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#2563eb', marginTop: '2px' }}>
-                    {totalAttempted}
-                  </div>
-                </div>
-
-                {/* Correct */}
-                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 6px' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 700, textTransform: 'uppercase' }}>Correct (+{rightVal})</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#059669', marginTop: '2px' }}>
-                    {totalRight}
-                  </div>
-                </div>
-
-                {/* Wrong */}
-                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 6px' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#dc2626', fontWeight: 700, textTransform: 'uppercase' }}>Wrong (-{wrongVal})</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#dc2626', marginTop: '2px' }}>
-                    {totalWrong}
-                  </div>
-                </div>
-
-                {/* Unattempted */}
-                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px 6px' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#d97706', fontWeight: 700, textTransform: 'uppercase' }}>Unattempted</span>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#d97706', marginTop: '2px' }}>
-                    {totalUnattempted}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Section Performance Table with Recalc Controls */}
+          {/* 2. Section Performance Table with Recalc Controls */}
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div className="recalc-header">
               <h3 style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Subject-Wise Performance Breakdown</h3>
@@ -677,34 +604,6 @@ export default function ResultPage() {
                   </tr>
                 </tfoot>
               </table>
-            </div>
-
-            {/* Scorecard Footer Verification Info (Visible on Image and on screen) */}
-            <div style={{
-              marginTop: '16px',
-              paddingTop: '12px',
-              borderTop: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '8px',
-              fontSize: '0.75rem',
-              color: '#64748b'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: '#10b981',
-                  display: 'inline-block'
-                }}></span>
-                <strong>CBTRANK.COM</strong> — Verified CBT Answer Key Scorecard Report
-              </div>
-              <div style={{ fontFamily: 'monospace', fontSize: '0.72rem' }}>
-                Verified Official Response Sheet Analysis
-              </div>
             </div>
           </div>
 
