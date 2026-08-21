@@ -165,11 +165,18 @@ export default function RankPage() {
                 )}
               </div>
 
-              {/* Printable-Only Candidate Header (Visible ONLY on PDF / Print) */}
-              <div className="print-only" style={{ marginBottom: '14px', paddingBottom: '10px', borderBottom: '1px solid #cbd5e1' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', fontSize: '9pt' }}>
+              {/* Candidate Info Summary Header (Visible at Top on Mobile & Print) */}
+              <div className="candidate-top-summary" style={{
+                marginBottom: '14px',
+                padding: '10px 12px',
+                background: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                borderRadius: '10px',
+                fontSize: '0.78rem'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px 12px', fontSize: '9pt' }}>
                   <div><strong>Candidate:</strong> {candidateName}</div>
-                  {rollNumber && <div><strong>Roll No:</strong> {rollNumber}</div>}
+                  {rollNumber && <div><strong>Roll No:</strong> <span style={{ fontFamily: 'monospace', color: '#0044cc', fontWeight: 800 }}>{rollNumber}</span></div>}
                   {resultData.testDate && <div><strong>Date:</strong> {resultData.testDate}</div>}
                   {resultData.testTime && <div><strong>Time:</strong> {resultData.testTime}</div>}
                   {effectiveCommunity && <div><strong>Category:</strong> {effectiveCommunity}</div>}
@@ -315,7 +322,7 @@ export default function RankPage() {
           }}>
 
             {/* Sidebar Card 1: 👤 User Information Profile with Integrated Review Answerkey Button */}
-            <div style={{
+            <div className="sidebar-profile-card" style={{
               background: '#ffffff',
               border: '1px solid #e2e8f0',
               borderRadius: '18px',
