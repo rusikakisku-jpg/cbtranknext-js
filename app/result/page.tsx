@@ -830,7 +830,7 @@ export default function ResultPage() {
         </div>
       </div>
 
-      {/* Performance & Score Highlight Badges (3-Column x 2-Row Portrait Grid) */}
+      {/* Performance & Score Highlight Badges (3-Column x 2-Row Portrait Grid - Pure Scorecard Metrics) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '14px' }}>
         {/* Raw Score */}
         <div style={{ background: '#eff6ff', border: '1.5px solid #3b82f6', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
@@ -848,35 +848,35 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* Overall Rank */}
-        <div style={{ background: '#f5f3ff', border: '1.5px solid #8b5cf6', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#6d28d9', textTransform: 'uppercase' }}>OVERALL RANK</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#6d28d9', marginTop: '1px' }}>
-            #{resultData.overallRank || 12}
-          </div>
-        </div>
-
-        {/* Category Rank */}
-        <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>CAT. RANK</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309', marginTop: '1px' }}>
-            #{resultData.categoryRank || 5}
-          </div>
-        </div>
-
-        {/* Shift Rank */}
-        <div style={{ background: '#fdf2f8', border: '1.5px solid #ec4899', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#be185d', textTransform: 'uppercase' }}>SHIFT RANK</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#be185d', marginTop: '1px' }}>
-            #{resultData.shiftRank || 3}
-          </div>
-        </div>
-
         {/* Total Attempted */}
         <div style={{ background: '#f8fafc', border: '1.5px solid #94a3b8', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
           <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>ATTEMPTED</div>
           <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', marginTop: '1px' }}>
             {totalAttempted}/{totalQuestions}
+          </div>
+        </div>
+
+        {/* Correct Answers */}
+        <div style={{ background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>CORRECT (+{rightVal})</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#15803d', marginTop: '1px' }}>
+            {totalRight}
+          </div>
+        </div>
+
+        {/* Wrong Answers */}
+        <div style={{ background: '#fef2f2', border: '1.5px solid #ef4444', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>WRONG (-{wrongVal})</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b91c1c', marginTop: '1px' }}>
+            {totalWrong}
+          </div>
+        </div>
+
+        {/* Unattempted / Skipped */}
+        <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>UNATTEMPTED</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309', marginTop: '1px' }}>
+            {totalUnattempted}
           </div>
         </div>
       </div>
