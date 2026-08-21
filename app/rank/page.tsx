@@ -364,9 +364,10 @@ export default function RankPage() {
               {/* Subject-Wise Performance Breakdown Table */}
               {resultData.sections && resultData.sections.length > 0 && (() => {
                 const totQuestions = resultData.sections.reduce((acc, s) => acc + (s.total || 0), 0);
+                const totUnattempted = resultData.sections.reduce((acc, s) => acc + (s.unattempted || 0), 0);
+                const totAttempted = totQuestions - totUnattempted;
                 const totCorrect = resultData.sections.reduce((acc, s) => acc + (s.correct || 0), 0);
                 const totWrong = resultData.sections.reduce((acc, s) => acc + (s.wrong || 0), 0);
-                const totSkipped = resultData.sections.reduce((acc, s) => acc + (s.unattempted || 0), 0);
                 const totScore = (totCorrect * rightVal) - (totWrong * wrongVal);
 
                 return (
@@ -383,23 +384,26 @@ export default function RankPage() {
                           <tr style={{ background: '#f1f5f9', color: '#475569', fontWeight: 800, fontSize: '0.72rem', textTransform: 'uppercase' }}>
                             <th style={{ padding: '10px 12px', textAlign: 'left' }}>Section / Subject</th>
                             <th style={{ padding: '10px 8px' }}>Total</th>
+                            <th style={{ padding: '10px 8px' }}>Attempted</th>
+                            <th style={{ padding: '10px 8px', color: '#d97706' }}>Unattempted</th>
                             <th style={{ padding: '10px 8px', color: '#059669' }}>Correct</th>
                             <th style={{ padding: '10px 8px', color: '#ef4444' }}>Wrong</th>
-                            <th style={{ padding: '10px 8px', color: '#d97706' }}>Skipped</th>
                             <th style={{ padding: '10px 12px', textAlign: 'right' }}>Score</th>
                           </tr>
                         </thead>
                         <tbody>
                           {resultData.sections.map((sec, idx) => {
+                            const secAttempted = sec.total - sec.unattempted;
                             const secScore = (sec.correct * rightVal) - (sec.wrong * wrongVal);
                             return (
                               <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfd' }}>
                                 <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
                                 <td style={{ padding: '10px 8px', fontWeight: 700 }}>{sec.total}</td>
+                                <td style={{ padding: '10px 8px', fontWeight: 700 }}>{secAttempted}</td>
+                                <td style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
                                 <td style={{ padding: '10px 8px', fontWeight: 800, color: '#059669' }}>{sec.correct}</td>
                                 <td style={{ padding: '10px 8px', fontWeight: 800, color: '#ef4444' }}>{sec.wrong}</td>
-                                <td style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
-                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>{secScore.toFixed(2)}</td>
+                                <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 900, color: secScore < 0 ? '#ef4444' : '#0f172a' }}>{secScore.toFixed(2)}</td>
                               </tr>
                             );
                           })}
@@ -408,9 +412,10 @@ export default function RankPage() {
                           <tr style={{ background: '#f8fafc', borderTop: '2px solid #cbd5e1', fontWeight: 900, color: '#0f172a', fontSize: '0.82rem' }}>
                             <td style={{ padding: '12px 12px', textAlign: 'left', fontWeight: 900, color: '#0f172a' }}>Total</td>
                             <td style={{ padding: '12px 8px', fontWeight: 900 }}>{totQuestions}</td>
+                            <td style={{ padding: '12px 8px', fontWeight: 900 }}>{totAttempted}</td>
+                            <td style={{ padding: '12px 8px', fontWeight: 900, color: '#d97706' }}>{totUnattempted}</td>
                             <td style={{ padding: '12px 8px', fontWeight: 900, color: '#059669' }}>{totCorrect}</td>
                             <td style={{ padding: '12px 8px', fontWeight: 900, color: '#ef4444' }}>{totWrong}</td>
-                            <td style={{ padding: '12px 8px', fontWeight: 900, color: '#d97706' }}>{totSkipped}</td>
                             <td style={{ padding: '12px 12px', textAlign: 'right', fontWeight: 900, color: totScore < 0 ? '#ef4444' : '#0f172a', fontSize: '0.88rem' }}>
                               {totScore.toFixed(2)}
                             </td>
