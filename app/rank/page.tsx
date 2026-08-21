@@ -258,45 +258,6 @@ export default function RankPage() {
 
               </div>
 
-              {/* Detailed Score Summary Box */}
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '0.86rem', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
-                    📊 Performance &amp; Accuracy Breakdown
-                  </h3>
-                  <span style={{ fontSize: '0.72rem', background: '#e0e7ff', color: '#3730a3', padding: '2px 8px', borderRadius: '6px', fontWeight: 800 }}>
-                    Total: {totalQuestions} Questions
-                  </span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '8px', textAlign: 'center' }}>
-                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Total Marks</span>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>{rawMarks.toFixed(2)}</div>
-                  </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Accuracy</span>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#10b981', marginTop: '2px' }}>{accuracy}%</div>
-                  </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Attempted</span>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#2563eb', marginTop: '2px' }}>{totalAttempted}</div>
-                  </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Correct (+{rightVal})</span>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#059669', marginTop: '2px' }}>{totalRight}</div>
-                  </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Wrong (-{wrongVal})</span>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#ef4444', marginTop: '2px' }}>{totalWrong}</div>
-                  </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 6px' }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700 }}>Skipped</span>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#f59e0b', marginTop: '2px' }}>{totalUnattempted}</div>
-                  </div>
-                </div>
-              </div>
-
               {/* Subject-Wise Performance Breakdown Table */}
               {resultData.sections && resultData.sections.length > 0 && (
                 <div style={{ borderRadius: '14px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
