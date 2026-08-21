@@ -380,13 +380,13 @@ export default function ResultPage() {
               marginTop: '12px',
               background: '#ffffff'
             }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
                 <tbody>
                   <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <th style={{ width: '35%', background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                       Candidate Name
                     </th>
-                    <td style={{ width: '65%', background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                    <td style={{ width: '65%', background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
                       {candidateName}
                     </td>
                   </tr>
@@ -395,7 +395,7 @@ export default function ResultPage() {
                     <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                       Roll / Reg. Number
                     </th>
-                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
+                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace', textAlign: 'left' }}>
                       {candidateRollNo || 'N/A'}
                     </td>
                   </tr>
@@ -404,7 +404,7 @@ export default function ResultPage() {
                     <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                       Category / Community
                     </th>
-                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
                       {candidateCategory}
                     </td>
                   </tr>
@@ -414,7 +414,7 @@ export default function ResultPage() {
                       <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                         Gender
                       </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize', textAlign: 'left' }}>
                         {formData.gender}
                       </td>
                     </tr>
@@ -425,7 +425,7 @@ export default function ResultPage() {
                       <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                         Exam Date
                       </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
                         {candidateTestDate}
                       </td>
                     </tr>
@@ -436,7 +436,7 @@ export default function ResultPage() {
                       <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                         Exam Shift / Time
                       </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
                         {candidateTestTime}
                       </td>
                     </tr>
@@ -447,7 +447,7 @@ export default function ResultPage() {
                       <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                         {formData.location_label || 'State / Zone'}
                       </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a' }}>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
                         {formData.state}
                       </td>
                     </tr>
@@ -458,7 +458,7 @@ export default function ResultPage() {
                       <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                         Paper Language
                       </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize', textAlign: 'left' }}>
                         {formData.paper_language}
                       </td>
                     </tr>
@@ -469,7 +469,7 @@ export default function ResultPage() {
                       <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
                         Exam Center / Venue
                       </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 700, color: '#334155', fontSize: '0.8rem' }}>
+                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 700, color: '#334155', fontSize: '0.8rem', textAlign: 'left' }}>
                         {candidateTestCenter}
                       </td>
                     </tr>
