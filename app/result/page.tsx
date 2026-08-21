@@ -334,6 +334,43 @@ export default function ResultPage() {
   const candidateTestTime = resultData.testTime || resultData.infoRows?.find(r => /time|shift/i.test(r.label))?.value || '';
   const candidateTestCenter = resultData.testCenter || resultData.infoRows?.find(r => /center|venue/i.test(r.label))?.value || '';
 
+  // Dynamically compute all Candidate & Examination details without dropping any field
+  const displayRows: Array<{ label: string; value: string }> = [];
+  const existingKeySet = new Set<string>();
+
+  if (resultData?.infoRows && resultData.infoRows.length > 0) {
+    resultData.infoRows.forEach(row => {
+      if (row.label && row.value && String(row.value).trim() !== '') {
+        displayRows.push({ label: row.label, value: String(row.value) });
+        existingKeySet.add(row.label.toLowerCase().trim());
+      }
+    });
+  } else {
+    if (resultData.candidateName) displayRows.push({ label: 'Candidate Name', value: resultData.candidateName });
+    if (resultData.rollNo) displayRows.push({ label: 'Roll / Reg. Number', value: resultData.rollNo });
+    if (resultData.examName) displayRows.push({ label: 'Subject / Exam', value: resultData.examName });
+    if (resultData.testDate) displayRows.push({ label: 'Test Date', value: resultData.testDate });
+    if (resultData.testTime) displayRows.push({ label: 'Test Time', value: resultData.testTime });
+    if (resultData.testCenter) displayRows.push({ label: 'Test Center / Venue', value: resultData.testCenter });
+  }
+
+  // Complement with user-submitted form data if not already included in candidate_info
+  if (formData?.category && !Array.from(existingKeySet).some(k => k.includes('category') || k.includes('community') || k.includes('caste'))) {
+    displayRows.push({ label: 'Category', value: formData.category });
+  }
+  if (formData?.horizontal_category && formData.horizontal_category !== 'None' && !Array.from(existingKeySet).some(k => k.includes('horizontal'))) {
+    displayRows.push({ label: 'Horizontal Reservation', value: formData.horizontal_category });
+  }
+  if (formData?.gender && !Array.from(existingKeySet).some(k => k.includes('gender') || k.includes('sex'))) {
+    displayRows.push({ label: 'Gender', value: formData.gender });
+  }
+  if (formData?.state && !Array.from(existingKeySet).some(k => k.includes('state') || k.includes('zone') || k.includes('region'))) {
+    displayRows.push({ label: formData.location_label || 'State / Zone', value: formData.state });
+  }
+  if (formData?.paper_language && !Array.from(existingKeySet).some(k => k.includes('language') || k.includes('medium'))) {
+    displayRows.push({ label: 'Paper Language', value: formData.paper_language });
+  }
+
   return (
     <>
       {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
@@ -382,98 +419,29 @@ export default function ResultPage() {
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
                 <tbody>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ width: '35%', background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                      Candidate Name
-                    </th>
-                    <td style={{ width: '65%', background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                      {candidateName}
-                    </td>
-                  </tr>
-
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                      Roll / Reg. Number
-                    </th>
-                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace', textAlign: 'left' }}>
-                      {candidateRollNo || 'N/A'}
-                    </td>
-                  </tr>
-
-                  <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                      Category / Community
-                    </th>
-                    <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                      {candidateCategory}
-                    </td>
-                  </tr>
-
-                  {formData?.gender && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Gender
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize', textAlign: 'left' }}>
-                        {formData.gender}
-                      </td>
-                    </tr>
-                  )}
-
-                  {candidateTestDate && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Exam Date
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                        {candidateTestDate}
-                      </td>
-                    </tr>
-                  )}
-
-                  {candidateTestTime && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Exam Shift / Time
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                        {candidateTestTime}
-                      </td>
-                    </tr>
-                  )}
-
-                  {formData?.state && (
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        {formData.location_label || 'State / Zone'}
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textAlign: 'left' }}>
-                        {formData.state}
-                      </td>
-                    </tr>
-                  )}
-
-                  {formData?.paper_language && (
-                    <tr style={{ borderBottom: candidateTestCenter ? '1px solid #e2e8f0' : 'none' }}>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Paper Language
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize', textAlign: 'left' }}>
-                        {formData.paper_language}
-                      </td>
-                    </tr>
-                  )}
-
-                  {candidateTestCenter && (
-                    <tr>
-                      <th style={{ background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
-                        Exam Center / Venue
-                      </th>
-                      <td style={{ background: '#ffffff', padding: '8px 12px', fontWeight: 700, color: '#334155', fontSize: '0.8rem', textAlign: 'left' }}>
-                        {candidateTestCenter}
-                      </td>
-                    </tr>
-                  )}
+                  {displayRows.map((row, idx) => {
+                    const isLast = idx === displayRows.length - 1;
+                    const isRoll = /roll|registration|id|participant\s*id|applicant/i.test(row.label);
+                    return (
+                      <tr key={idx} style={{ borderBottom: isLast ? 'none' : '1px solid #e2e8f0' }}>
+                        <th style={{ width: '35%', background: '#f8fafc', padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #e2e8f0' }}>
+                          {row.label}
+                        </th>
+                        <td style={{
+                          width: '65%',
+                          background: '#ffffff',
+                          padding: '8px 12px',
+                          fontWeight: isRoll ? 900 : 800,
+                          color: isRoll ? '#0044cc' : '#0f172a',
+                          fontFamily: isRoll ? 'monospace' : 'inherit',
+                          textAlign: 'left',
+                          fontSize: row.label.toLowerCase().includes('center') || row.label.toLowerCase().includes('venue') ? '0.8rem' : 'inherit'
+                        }}>
+                          {row.value}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -765,98 +733,29 @@ export default function ResultPage() {
         borderBottom: '2px solid #0044cc'
       }}>
         <tbody>
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ width: '38%', background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Candidate Name
-            </th>
-            <td style={{ width: '62%', background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {candidateName}
-            </td>
-          </tr>
-
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Roll / Reg. Number
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 900, color: '#0044cc', fontFamily: 'monospace' }}>
-              {candidateRollNo || 'N/A'}
-            </td>
-          </tr>
-
-          <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-            <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-              Category / Community
-            </th>
-            <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-              {candidateCategory}
-            </td>
-          </tr>
-
-          {formData?.gender && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Gender
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-                {formData.gender}
-              </td>
-            </tr>
-          )}
-
-          {candidateTestDate && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Date
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-                {candidateTestDate}
-              </td>
-            </tr>
-          )}
-
-          {candidateTestTime && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Shift / Time
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-                {candidateTestTime}
-              </td>
-            </tr>
-          )}
-
-          {formData?.state && (
-            <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                State / Zone
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a' }}>
-                {formData.state}
-              </td>
-            </tr>
-          )}
-
-          {formData?.paper_language && (
-            <tr style={{ borderBottom: candidateTestCenter ? '1px solid #cbd5e1' : 'none' }}>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Paper Language
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>
-                {formData.paper_language}
-              </td>
-            </tr>
-          )}
-
-          {candidateTestCenter && (
-            <tr>
-              <th style={{ background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
-                Exam Center / Venue
-              </th>
-              <td style={{ background: '#ffffff', padding: '6px 12px', fontWeight: 700, color: '#334155', fontSize: '0.75rem' }}>
-                {candidateTestCenter}
-              </td>
-            </tr>
-          )}
+          {displayRows.map((row, idx) => {
+            const isLast = idx === displayRows.length - 1;
+            const isRoll = /roll|registration|id|participant\s*id|applicant/i.test(row.label);
+            return (
+              <tr key={idx} style={{ borderBottom: isLast ? 'none' : '1px solid #cbd5e1' }}>
+                <th style={{ width: '38%', background: '#f8fafc', padding: '6px 12px', textAlign: 'left', fontWeight: 700, color: '#475569', borderRight: '1px solid #cbd5e1' }}>
+                  {row.label}
+                </th>
+                <td style={{
+                  width: '62%',
+                  background: '#ffffff',
+                  padding: '6px 12px',
+                  fontWeight: isRoll ? 900 : 800,
+                  color: isRoll ? '#0044cc' : '#0f172a',
+                  fontFamily: isRoll ? 'monospace' : 'inherit',
+                  textAlign: 'left',
+                  fontSize: row.label.toLowerCase().includes('center') || row.label.toLowerCase().includes('venue') ? '0.75rem' : 'inherit'
+                }}>
+                  {row.value}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
