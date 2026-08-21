@@ -187,7 +187,6 @@ export default function ResultPage() {
   const [wrongVal, setWrongVal] = useState(0.25);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
-  const [generatedImgUrl, setGeneratedImgUrl] = useState<string | null>(null);
   const pendingRedirect = useRef(false);
 
   function handleTelegramJoinClick() {
@@ -306,13 +305,10 @@ export default function ResultPage() {
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
-      setGeneratedImgUrl(imgData);
 
-      // Trigger download
+      // Trigger direct download as "CBT Rank.png"
       const link = document.createElement('a');
-      const candidateName = resultData?.candidateName || resultData?.infoRows?.find(r => /name|candidate/i.test(r.label))?.value || 'Candidate';
-      const safeName = candidateName.replace(/[^a-zA-Z0-9_-]/g, '_');
-      link.download = `scorecard_${safeName}.png`;
+      link.download = 'CBT Rank.png';
       link.href = imgData;
       document.body.appendChild(link);
       link.click();
@@ -336,81 +332,6 @@ export default function ResultPage() {
   return (
     <>
       {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
-
-      {/* High-Resolution Scorecard Image Preview Modal */}
-      {generatedImgUrl && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
-          zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '16px', boxSizing: 'border-box'
-        }}>
-          <div style={{
-            background: '#ffffff', borderRadius: '20px', maxWidth: '640px', width: '100%',
-            maxHeight: '90vh', overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)', position: 'relative'
-          }}>
-            {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>
-                  📄 Scorecard Ready!
-                </h3>
-                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>High-Quality PNG format generated successfully</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setGeneratedImgUrl(null)}
-                style={{
-                  background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '6px 10px',
-                  cursor: 'pointer', fontWeight: 900, color: '#475569', fontSize: '0.85rem'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Image View */}
-            <div style={{
-              borderRadius: '12px', border: '1px solid #cbd5e1', overflow: 'hidden',
-              background: '#f8fafc', maxHeight: '55vh', overflowY: 'auto', textAlign: 'center'
-            }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={generatedImgUrl} alt="Scorecard Preview" style={{ width: '100%', height: 'auto', display: 'block' }} />
-            </div>
-
-            {/* Modal Action Buttons */}
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <a
-                href={generatedImgUrl}
-                download={`scorecard_${(resultData.candidateName || 'candidate').replace(/[^a-zA-Z0-9_-]/g, '_')}.png`}
-                style={{
-                  flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#ffffff',
-                  padding: '12px 18px', borderRadius: '12px', fontWeight: 800, fontSize: '0.88rem',
-                  textDecoration: 'none', textAlign: 'center'
-                }}
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download Scorecard
-              </a>
-              <button
-                type="button"
-                onClick={() => setGeneratedImgUrl(null)}
-                style={{
-                  background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1',
-                  padding: '12px 18px', borderRadius: '12px', fontWeight: 800, fontSize: '0.88rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <main>
       <div className="result-main">
@@ -872,9 +793,9 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* Unattempted / Skipped */}
+        {/* Skipped */}
         <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>UNATTEMPTED</div>
+          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>SKIPPED</div>
           <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309', marginTop: '1px' }}>
             {totalUnattempted}
           </div>
@@ -895,7 +816,7 @@ export default function ResultPage() {
               <th style={{ padding: '8px 4px' }}>Total</th>
               <th style={{ padding: '8px 4px', color: '#4ade80' }}>Right (+{rightVal})</th>
               <th style={{ padding: '8px 4px', color: '#f87171' }}>Wrong (-{wrongVal})</th>
-              <th style={{ padding: '8px 4px', color: '#fbbf24' }}>Blank</th>
+              <th style={{ padding: '8px 4px', color: '#fbbf24' }}>Skipped</th>
               <th style={{ padding: '8px 10px', textAlign: 'right' }}>Score</th>
             </tr>
           </thead>
