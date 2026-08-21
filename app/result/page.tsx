@@ -358,8 +358,9 @@ export default function ResultPage() {
   if (formData?.category && !Array.from(existingKeySet).some(k => k.includes('category') || k.includes('community') || k.includes('caste'))) {
     displayRows.push({ label: 'Category', value: formData.category });
   }
-  if (formData?.horizontal_category && formData.horizontal_category !== 'None' && !Array.from(existingKeySet).some(k => k.includes('horizontal'))) {
-    displayRows.push({ label: 'Horizontal Reservation', value: formData.horizontal_category });
+  const formHz = formData?.horizontal_category?.trim();
+  if (formHz && !['none', 'na', 'n/a', 'null', '--', 'not applicable', 'no'].includes(formHz.toLowerCase()) && !Array.from(existingKeySet).some(k => k.includes('horizontal'))) {
+    displayRows.push({ label: 'Horizontal Reservation', value: formHz });
   }
   if (formData?.gender && !Array.from(existingKeySet).some(k => k.includes('gender') || k.includes('sex'))) {
     displayRows.push({ label: 'Gender', value: formData.gender });
@@ -497,29 +498,33 @@ export default function ResultPage() {
               </div>
             </div>
 
+            {/* Subject-Wise Performance Table: Section | Total | Attempted | Unattempted | Right | Wrong | Marks */}
             <div className="table-responsive" style={{ marginTop: '10px' }}>
               <table className="sec-table">
                 <thead>
                   <tr>
-                    <th>Section</th>
-                    <th>Total</th>
-                    <th className="th-right">Right</th>
-                    <th className="th-wrong">Wrong</th>
-                    <th className="th-unatt">Unattempted</th>
-                    <th className="th-marks">Marks</th>
+                    <th style={{ textAlign: 'left' }}>Section</th>
+                    <th style={{ textAlign: 'center' }}>Total</th>
+                    <th style={{ textAlign: 'center' }}>Attempted</th>
+                    <th style={{ textAlign: 'center' }}>Unattempted</th>
+                    <th className="th-right" style={{ textAlign: 'center', color: '#16a34a' }}>Right (+{rightVal})</th>
+                    <th className="th-wrong" style={{ textAlign: 'center', color: '#dc2626' }}>Wrong (-{wrongVal})</th>
+                    <th className="th-marks" style={{ textAlign: 'right' }}>Marks</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resultData.sections.map((sec, idx) => {
                     const sm = calcSectionMarks(sec, rightVal, wrongVal);
+                    const secAttempted = sec.correct + sec.wrong;
                     return (
                       <tr key={idx}>
-                        <td className="td-sec-name">{sec.name}</td>
-                        <td>{sec.total}</td>
-                        <td className="td-right">{sec.correct}</td>
-                        <td className="td-wrong">{sec.wrong}</td>
-                        <td className="td-unatt">{sec.unattempted}</td>
-                        <td className={`td-marks ${sm < 0 ? 'neg' : ''}`}>
+                        <td className="td-sec-name" style={{ textAlign: 'left', wordBreak: 'break-word' }}>{sec.name}</td>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{sec.total}</td>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 800 }}>{secAttempted}</td>
+                        <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#d97706' }}>{sec.unattempted}</td>
+                        <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#16a34a', fontWeight: 800 }}>{sec.correct}</td>
+                        <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#dc2626', fontWeight: 800 }}>{sec.wrong}</td>
+                        <td className={`td-marks ${sm < 0 ? 'neg' : ''}`} style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 900, color: sm < 0 ? '#dc2626' : '#0f172a' }}>
                           {sm.toFixed(2)}
                         </td>
                       </tr>
@@ -528,12 +533,13 @@ export default function ResultPage() {
                 </tbody>
                 <tfoot>
                   <tr className="tfoot-row">
-                    <td>Total</td>
-                    <td>{totalQuestions}</td>
-                    <td className="td-right">{totalRight}</td>
-                    <td className="td-wrong">{totalWrong}</td>
-                    <td className="td-unatt">{totalUnattempted}</td>
-                    <td className={`td-marks ${raw < 0 ? 'neg' : ''}`}>
+                    <td style={{ textAlign: 'left', fontWeight: 900 }}>Total</td>
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalQuestions}</td>
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalAttempted}</td>
+                    <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#d97706' }}>{totalUnattempted}</td>
+                    <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#16a34a' }}>{totalRight}</td>
+                    <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#dc2626' }}>{totalWrong}</td>
+                    <td className={`td-marks ${raw < 0 ? 'neg' : ''}`} style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 900, color: raw < 0 ? '#dc2626' : '#0044cc', fontSize: '0.92rem' }}>
                       {raw.toFixed(2)}
                     </td>
                   </tr>
@@ -771,25 +777,28 @@ export default function ResultPage() {
       }}>
         <thead>
           <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            <th style={{ padding: '8px 12px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
+            <th style={{ padding: '8px 8px', textAlign: 'left', borderRight: '1px solid #334155' }}>Section</th>
             <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Total</th>
+            <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Attempted</th>
+            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Unattempted</th>
             <th style={{ padding: '8px 4px', color: '#4ade80', borderRight: '1px solid #334155' }}>Right (+{rightVal})</th>
             <th style={{ padding: '8px 4px', color: '#f87171', borderRight: '1px solid #334155' }}>Wrong (-{wrongVal})</th>
-            <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skipped</th>
-            <th style={{ padding: '8px 12px', textAlign: 'right' }}>Score</th>
+            <th style={{ padding: '8px 8px', textAlign: 'right' }}>Score</th>
           </tr>
         </thead>
         <tbody>
           {resultData.sections.map((sec, idx) => {
             const sm = calcSectionMarks(sec, rightVal, wrongVal);
+            const secAttempted = sec.correct + sec.wrong;
             return (
               <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                <td style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{sec.name}</td>
+                <td style={{ padding: '8px 8px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1', wordBreak: 'break-word' }}>{sec.name}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>{sec.total}</td>
+                <td style={{ padding: '8px 4px', fontWeight: 800, borderRight: '1px solid #cbd5e1' }}>{secAttempted}</td>
+                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{sec.correct}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{sec.wrong}</td>
-                <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
-                <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
+                <td style={{ padding: '8px 8px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
                   {sm.toFixed(2)}
                 </td>
               </tr>
@@ -798,12 +807,13 @@ export default function ResultPage() {
         </tbody>
         <tfoot>
           <tr style={{ background: '#eff6ff', borderTop: '2px solid #3b82f6', fontWeight: 900, fontSize: '0.82rem' }}>
-            <td style={{ padding: '9px 12px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
+            <td style={{ padding: '9px 8px', textAlign: 'left', color: '#1e3a8a', borderRight: '1px solid #cbd5e1' }}>GRAND TOTAL</td>
             <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalQuestions}</td>
+            <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalAttempted}</td>
+            <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
             <td style={{ padding: '9px 4px', color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{totalRight}</td>
             <td style={{ padding: '9px 4px', color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{totalWrong}</td>
-            <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
-            <td style={{ padding: '9px 12px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
+            <td style={{ padding: '9px 8px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
               {raw.toFixed(2)}
             </td>
           </tr>
