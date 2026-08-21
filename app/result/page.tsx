@@ -650,8 +650,32 @@ export default function ResultPage() {
         overflow: 'hidden'
       }}
     >
+      {/* Watermark text: CBT Rank */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '55%',
+          left: '50%',
+          transform: 'translate(-50%, -50%) rotate(-30deg)',
+          fontSize: '4.5rem',
+          fontWeight: 900,
+          color: 'rgba(0, 68, 204, 0.06)',
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          zIndex: 0,
+          whiteSpace: 'nowrap',
+          fontFamily: 'system-ui, -apple-system, sans-serif'
+        }}
+      >
+        CBT Rank
+      </div>
+
       {/* Top Branding Header */}
       <div style={{
+        position: 'relative',
+        zIndex: 1,
         background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
         color: '#ffffff',
         borderRadius: '12px',
@@ -691,6 +715,8 @@ export default function ResultPage() {
 
       {/* Candidate Information Box (2-Column Portrait Grid) */}
       <div style={{
+        position: 'relative',
+        zIndex: 1,
         background: '#f8fafc',
         border: '1px solid #e2e8f0',
         borderRadius: '12px',
@@ -751,63 +777,15 @@ export default function ResultPage() {
         </div>
       </div>
 
-      {/* Performance & Score Highlight Badges (3-Column x 2-Row Portrait Grid - Pure Scorecard Metrics) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '14px' }}>
-        {/* Raw Score */}
-        <div style={{ background: '#eff6ff', border: '1.5px solid #3b82f6', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase' }}>RAW MARKS</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: raw >= 0 ? '#1d4ed8' : '#dc2626', marginTop: '1px', fontFamily: 'monospace' }}>
-            {raw.toFixed(2)}
-          </div>
-        </div>
-
-        {/* Accuracy */}
-        <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>ACCURACY</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#047857', marginTop: '1px' }}>
-            {accuracy}%
-          </div>
-        </div>
-
-        {/* Total Attempted */}
-        <div style={{ background: '#f8fafc', border: '1.5px solid #94a3b8', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>ATTEMPTED</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', marginTop: '1px' }}>
-            {totalAttempted}/{totalQuestions}
-          </div>
-        </div>
-
-        {/* Correct Answers */}
-        <div style={{ background: '#f0fdf4', border: '1.5px solid #22c55e', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>CORRECT (+{rightVal})</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#15803d', marginTop: '1px' }}>
-            {totalRight}
-          </div>
-        </div>
-
-        {/* Wrong Answers */}
-        <div style={{ background: '#fef2f2', border: '1.5px solid #ef4444', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>WRONG (-{wrongVal})</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b91c1c', marginTop: '1px' }}>
-            {totalWrong}
-          </div>
-        </div>
-
-        {/* Skipped */}
-        <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '8px 4px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.62rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>SKIPPED</div>
-          <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309', marginTop: '1px' }}>
-            {totalUnattempted}
-          </div>
-        </div>
-      </div>
-
       {/* Subject-Wise Performance Breakdown Table (Portrait Optimized) */}
       <div style={{
+        position: 'relative',
+        zIndex: 1,
         borderRadius: '10px',
         border: '1px solid #cbd5e1',
         overflow: 'hidden',
-        marginBottom: '14px'
+        marginBottom: '14px',
+        background: 'rgba(255, 255, 255, 0.94)'
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', textAlign: 'center' }}>
           <thead>
