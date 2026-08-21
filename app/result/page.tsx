@@ -650,21 +650,22 @@ export default function ResultPage() {
         overflow: 'hidden'
       }}
     >
-      {/* Watermark text: CBT Rank */}
+      {/* Prominent Watermark Overlay Text: CBT Rank */}
       <div
         style={{
           position: 'absolute',
-          top: '55%',
+          top: '54%',
           left: '50%',
           transform: 'translate(-50%, -50%) rotate(-30deg)',
-          fontSize: '4.5rem',
+          fontSize: '4.8rem',
           fontWeight: 900,
-          color: 'rgba(0, 68, 204, 0.06)',
+          color: '#0044cc',
+          opacity: 0.16,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           pointerEvents: 'none',
           userSelect: 'none',
-          zIndex: 0,
+          zIndex: 99,
           whiteSpace: 'nowrap',
           fontFamily: 'system-ui, -apple-system, sans-serif'
         }}
