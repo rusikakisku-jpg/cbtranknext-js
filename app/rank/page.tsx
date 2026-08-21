@@ -221,48 +221,143 @@ export default function RankPage() {
                 </button>
               </div>
 
-              {/* High-Impact 3-Column Rank Metrics */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                
-                {/* Overall Rank */}
+              {/* Beautiful Rank Generating Status Notice Card */}
+              <div style={{
+                background: 'linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%)',
+                border: '1.5px solid #bfdbfe',
+                borderRadius: '16px',
+                padding: '22px 20px',
+                marginBottom: '20px',
+                boxShadow: '0 4px 16px rgba(37, 99, 235, 0.06)',
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                {/* Accent top line */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)',
-                  color: '#ffffff', borderRadius: '16px', padding: '16px 18px',
-                  boxShadow: '0 6px 18px rgba(30, 58, 138, 0.22)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3.5px',
+                  background: 'linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6)'
+                }} />
+
+                {/* Status Badge */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#fef3c7',
+                  border: '1px solid #fde68a',
+                  color: '#92400e',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  padding: '3px 10px',
+                  borderRadius: '999px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  marginBottom: '10px'
                 }}>
-                  <div>
-                    <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.85, fontWeight: 800 }}>🥇 Overall Rank</span>
-                    <div style={{ fontSize: '2rem', fontWeight: 900, marginTop: '4px', lineHeight: 1.1 }}>#{overallRank}</div>
-                  </div>
-                  <div style={{ fontSize: '0.72rem', opacity: 0.8, marginTop: '8px' }}>Across all participating candidates</div>
+                  <span style={{
+                    width: '7px',
+                    height: '7px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f59e0b',
+                    display: 'inline-block',
+                    animation: 'pulse 1.5s infinite'
+                  }} />
+                  Calculation in Progress
                 </div>
 
-                {/* Shift Rank */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #065f46 0%, #059669 100%)',
-                  color: '#ffffff', borderRadius: '16px', padding: '16px 18px',
-                  boxShadow: '0 6px 18px rgba(5, 150, 105, 0.22)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+                <h2 style={{
+                  fontSize: '1.2rem',
+                  fontWeight: 900,
+                  color: '#0f172a',
+                  margin: '0 0 6px 0',
+                  letterSpacing: '-0.01em'
                 }}>
-                  <div>
-                    <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.85, fontWeight: 800 }}>⏱️ Shift Rank</span>
-                    <div style={{ fontSize: '2rem', fontWeight: 900, marginTop: '4px', lineHeight: 1.1 }}>#{shiftRank}</div>
+                  Rank Not Generated Yet
+                </h2>
+
+                <p style={{
+                  fontSize: '0.84rem',
+                  color: '#475569',
+                  maxWidth: '560px',
+                  margin: '0 auto 16px',
+                  lineHeight: 1.55,
+                  fontWeight: 500
+                }}>
+                  We are currently aggregating response sheets from participating candidates. Your official <strong>Overall Rank</strong>, <strong>Shift Rank</strong>, and <strong>Category Rank</strong> will be generated shortly. Please check back after some time.
+                </p>
+
+                {/* 3 Metric Placeholders */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: '10px',
+                  maxWidth: '540px',
+                  margin: '0 auto 16px'
+                }}>
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '10px 8px',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                  }}>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>🥇 Overall Rank</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>⏳ Processing...</div>
                   </div>
-                  <div style={{ fontSize: '0.72rem', opacity: 0.8, marginTop: '8px' }}>In your exam shift session</div>
+
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '10px 8px',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                  }}>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>⏱️ Shift Rank</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#059669', marginTop: '4px' }}>⏳ Processing...</div>
+                  </div>
+
+                  <div style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '10px 8px',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                  }}>
+                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>👥 Category Rank</span>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>⏳ Processing...</div>
+                  </div>
                 </div>
 
-                {/* Category Rank */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #7c2d12 0%, #d97706 100%)',
-                  color: '#ffffff', borderRadius: '16px', padding: '16px 18px',
-                  boxShadow: '0 6px 18px rgba(217, 119, 6, 0.22)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
-                }}>
-                  <div>
-                    <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', opacity: 0.85, fontWeight: 800 }}>👥 Category Rank</span>
-                    <div style={{ fontSize: '2rem', fontWeight: 900, marginTop: '4px', lineHeight: 1.1 }}>#{categoryRank}</div>
-                  </div>
-                  <div style={{ fontSize: '0.72rem', opacity: 0.8, marginTop: '8px' }}>Within {effectiveCommunity} category quota</div>
-                </div>
-
+                {/* Refresh Status Action Button */}
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'linear-gradient(135deg, #0044cc 0%, #003399 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 18px',
+                    borderRadius: '10px',
+                    fontWeight: 800,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0, 68, 204, 0.25)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Check / Refresh Rank Status
+                </button>
               </div>
 
               {/* Subject-Wise Performance Breakdown Table */}
