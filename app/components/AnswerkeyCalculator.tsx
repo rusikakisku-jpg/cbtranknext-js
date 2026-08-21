@@ -615,7 +615,19 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       const examPaperCode = (rawSmartData?.exam_info?.exam_id) || '';
       const testExamDate = (rawSmartData?.exam_info?.exam_date) || (parsedResult.testDate) || '';
       const testExamTime = (rawSmartData?.exam_info?.exam_time) || (parsedResult.testTime) || '';
-      const rawScoreVal = (parsedResult.correctCount * 1.0) - (parsedResult.wrongCount * 0.25);
+      const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
+      const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
+
+      const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
+      const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
+      const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
+        ? parseFloat(savedRight)
+        : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
+      const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+        ? parseFloat(savedWrong)
+        : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
+
+      const rawScoreVal = (parsedResult.correctCount * marksRight) - (parsedResult.wrongCount * marksWrong);
 
       logUserRank({
         user_id: userRoll,
@@ -641,10 +653,16 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     const isDigialm = isDigialmHost(urlVal);
     const providerType = isDigialm ? 'Digialm' : (isCbexams ? 'CBExams' : 'Official Portal');
 
+    const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
+    const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
     const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
     const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
-    const marksRight = savedRight ? parseFloat(savedRight) : 1.0;
-    const marksWrong = savedWrong ? parseFloat(savedWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25);
+    const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
+      ? parseFloat(savedRight)
+      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
+    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+      ? parseFloat(savedWrong)
+      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
 
     try {
       sessionStorage.setItem('cbtrank_form_data', JSON.stringify({
