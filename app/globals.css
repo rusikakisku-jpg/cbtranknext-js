@@ -1638,6 +1638,20 @@ footer {
   display: none !important;
 }
 
+/* Candidate Top Summary for Mobile & Print */
+.candidate-top-summary {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .candidate-top-summary {
+    display: block !important;
+  }
+  .sidebar-profile-card {
+    display: none !important;
+  }
+}
+
 /* Comprehensive Print & PDF Download Styles */
 @media print {
   /* Hide all web navigation, footer, sidebars, buttons and modals */
@@ -1653,12 +1667,22 @@ footer {
   .no-print,
   [data-no-print="true"],
   .review-right-sidebar,
+  .sidebar-profile-card,
   .json-toggle-btn {
     display: none !important;
   }
 
-  .print-only {
+  .print-only,
+  .candidate-top-summary {
     display: block !important;
+  }
+
+  .candidate-top-summary {
+    border: none !important;
+    padding: 0 0 10px 0 !important;
+    margin-bottom: 12px !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    background: transparent !important;
   }
 
   @page {
