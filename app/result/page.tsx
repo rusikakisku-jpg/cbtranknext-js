@@ -674,60 +674,19 @@ export default function ResultPage() {
         CBT Rank
       </div>
 
-      {/* 1. Header Section (Full Width, Flush) */}
+      {/* 1. Header Section (Exam Name, Full Width, Flush) */}
       <div style={{
         position: 'relative',
         zIndex: 1,
         background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
         color: '#ffffff',
-        padding: '14px 16px',
+        padding: '12px 16px',
+        textAlign: 'center',
         borderBottom: '2px solid #0044cc'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ background: '#f59e0b', color: '#0f172a', fontSize: '0.68rem', fontWeight: 900, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              CBT RANK
-            </span>
-            <span style={{ fontSize: '0.7rem', opacity: 0.9, textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.03em' }}>
-              Official Scorecard Report
-            </span>
-          </div>
-
-          <div style={{
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.25)',
-            borderRadius: '6px',
-            padding: '2px 8px',
-            fontSize: '0.65rem',
-            fontWeight: 900,
-            color: '#10b981',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '3px'
-          }}>
-            <span>✔</span> VERIFIED
-          </div>
-        </div>
-
-        <h2 style={{ fontSize: '1.05rem', fontWeight: 900, margin: '2px 0 0', lineHeight: 1.25, color: '#ffffff' }}>
+        <h2 style={{ fontSize: '1.08rem', fontWeight: 900, margin: 0, lineHeight: 1.3, color: '#ffffff' }}>
           {resultData.examName || resultData.headerBannerText || 'CBT Competitive Examination'}
         </h2>
-      </div>
-
-      {/* 2. Candidate & Exam Details Section Title Bar */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        background: '#e0e7ff',
-        padding: '6px 14px',
-        fontSize: '0.72rem',
-        fontWeight: 900,
-        color: '#1e3a8a',
-        textTransform: 'uppercase',
-        letterSpacing: '0.04em',
-        borderBottom: '1px solid #93c5fd'
-      }}>
-        👤 Candidate &amp; Examination Details
       </div>
 
       {/* Candidate Details Table (Edge to Edge, 2 Columns: Label | Value) */}
