@@ -342,13 +342,13 @@ export default function ResultPage() {
       <div className="result-main">
 
         {/* Main Scorecard Card */}
-        <div className="scorecard-card" id="cbrank-scorecard-card" style={{ position: 'relative', overflow: 'hidden' }}>
+        <div className="scorecard-card" id="cbrank-scorecard-card" style={{ position: 'relative', overflow: 'hidden', width: '100%', boxSizing: 'border-box' }}>
 
           {/* Watermark */}
           <div style={{
             position: 'absolute', top: '40%', left: '50%',
             transform: 'translate(-50%, -50%) rotate(-25deg)',
-            fontSize: '6rem', fontWeight: 900, color: 'rgba(0, 68, 204, 0.05)',
+            fontSize: '6rem', fontWeight: 900, color: 'rgba(0, 68, 204, 0.025)',
             letterSpacing: '12px', pointerEvents: 'none', userSelect: 'none',
             zIndex: 0, whiteSpace: 'nowrap', textTransform: 'uppercase'
           }}>
@@ -356,22 +356,24 @@ export default function ResultPage() {
           </div>
 
           {/* 1. Exam & Candidate Info Header */}
-          <div className="info-section-header" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="info-section-header" style={{ position: 'relative', zIndex: 1, width: '100%', boxSizing: 'border-box' }}>
             {resultData.headerImgUrl ? (
-              <div>
+              <div style={{ width: '100%', textAlign: 'center' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" />
+                <img src={resultData.headerImgUrl} alt="Exam Header Logo" className="exam-logo" style={{ margin: '0 auto' }} />
               </div>
             ) : resultData.headerBannerText ? (
-              <h1 className="exam-name-title">{resultData.headerBannerText}</h1>
+              <h1 className="exam-name-title" style={{ width: '100%', textAlign: 'center' }}>{resultData.headerBannerText}</h1>
             ) : (
               resultData.examName && (
-                <h1 className="exam-name-title">{resultData.examName}</h1>
+                <h1 className="exam-name-title" style={{ width: '100%', textAlign: 'center' }}>{resultData.examName}</h1>
               )
             )}
 
             {/* Candidate & Examination Info Table (2-Column Format: Label | Value) */}
             <div style={{
+              width: '100%',
+              boxSizing: 'border-box',
               borderRadius: '10px',
               border: '1.5px solid #e2e8f0',
               overflow: 'hidden',
@@ -726,7 +728,7 @@ export default function ResultPage() {
               fontSize: '1.45rem',
               fontWeight: 900,
               color: '#0044cc',
-              opacity: 0.13,
+              opacity: 0.055,
               letterSpacing: '0.06em',
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
