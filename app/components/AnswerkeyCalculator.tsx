@@ -557,7 +557,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     const isCbexams = isCbexamsHost(urlVal);
     if (isCbexams) {
       logInvalidUrl(urlVal);
-      showToast('CBExams server under maintenance. Please try again after some time.');
+      showToast('Server under maintenance. Please retry after some time.');
       return;
     }
 
@@ -567,22 +567,21 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
 
-    // Direct JSON extraction from https://digialm.quickgift.in/api_v7.php
+    // Direct JSON extraction from https://digialm.quickgift.in/api/v12/calculate
     try {
       const smartApiUrl = `https://digialm.quickgift.in/api/v12/calculate?url=${encodeURIComponent(urlVal)}`;
       const smartRes = await fetch(smartApiUrl);
-      if (smartRes.ok) {
-        const smartData = await smartRes.json();
-        if (smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
-          rawSmartData = smartData;
-          parsedResult = normalizeSmartApiResponse(smartData, urlVal);
-        } else if (smartData && (smartData.success === false || smartData.error)) {
-          logInvalidUrl(urlVal);
-          showToast(smartData.error || 'Failed to fetch scorecard. Please try again.');
-          setSubmitting(false);
-          setBtnText('Calculate Marks & Rank');
-          return;
-        }
+      const smartData = await smartRes.json().catch(() => null);
+
+      if (smartRes.ok && smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
+        rawSmartData = smartData;
+        parsedResult = normalizeSmartApiResponse(smartData, urlVal);
+      } else if (smartData && (smartData.success === false || smartData.error)) {
+        logInvalidUrl(urlVal);
+        showToast(smartData.error || 'Failed to fetch scorecard. Please try again.');
+        setSubmitting(false);
+        setBtnText('Calculate Marks & Rank');
+        return;
       } else {
         logInvalidUrl(urlVal);
         showToast('Server response error. Please click Retry.');
