@@ -286,8 +286,8 @@ export default function ResultPage() {
   }
 
   async function handleDownloadImageScorecard() {
-    const cardEl = document.getElementById('cbrank-scorecard-card');
-    if (!cardEl) return;
+    const templateEl = document.getElementById('cbrank-download-template');
+    if (!templateEl) return;
 
     try {
       setIsGeneratingImg(true);
@@ -295,23 +295,14 @@ export default function ResultPage() {
       const html2canvasModule = (await import('html2canvas')) as any;
       const html2canvas = html2canvasModule.default || html2canvasModule;
 
-      const noPrintEls = cardEl.querySelectorAll('.no-print');
-      const originalDisplays: string[] = [];
-      noPrintEls.forEach((el, idx) => {
-        originalDisplays[idx] = (el as HTMLElement).style.display;
-        (el as HTMLElement).style.display = 'none';
-      });
-
-      const canvas = await html2canvas(cardEl, {
+      const canvas = await html2canvas(templateEl, {
         scale: 2.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        logging: false
-      });
-
-      noPrintEls.forEach((el, idx) => {
-        (el as HTMLElement).style.display = originalDisplays[idx] || '';
+        logging: false,
+        width: 820,
+        windowWidth: 820
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -817,6 +808,249 @@ export default function ResultPage() {
         </div>
       </div>
     </main>
+
+    {/* ─────────────────────────────────────────────────────────── */}
+    {/* Dedicated High-Res Scorecard Template (RankGuruji Design)  */}
+    {/* Captured by html2canvas when "Download Scorecard" is clicked */}
+    {/* ─────────────────────────────────────────────────────────── */}
+    <div
+      id="cbrank-download-template"
+      style={{
+        position: 'fixed',
+        left: '-9999px',
+        top: 0,
+        width: '820px',
+        background: '#ffffff',
+        fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        color: '#0f172a',
+        padding: '24px',
+        boxSizing: 'border-box',
+        border: '2px solid #0044cc',
+        borderRadius: '16px',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Top Branding Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
+        color: '#ffffff',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '16px'
+      }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ background: '#f59e0b', color: '#0f172a', fontSize: '0.72rem', fontWeight: 900, padding: '2px 8px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              CBT RANK
+            </span>
+            <span style={{ fontSize: '0.75rem', opacity: 0.85, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700 }}>
+              Official Scorecard &amp; Marks Report
+            </span>
+          </div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, margin: '6px 0 0', letterSpacing: '0.01em', color: '#ffffff' }}>
+            {resultData.examName || resultData.headerBannerText || 'CBT Competitive Examination'}
+          </h2>
+        </div>
+
+        <div style={{
+          background: 'rgba(255,255,255,0.12)',
+          border: '1px solid rgba(255,255,255,0.25)',
+          borderRadius: '10px',
+          padding: '8px 14px',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', fontWeight: 800, color: '#38bdf8' }}>Verified Status</div>
+          <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#10b981', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+            <span>✔</span> AUTHENTIC
+          </div>
+        </div>
+      </div>
+
+      {/* Candidate Information Box */}
+      <div style={{
+        background: '#f8fafc',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        padding: '14px 16px',
+        marginBottom: '16px'
+      }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: '#0044cc', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+          👤 Candidate &amp; Examination Details
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px 14px', fontSize: '0.82rem' }}>
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Candidate Name</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{resultData.candidateName || 'Verified Candidate'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Roll / Reg. Number</div>
+            <div style={{ fontWeight: 900, color: '#0044cc', fontFamily: 'monospace', marginTop: '2px' }}>{resultData.rollNo || 'N/A'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Category / Community</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{formData?.category || 'UR'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Gender</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px', textTransform: 'capitalize' }}>{formData?.gender || 'N/A'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Date</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{resultData.testDate || 'N/A'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Shift / Time</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{resultData.testTime || 'N/A'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>State / Zone</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{formData?.state || 'All India'}</div>
+          </div>
+
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Paper Language</div>
+            <div style={{ fontWeight: 800, color: '#0f172a', marginTop: '2px', textTransform: 'capitalize' }}>{formData?.paper_language || 'English'}</div>
+          </div>
+
+          {resultData.testCenter && (
+            <div style={{ gridColumn: 'span 4' }}>
+              <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Exam Center / Venue</div>
+              <div style={{ fontWeight: 700, color: '#334155', marginTop: '2px' }}>{resultData.testCenter}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Performance & Score Highlight Badges (RankGuruji 6-Tile Grid) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', marginBottom: '16px' }}>
+        {/* Raw Score */}
+        <div style={{ background: '#eff6ff', border: '1.5px solid #3b82f6', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase' }}>RAW MARKS</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: raw >= 0 ? '#1d4ed8' : '#dc2626', marginTop: '2px', fontFamily: 'monospace' }}>
+            {raw.toFixed(2)}
+          </div>
+        </div>
+
+        {/* Accuracy */}
+        <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>ACCURACY</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#047857', marginTop: '2px' }}>
+            {accuracy}%
+          </div>
+        </div>
+
+        {/* Overall Rank */}
+        <div style={{ background: '#f5f3ff', border: '1.5px solid #8b5cf6', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#6d28d9', textTransform: 'uppercase' }}>OVERALL RANK</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#6d28d9', marginTop: '2px' }}>
+            #{resultData.overallRank || 12}
+          </div>
+        </div>
+
+        {/* Category Rank */}
+        <div style={{ background: '#fffbeb', border: '1.5px solid #f59e0b', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>CAT. RANK</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#b45309', marginTop: '2px' }}>
+            #{resultData.categoryRank || 5}
+          </div>
+        </div>
+
+        {/* Shift Rank */}
+        <div style={{ background: '#fdf2f8', border: '1.5px solid #ec4899', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#be185d', textTransform: 'uppercase' }}>SHIFT RANK</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#be185d', marginTop: '2px' }}>
+            #{resultData.shiftRank || 3}
+          </div>
+        </div>
+
+        {/* Total Attempted */}
+        <div style={{ background: '#f8fafc', border: '1.5px solid #94a3b8', borderRadius: '10px', padding: '10px 6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>ATTEMPTED</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>
+            {totalAttempted}/{totalQuestions}
+          </div>
+        </div>
+      </div>
+
+      {/* Subject-Wise Performance Breakdown Table */}
+      <div style={{
+        borderRadius: '12px',
+        border: '1px solid #cbd5e1',
+        overflow: 'hidden',
+        marginBottom: '16px'
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center' }}>
+          <thead>
+            <tr style={{ background: '#0f172a', color: '#ffffff', fontWeight: 800, fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              <th style={{ padding: '10px 14px', textAlign: 'left' }}>Subject / Section</th>
+              <th style={{ padding: '10px 8px' }}>Total Qs</th>
+              <th style={{ padding: '10px 8px', color: '#4ade80' }}>Correct (+{rightVal})</th>
+              <th style={{ padding: '10px 8px', color: '#f87171' }}>Wrong (-{wrongVal})</th>
+              <th style={{ padding: '10px 8px', color: '#fbbf24' }}>Unattempted</th>
+              <th style={{ padding: '10px 14px', textAlign: 'right' }}>Section Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {resultData.sections.map((sec, idx) => {
+              const sm = calcSectionMarks(sec, rightVal, wrongVal);
+              return (
+                <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                  <td style={{ padding: '9px 14px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
+                  <td style={{ padding: '9px 8px', fontWeight: 700 }}>{sec.total}</td>
+                  <td style={{ padding: '9px 8px', fontWeight: 800, color: '#16a34a' }}>{sec.correct}</td>
+                  <td style={{ padding: '9px 8px', fontWeight: 800, color: '#dc2626' }}>{sec.wrong}</td>
+                  <td style={{ padding: '9px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
+                  <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
+                    {sm.toFixed(2)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr style={{ background: '#f1f5f9', borderTop: '2px solid #cbd5e1', fontWeight: 900, fontSize: '0.85rem' }}>
+              <td style={{ padding: '11px 14px', textAlign: 'left', color: '#0f172a' }}>GRAND TOTAL</td>
+              <td style={{ padding: '11px 8px', color: '#0f172a' }}>{totalQuestions}</td>
+              <td style={{ padding: '11px 8px', color: '#16a34a' }}>{totalRight}</td>
+              <td style={{ padding: '11px 8px', color: '#dc2626' }}>{totalWrong}</td>
+              <td style={{ padding: '11px 8px', color: '#d97706' }}>{totalUnattempted}</td>
+              <td style={{ padding: '11px 14px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '1rem', fontFamily: 'monospace' }}>
+                {raw.toFixed(2)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Scorecard Footer Verification & Branding */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: '10px',
+        borderTop: '1px solid #e2e8f0',
+        fontSize: '0.72rem',
+        color: '#64748b'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
+          <strong>CBTRANK.COM</strong> — India's Premier CBT Exam Rank &amp; Score Predictor
+        </div>
+        <div style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#475569' }}>
+          Generated on: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+        </div>
+      </div>
+    </div>
     </>
   );
 }
