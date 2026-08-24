@@ -555,11 +555,6 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
 
     const isCbexams = isCbexamsHost(urlVal);
-    if (isCbexams) {
-      logInvalidUrl(urlVal);
-      showToast('Server under maintenance. Please retry after some time.');
-      return;
-    }
 
     setSubmitting(true);
     setBtnText('Processing...');
@@ -567,9 +562,14 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
 
-    // Direct JSON extraction from https://digialm.quickgift.in/api/v12/calculate
+    // Smart Domain-Based Routing:
+    // If domain is cbexams.com -> http://147.93.154.159/cbexams.php
+    // Else (DigiALM / TCS iON / Other) -> https://digialm.quickgift.in/api/v12/calculate
     try {
-      const smartApiUrl = `https://digialm.quickgift.in/api/v12/calculate?url=${encodeURIComponent(urlVal)}`;
+      const smartApiUrl = isCbexams
+        ? `http://147.93.154.159/cbexams.php?url=${encodeURIComponent(urlVal)}`
+        : `https://digialm.quickgift.in/api/v12/calculate?url=${encodeURIComponent(urlVal)}`;
+
       const smartRes = await fetch(smartApiUrl);
       const smartData = await smartRes.json().catch(() => null);
 
