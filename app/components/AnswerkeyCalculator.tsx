@@ -71,6 +71,8 @@ function makeAbsoluteUrl(src: string, baseUrl: string): string {
 interface ParseResult {
   correctCount: number;
   wrongCount: number;
+  bonusCount?: number;
+  rawBonusQuestions?: string | number;
   unattemptedCount: number;
   candidateName: string;
   rollNo: string;
@@ -81,7 +83,7 @@ interface ParseResult {
   headerImgUrl: string;
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
-  sections: Array<{ name: string; total: number; correct: number; wrong: number; unattempted: number }>;
+  sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   questionsSummary?: Array<any>;
 }
@@ -249,7 +251,7 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const questionsSummary = data.questions_summary || data.questions || [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sections: Array<{ name: string; total: number; correct: number; wrong: number; unattempted: number }> = [];
+  const sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number }> = [];
 
   // Parse section_summary object map or sections array
   if (typeof secSummary === 'object' && secSummary !== null && Object.keys(secSummary).length > 0) {
@@ -259,8 +261,9 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
         const correct = Number(secObj.correct_answers ?? secObj.correct ?? 0);
         const wrong = Number(secObj.wrong_answers ?? secObj.wrong ?? 0);
         const unattempted = Number(secObj.unattempted ?? 0);
+        const bonus = Number(secObj.bonus_questions ?? secObj.bonus ?? 0);
         const total = Number(secObj.total_questions ?? secObj.total ?? (correct + wrong + unattempted));
-        sections.push({ name: secName, total, correct, wrong, unattempted });
+        sections.push({ name: secName, total, correct, wrong, bonus, unattempted });
       }
     });
   } else if (Array.isArray(data.sections)) {
@@ -270,9 +273,13 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
       total: Number(sec.total ?? sec.total_questions ?? 0),
       correct: Number(sec.correct ?? sec.correct_answers ?? 0),
       wrong: Number(sec.wrong ?? sec.wrong_answers ?? 0),
+      bonus: Number(sec.bonus ?? sec.bonus_questions ?? 0),
       unattempted: Number(sec.unattempted ?? 0),
     })));
   }
+
+  const rawBonus = score.bonus_questions ?? data.bonus_questions ?? data.score_summary?.bonus_questions ?? '';
+  const bonusCount = (rawBonus !== '' && rawBonus !== null && rawBonus !== undefined && !isNaN(Number(rawBonus))) ? Number(rawBonus) : 0;
 
   let correctCount = Number(score.correct_answers ?? data.correctCount ?? 0);
   let wrongCount = Number(score.wrong_answers ?? data.wrongCount ?? 0);
@@ -306,6 +313,8 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   return {
     correctCount,
     wrongCount,
+    bonusCount,
+    rawBonusQuestions: rawBonus,
     unattemptedCount,
     candidateName,
     rollNo,
@@ -626,7 +635,8 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
         ? parseFloat(savedWrong)
         : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
 
-      const rawScoreVal = (parsedResult.correctCount * marksRight) - (parsedResult.wrongCount * marksWrong);
+      const effectiveBonus = parsedResult.bonusCount || 0;
+      const rawScoreVal = ((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong);
 
       logUserRank({
         user_id: userRoll,

@@ -119,6 +119,7 @@ interface Section {
   total: number;
   correct: number;
   wrong: number;
+  bonus?: number;
   unattempted: number;
 }
 
@@ -159,6 +160,8 @@ interface ResultData {
   questionsSummary?: QuestionItem[];
   correctCount: number;
   wrongCount: number;
+  bonusCount?: number;
+  rawBonusQuestions?: string | number;
   unattemptedCount: number;
   overallRank: number;
   shiftRank: number;
@@ -270,19 +273,22 @@ export default function ResultPage() {
     }
   }, [router]);
 
-  function calcMarks(sections: Section[], rightMark: number, wrongMark: number) {
-    let totalRight = 0, totalWrong = 0, totalUnattempted = 0;
+  function calcMarks(sections: Section[], rightMark: number, wrongMark: number, bonusCount = 0) {
+    let totalRight = 0, totalWrong = 0, totalUnattempted = 0, totalSecBonus = 0;
     sections.forEach(s => {
       totalRight += s.correct;
       totalWrong += s.wrong;
+      totalSecBonus += (s.bonus || 0);
       totalUnattempted += s.unattempted;
     });
-    const raw = (totalRight * rightMark) - (totalWrong * wrongMark);
-    return { raw, totalRight, totalWrong, totalUnattempted };
+    const effectiveBonus = totalSecBonus > 0 ? totalSecBonus : bonusCount;
+    const raw = ((totalRight + effectiveBonus) * rightMark) - (totalWrong * wrongMark);
+    return { raw, totalRight, totalWrong, totalUnattempted, totalBonus: effectiveBonus };
   }
 
-  function calcSectionMarks(sec: Section, rightMark: number, wrongMark: number) {
-    return (sec.correct * rightMark) - (sec.wrong * wrongMark);
+  function calcSectionMarks(sec: Section, rightMark: number, wrongMark: number, defaultBonus = 0) {
+    const b = (sec.bonus !== undefined && sec.bonus !== null && sec.bonus > 0) ? sec.bonus : defaultBonus;
+    return ((sec.correct + b) * rightMark) - (sec.wrong * wrongMark);
   }
 
   async function handleDownloadImageScorecard() {
@@ -323,10 +329,15 @@ export default function ResultPage() {
     return (ENABLE_TELEGRAM_DIALOG && showTelegramModal) ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
   }
 
-  const { raw, totalRight, totalWrong, totalUnattempted } = calcMarks(resultData.sections, rightVal, wrongVal);
-  const totalAttempted = totalRight + totalWrong;
-  const totalQuestions = totalRight + totalWrong + totalUnattempted;
-  const accuracy = totalAttempted > 0 ? ((totalRight / totalAttempted) * 100).toFixed(1) : '0.0';
+  const bonusCountFromData = Number(resultData.bonusCount || resultData.rawBonusQuestions || 0);
+  const sectionsHaveBonus = Boolean(resultData.sections?.some(s => s.bonus && s.bonus > 0));
+  const hasBonus = Boolean(sectionsHaveBonus || (bonusCountFromData > 0));
+  const fallbackBonus = (!sectionsHaveBonus && resultData.sections?.length === 1) ? bonusCountFromData : 0;
+
+  const { raw, totalRight, totalWrong, totalUnattempted, totalBonus } = calcMarks(resultData.sections, rightVal, wrongVal, bonusCountFromData);
+  const totalAttempted = totalRight + totalWrong + (hasBonus ? totalBonus : 0);
+  const totalQuestions = totalRight + totalWrong + totalUnattempted + (hasBonus ? totalBonus : 0);
+  const accuracy = totalAttempted > 0 ? (((totalRight + (hasBonus ? totalBonus : 0)) / totalAttempted) * 100).toFixed(1) : '0.0';
 
   const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate|participant/i.test(r.label))?.value || 'Verified Candidate';
   const candidateRollNo = resultData.rollNo || resultData.infoRows?.find(r => /roll|registration|id|applicant|user|ticket/i.test(r.label))?.value || formData?.ans_key_url?.match(/[\/=](\d{8,12})/)?.[1] || formData?.ans_key_url?.match(/\/pub\/([^\/]+)\//i)?.[1] || '';
@@ -499,7 +510,7 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {/* Subject-Wise Performance Table: Section | Total | Attempted | Unattempted | Right | Wrong | Marks */}
+            {/* Subject-Wise Performance Table: Section | Total | Attempted | Unattempted | Right | Wrong | [Bonus] | Marks */}
             <div className="table-responsive" style={{ marginTop: '10px' }}>
               <table className="sec-table">
                 <thead>
@@ -510,13 +521,16 @@ export default function ResultPage() {
                     <th style={{ textAlign: 'center' }}>Unattempted</th>
                     <th className="th-right" style={{ textAlign: 'center', color: '#16a34a' }}>Right (+{rightVal})</th>
                     <th className="th-wrong" style={{ textAlign: 'center', color: '#dc2626' }}>Wrong (-{wrongVal})</th>
+                    {hasBonus && (
+                      <th className="th-bonus" style={{ textAlign: 'center', color: '#9333ea', fontWeight: 800 }}>Bonus (+{rightVal})</th>
+                    )}
                     <th className="th-marks" style={{ textAlign: 'right' }}>Marks</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resultData.sections.map((sec, idx) => {
-                    const sm = calcSectionMarks(sec, rightVal, wrongVal);
-                    const secAttempted = sec.correct + sec.wrong;
+                    const sm = calcSectionMarks(sec, rightVal, wrongVal, fallbackBonus);
+                    const secAttempted = sec.correct + sec.wrong + (sec.bonus || fallbackBonus || 0);
                     return (
                       <tr key={idx}>
                         <td className="td-sec-name" style={{ textAlign: 'left', wordBreak: 'break-word' }}>{sec.name}</td>
@@ -525,6 +539,9 @@ export default function ResultPage() {
                         <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#d97706' }}>{sec.unattempted}</td>
                         <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#16a34a', fontWeight: 800 }}>{sec.correct}</td>
                         <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#dc2626', fontWeight: 800 }}>{sec.wrong}</td>
+                        {hasBonus && (
+                          <td className="td-bonus" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#9333ea', fontWeight: 800 }}>{sec.bonus !== undefined ? sec.bonus : fallbackBonus}</td>
+                        )}
                         <td className={`td-marks ${sm < 0 ? 'neg' : ''}`} style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 900, color: sm < 0 ? '#dc2626' : '#0f172a' }}>
                           {sm.toFixed(2)}
                         </td>
@@ -540,6 +557,9 @@ export default function ResultPage() {
                     <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#d97706' }}>{totalUnattempted}</td>
                     <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#16a34a' }}>{totalRight}</td>
                     <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#dc2626' }}>{totalWrong}</td>
+                    {hasBonus && (
+                      <td className="td-bonus" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#9333ea' }}>{totalBonus}</td>
+                    )}
                     <td className={`td-marks ${raw < 0 ? 'neg' : ''}`} style={{ textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 900, color: raw < 0 ? '#dc2626' : '#0044cc', fontSize: '0.92rem' }}>
                       {raw.toFixed(2)}
                     </td>
@@ -788,19 +808,25 @@ export default function ResultPage() {
             <th style={{ padding: '8px 4px', borderRight: '1px solid #334155' }}>Total</th>
             <th style={{ padding: '8px 4px', color: '#4ade80', borderRight: '1px solid #334155' }}>Right (+{rightVal})</th>
             <th style={{ padding: '8px 4px', color: '#f87171', borderRight: '1px solid #334155' }}>Wrong (-{wrongVal})</th>
+            {hasBonus && (
+              <th style={{ padding: '8px 4px', color: '#c084fc', borderRight: '1px solid #334155' }}>Bonus (+{rightVal})</th>
+            )}
             <th style={{ padding: '8px 4px', color: '#fbbf24', borderRight: '1px solid #334155' }}>Skip</th>
             <th style={{ padding: '8px 10px', textAlign: 'right' }}>Score</th>
           </tr>
         </thead>
         <tbody>
           {resultData.sections.map((sec, idx) => {
-            const sm = calcSectionMarks(sec, rightVal, wrongVal);
+            const sm = calcSectionMarks(sec, rightVal, wrongVal, fallbackBonus);
             return (
               <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
                 <td style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 800, color: '#0f172a', borderRight: '1px solid #cbd5e1', wordBreak: 'break-word' }}>{sec.name}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 700, borderRight: '1px solid #cbd5e1' }}>{sec.total}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{sec.correct}</td>
                 <td style={{ padding: '8px 4px', fontWeight: 800, color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{sec.wrong}</td>
+                {hasBonus && (
+                  <td style={{ padding: '8px 4px', fontWeight: 800, color: '#9333ea', borderRight: '1px solid #cbd5e1' }}>{sec.bonus !== undefined ? sec.bonus : fallbackBonus}</td>
+                )}
                 <td style={{ padding: '8px 4px', fontWeight: 700, color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{sec.unattempted}</td>
                 <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 900, color: sm >= 0 ? '#0f172a' : '#dc2626' }}>
                   {sm.toFixed(2)}
@@ -815,6 +841,9 @@ export default function ResultPage() {
             <td style={{ padding: '9px 4px', color: '#0f172a', borderRight: '1px solid #cbd5e1' }}>{totalQuestions}</td>
             <td style={{ padding: '9px 4px', color: '#16a34a', borderRight: '1px solid #cbd5e1' }}>{totalRight}</td>
             <td style={{ padding: '9px 4px', color: '#dc2626', borderRight: '1px solid #cbd5e1' }}>{totalWrong}</td>
+            {hasBonus && (
+              <td style={{ padding: '9px 4px', color: '#9333ea', borderRight: '1px solid #cbd5e1' }}>{totalBonus}</td>
+            )}
             <td style={{ padding: '9px 4px', color: '#d97706', borderRight: '1px solid #cbd5e1' }}>{totalUnattempted}</td>
             <td style={{ padding: '9px 10px', textAlign: 'right', color: raw >= 0 ? '#0044cc' : '#dc2626', fontSize: '0.95rem', fontFamily: 'monospace' }}>
               {raw.toFixed(2)}

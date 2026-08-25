@@ -10,6 +10,7 @@ interface Section {
   total: number;
   correct: number;
   wrong: number;
+  bonus?: number;
   unattempted: number;
 }
 
@@ -26,6 +27,8 @@ interface ResultData {
   sections: Section[];
   correctCount: number;
   wrongCount: number;
+  bonusCount?: number;
+  rawBonusQuestions?: string | number;
   unattemptedCount: number;
   overallRank: number;
   shiftRank: number;
@@ -95,14 +98,18 @@ export default function RankPage() {
     return null;
   }
 
-  let totalRight = 0, totalWrong = 0, totalUnattempted = 0;
-  resultData.sections.forEach(s => {
+  let totalRight = 0, totalWrong = 0, totalUnattempted = 0, totalBonus = 0;
+  resultData.sections?.forEach(s => {
     totalRight += s.correct;
     totalWrong += s.wrong;
+    totalBonus += (s.bonus || 0);
     totalUnattempted += s.unattempted;
   });
+  if (totalBonus === 0 && (resultData.bonusCount || resultData.rawBonusQuestions)) {
+    totalBonus = Number(resultData.bonusCount || resultData.rawBonusQuestions || 0);
+  }
 
-  const rawMarks = (totalRight * rightVal) - (totalWrong * wrongVal);
+  const rawMarks = ((totalRight + totalBonus) * rightVal) - (totalWrong * wrongVal);
   const totalAttempted = totalRight + totalWrong;
   const totalQuestions = totalRight + totalWrong + totalUnattempted;
   const accuracy = totalAttempted > 0 ? Math.round((totalRight / totalAttempted) * 100) : 0;

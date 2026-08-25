@@ -10,6 +10,7 @@ interface Section {
   total: number;
   correct: number;
   wrong: number;
+  bonus?: number;
   unattempted: number;
 }
 
@@ -50,6 +51,8 @@ interface ResultData {
   questionsSummary?: QuestionItem[];
   correctCount: number;
   wrongCount: number;
+  bonusCount?: number;
+  rawBonusQuestions?: string | number;
   unattemptedCount: number;
   overallRank: number;
   shiftRank: number;
@@ -187,8 +190,14 @@ export default function ReviewAnswerkeyPage() {
     ? totalUnattempted
     : (selectedSecObj ? selectedSecObj.unattempted : currentSecQuestions.filter(q => q.status === 'Unattempted').length);
 
+  const pillBonusCount = activeSecTab === 'ALL'
+    ? (resultData.bonusCount || allQuestions.filter(q => q.status === 'Discarded' || q.status === 'Bonus').length)
+    : (selectedSecObj ? (selectedSecObj.bonus || 0) : currentSecQuestions.filter(q => q.status === 'Discarded' || q.status === 'Bonus').length);
+
   const filteredQuestions = currentSecQuestions.filter(q => {
-    return activeStatusFilter === 'ALL' || q.status === activeStatusFilter;
+    if (activeStatusFilter === 'ALL') return true;
+    if (activeStatusFilter === 'Discarded') return q.status === 'Discarded' || q.status === 'Bonus';
+    return q.status === activeStatusFilter;
   });
 
   const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate/i.test(r.label))?.value || 'Verified Candidate';
@@ -356,6 +365,28 @@ export default function ReviewAnswerkeyPage() {
                   >
                     Unattempted ({pillUnattemptedCount})
                   </button>
+
+                  {/* Bonus / Discarded Pill (Shown only when > 0) */}
+                  {pillBonusCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleStatusFilterChange('Discarded', e)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '16px',
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        border: activeStatusFilter === 'Discarded' ? '1px solid #7e22ce' : '1px solid #e9d5ff',
+                        transition: 'all 0.2s ease',
+                        background: activeStatusFilter === 'Discarded' ? 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)' : '#faf5ff',
+                        color: activeStatusFilter === 'Discarded' ? '#ffffff' : '#7e22ce',
+                        boxShadow: activeStatusFilter === 'Discarded' ? '0 2px 8px rgba(168, 85, 247, 0.35)' : 'none'
+                      }}
+                    >
+                      Bonus / Discarded ({pillBonusCount})
+                    </button>
+                  )}
                 </div>
 
                 {/* Right: Download PDF Button */}
