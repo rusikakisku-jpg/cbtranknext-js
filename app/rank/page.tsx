@@ -315,7 +315,7 @@ export default function RankPage() {
                     boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>🥇 Overall Rank</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>⏳ Processing...</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>--</div>
                   </div>
 
                   <div style={{
@@ -326,7 +326,7 @@ export default function RankPage() {
                     boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>⏱️ Shift Rank</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#059669', marginTop: '4px' }}>⏳ Processing...</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#059669', marginTop: '4px' }}>--</div>
                   </div>
 
                   <div style={{
@@ -337,7 +337,7 @@ export default function RankPage() {
                     boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>👥 Category Rank</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>⏳ Processing...</div>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>--</div>
                   </div>
                 </div>
 
