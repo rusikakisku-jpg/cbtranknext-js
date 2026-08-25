@@ -71,18 +71,18 @@ export default function RankPage() {
       const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
       const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
 
-      if (form?.marks_right !== undefined && form?.marks_right !== null) {
+      if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
+        setRightVal(parseFloat(savedRight));
+      } else if (form?.marks_right !== undefined && form?.marks_right !== null) {
         setRightVal(Number(form.marks_right));
-      } else if (savedRight) {
-        setRightVal(parseFloat(savedRight) || 1.0);
       } else {
         setRightVal(1.0);
       }
 
-      if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
+      if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
+        setWrongVal(parseFloat(savedWrong));
+      } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         setWrongVal(Number(form.marks_wrong));
-      } else if (savedWrong) {
-        setWrongVal(parseFloat(savedWrong) || 0.25);
       } else {
         setWrongVal(0.25);
       }

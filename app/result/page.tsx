@@ -234,18 +234,18 @@ export default function ResultPage() {
       const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
       const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
 
-      if (form?.marks_right !== undefined && form?.marks_right !== null) {
+      if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
+        setRightVal(parseFloat(savedRight));
+      } else if (form?.marks_right !== undefined && form?.marks_right !== null) {
         setRightVal(Number(form.marks_right));
-      } else if (savedRight) {
-        setRightVal(parseFloat(savedRight) || 1.0);
       } else {
         setRightVal(1.0);
       }
 
-      if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
+      if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
+        setWrongVal(parseFloat(savedWrong));
+      } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         setWrongVal(Number(form.marks_wrong));
-      } else if (savedWrong) {
-        setWrongVal(parseFloat(savedWrong) || 0.25);
       } else {
         setWrongVal(0.25);
       }
@@ -478,11 +478,22 @@ export default function ResultPage() {
                     style={{ width: '64px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 900, fontSize: '0.88rem', outline: 'none' }}
                     onChange={e => {
                       const v = e.target.value;
-                      if (v === '') setRightVal(0);
-                      else {
-                        const n = parseFloat(v);
-                        if (!isNaN(n)) setRightVal(n);
+                      let n = 0;
+                      if (v !== '') {
+                        const parsed = parseFloat(v);
+                        if (!isNaN(parsed)) n = parsed;
                       }
+                      setRightVal(n);
+                      try {
+                        sessionStorage.setItem('cbtrank_exam_marks_right', n.toString());
+                        const rawForm = sessionStorage.getItem('cbtrank_form_data');
+                        if (rawForm) {
+                          const parsedForm = JSON.parse(rawForm);
+                          parsedForm.marks_right = n;
+                          sessionStorage.setItem('cbtrank_form_data', JSON.stringify(parsedForm));
+                          setFormData(parsedForm);
+                        }
+                      } catch (err) {}
                     }}
                   />
                 </label>
@@ -499,11 +510,22 @@ export default function ResultPage() {
                     style={{ width: '64px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '4px 6px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 900, fontSize: '0.88rem', outline: 'none' }}
                     onChange={e => {
                       const v = e.target.value;
-                      if (v === '') setWrongVal(0);
-                      else {
-                        const n = parseFloat(v);
-                        if (!isNaN(n)) setWrongVal(n);
+                      let n = 0;
+                      if (v !== '') {
+                        const parsed = parseFloat(v);
+                        if (!isNaN(parsed)) n = parsed;
                       }
+                      setWrongVal(n);
+                      try {
+                        sessionStorage.setItem('cbtrank_exam_marks_wrong', n.toString());
+                        const rawForm = sessionStorage.getItem('cbtrank_form_data');
+                        if (rawForm) {
+                          const parsedForm = JSON.parse(rawForm);
+                          parsedForm.marks_wrong = n;
+                          sessionStorage.setItem('cbtrank_form_data', JSON.stringify(parsedForm));
+                          setFormData(parsedForm);
+                        }
+                      } catch (err) {}
                     }}
                   />
                 </label>
