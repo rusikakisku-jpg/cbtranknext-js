@@ -562,10 +562,14 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
 
-    // Universal HTTPS Endpoint (Handles both DigiALM and CBExams with SSL)
+    // Dedicated HTTPS Domain Routing:
+    // If cbexams.com -> https://api.cbtrank.com/cbexams/?url=...
+    // Else -> https://api.cbtrank.com/digialm/?url=...
     try {
-      const smartApiUrl = `https://api.cbtrank.com/digialm/api/v12/calculate?url=${encodeURIComponent(urlVal)}`;
-      const smartRes = await fetch(smartApiUrl);
+      const apiUrl = isCbexams
+        ? `https://api.cbtrank.com/cbexams/?url=${encodeURIComponent(urlVal)}`
+        : `https://api.cbtrank.com/digialm/?url=${encodeURIComponent(urlVal)}`;
+      const smartRes = await fetch(apiUrl);
       const smartData = await smartRes.json().catch(() => null);
 
       if (smartRes.ok && smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
