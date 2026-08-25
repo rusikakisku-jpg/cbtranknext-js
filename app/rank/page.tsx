@@ -370,12 +370,25 @@ export default function RankPage() {
 
               {/* Subject-Wise Performance Breakdown Table */}
               {resultData.sections && resultData.sections.length > 0 && (() => {
+                const bonusCountFromData = Number(resultData.bonusCount || resultData.rawBonusQuestions || 0);
+                const sectionsHaveBonus = Boolean(resultData.sections.some(s => s.bonus && s.bonus > 0));
+                const hasBonus = Boolean(sectionsHaveBonus || (bonusCountFromData > 0));
+                const fallbackBonus = (!sectionsHaveBonus && resultData.sections.length === 1) ? bonusCountFromData : 0;
+
+                let totBonus = 0;
+                resultData.sections.forEach(s => {
+                  totBonus += (s.bonus || 0);
+                });
+                if (totBonus === 0 && hasBonus) {
+                  totBonus = bonusCountFromData;
+                }
+
                 const totQuestions = resultData.sections.reduce((acc, s) => acc + (s.total || 0), 0);
                 const totUnattempted = resultData.sections.reduce((acc, s) => acc + (s.unattempted || 0), 0);
                 const totAttempted = totQuestions - totUnattempted;
                 const totCorrect = resultData.sections.reduce((acc, s) => acc + (s.correct || 0), 0);
                 const totWrong = resultData.sections.reduce((acc, s) => acc + (s.wrong || 0), 0);
-                const totScore = (totCorrect * rightVal) - (totWrong * wrongVal);
+                const totScore = ((totCorrect + totBonus) * rightVal) - (totWrong * wrongVal);
 
                 return (
                   <div style={{ borderRadius: '14px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -395,14 +408,18 @@ export default function RankPage() {
                             <th className="rank-desktop-col" style={{ padding: '10px 8px', color: '#d97706' }}>Unattempted</th>
                             <th style={{ padding: '10px 8px', color: '#059669' }}>Correct</th>
                             <th style={{ padding: '10px 8px', color: '#ef4444' }}>Wrong</th>
+                            {hasBonus && (
+                              <th style={{ padding: '10px 8px', color: '#9333ea', fontWeight: 800 }}>Bonus</th>
+                            )}
                             <th className="rank-mobile-col" style={{ padding: '10px 8px', color: '#d97706' }}>Skip</th>
                             <th style={{ padding: '10px 12px', textAlign: 'right' }}>Score</th>
                           </tr>
                         </thead>
                         <tbody>
                           {resultData.sections.map((sec, idx) => {
+                            const secBonus = (sec.bonus !== undefined && sec.bonus !== null) ? sec.bonus : fallbackBonus;
                             const secAttempted = sec.total - sec.unattempted;
-                            const secScore = (sec.correct * rightVal) - (sec.wrong * wrongVal);
+                            const secScore = ((sec.correct + (secBonus || 0)) * rightVal) - (sec.wrong * wrongVal);
                             return (
                               <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfd' }}>
                                 <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: 800, color: '#0f172a' }}>{sec.name}</td>
@@ -411,6 +428,9 @@ export default function RankPage() {
                                 <td className="rank-desktop-col" style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
                                 <td style={{ padding: '10px 8px', fontWeight: 800, color: '#059669' }}>{sec.correct}</td>
                                 <td style={{ padding: '10px 8px', fontWeight: 800, color: '#ef4444' }}>{sec.wrong}</td>
+                                {hasBonus && (
+                                  <td style={{ padding: '10px 8px', fontWeight: 800, color: '#9333ea' }}>{secBonus || 0}</td>
+                                )}
                                 <td className="rank-mobile-col" style={{ padding: '10px 8px', fontWeight: 700, color: '#d97706' }}>{sec.unattempted}</td>
                                 <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 900, color: secScore < 0 ? '#ef4444' : '#0f172a' }}>{secScore.toFixed(2)}</td>
                               </tr>
@@ -425,6 +445,9 @@ export default function RankPage() {
                             <td className="rank-desktop-col" style={{ padding: '12px 8px', fontWeight: 900, color: '#d97706' }}>{totUnattempted}</td>
                             <td style={{ padding: '12px 8px', fontWeight: 900, color: '#059669' }}>{totCorrect}</td>
                             <td style={{ padding: '12px 8px', fontWeight: 900, color: '#ef4444' }}>{totWrong}</td>
+                            {hasBonus && (
+                              <td style={{ padding: '12px 8px', fontWeight: 900, color: '#9333ea' }}>{totBonus}</td>
+                            )}
                             <td className="rank-mobile-col" style={{ padding: '12px 8px', fontWeight: 900, color: '#d97706' }}>{totUnattempted}</td>
                             <td style={{ padding: '12px 12px', textAlign: 'right', fontWeight: 900, color: totScore < 0 ? '#ef4444' : '#0f172a', fontSize: '0.88rem' }}>
                               {totScore.toFixed(2)}
