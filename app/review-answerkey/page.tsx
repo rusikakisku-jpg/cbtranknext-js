@@ -205,6 +205,20 @@ export default function ReviewAnswerkeyPage() {
 
   return (
     <main>
+      <style>{`
+        .review-img-fluid img {
+          max-width: 100% !important;
+          height: auto !important;
+          display: block !important;
+          margin: 6px 0 !important;
+          border-radius: 4px !important;
+        }
+        .review-img-fluid table {
+          max-width: 100% !important;
+          overflow-x: auto !important;
+          display: block !important;
+        }
+      `}</style>
       <div className="result-main" style={{ maxWidth: '1280px', margin: '0 auto', padding: '16px' }}>
 
         {/* 2-Column Responsive Layout with Right Sidebar */}
@@ -498,6 +512,7 @@ export default function ReviewAnswerkeyPage() {
                   {filteredQuestions.map((q, idx) => {
                     const isCorrect = q.status === 'Correct';
                     const isWrong = q.status === 'Wrong';
+                    const isBonus = q.status === 'Discarded' || q.status === 'Bonus' || q.right_option === 'Benefit to All';
 
                     return (
                       <div
@@ -505,14 +520,17 @@ export default function ReviewAnswerkeyPage() {
                         id={`q-card-${q.q_no}`}
                         style={{
                           borderRadius: '14px',
-                          border: isCorrect ? '1px solid #a7f3d0' : isWrong ? '1px solid #fecaca' : '1px solid #e2e8f0',
-                          background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : '#f8fafc',
+                          border: isCorrect ? '1.5px solid #a7f3d0' : isWrong ? '1.5px solid #fecaca' : isBonus ? '1.5px solid #d8b4fe' : '1px solid #e2e8f0',
+                          background: isCorrect ? '#f0fdf4' : isWrong ? '#fef2f2' : isBonus ? '#faf5ff' : '#f8fafc',
                           padding: '14px 16px',
-                          scrollMarginTop: '20px'
+                          scrollMarginTop: '20px',
+                          boxSizing: 'border-box',
+                          overflow: 'hidden',
+                          width: '100%'
                         }}
                       >
                         {/* Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '8px', flexWrap: 'wrap' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontWeight: 900, fontSize: '0.85rem', color: '#0f172a' }}>Q.{q.q_no}</span>
                             <span style={{ fontSize: '0.68rem', background: '#e2e8f0', color: '#334155', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
@@ -521,30 +539,31 @@ export default function ReviewAnswerkeyPage() {
                           </div>
                           <span style={{
                             fontSize: '0.72rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px',
-                            background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : '#64748b',
-                            color: '#ffffff'
+                            background: isCorrect ? '#10b981' : isWrong ? '#ef4444' : isBonus ? '#9333ea' : '#64748b',
+                            color: '#ffffff',
+                            whiteSpace: 'nowrap'
                           }}>
-                            {isCorrect ? `Correct (+${rightVal})` : isWrong ? `Wrong (-${wrongVal})` : 'Unattempted (0.0)'}
+                            {isCorrect ? `Correct (+${rightVal})` : isWrong ? `Wrong (-${wrongVal})` : isBonus ? `Bonus (+${rightVal})` : 'Unattempted (0.0)'}
                           </span>
                         </div>
 
                         {/* Question Text / Image / HTML */}
-                        <div style={{ fontSize: '0.88rem', color: '#1e293b', marginBottom: '12px', fontWeight: 600, lineHeight: 1.5 }}>
+                        <div style={{ fontSize: '0.88rem', color: '#1e293b', marginBottom: '12px', fontWeight: 600, lineHeight: 1.5, wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%', boxSizing: 'border-box' }}>
                           {q.question_html ? (
-                            <div dangerouslySetInnerHTML={{ __html: q.question_html }} />
+                            <div className="review-img-fluid" style={{ maxWidth: '100%', wordBreak: 'break-word', overflowWrap: 'break-word' }} dangerouslySetInnerHTML={{ __html: q.question_html }} />
                           ) : q.question_image ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={q.question_image} alt={`Question ${q.q_no}`} style={{ maxWidth: '100%', borderRadius: '6px' }} />
+                            <img src={q.question_image} alt={`Question ${q.q_no}`} style={{ maxWidth: '100%', height: 'auto', borderRadius: '6px', display: 'block' }} />
                           ) : (
-                            <div>{q.question_text}</div>
+                            <div style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{q.question_text}</div>
                           )}
                         </div>
 
                         {/* Options List */}
                         {q.options && q.options.length > 0 && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                             {q.options.map(opt => {
-                              const isOptRight = opt.is_correct;
+                              const isOptRight = opt.is_correct || isBonus;
                               const chosenLetter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][opt.option_no - 1] || '';
                               const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
                                                  (q.chosen_option && String(q.chosen_option).trim().toLowerCase() === String(opt.option_no).trim().toLowerCase()) ||
@@ -555,13 +574,17 @@ export default function ReviewAnswerkeyPage() {
                               let color = '#334155';
                               let badgeText = '';
 
-                              if (isOptRight) {
+                              if (isBonus) {
+                                bg = '#f3e8ff';
+                                border = '1.5px solid #c084fc';
+                                color = '#6b21a8';
+                                badgeText = '★ Bonus (Benefit to All)';
+                              } else if (isOptRight) {
                                 bg = '#d1fae5';
                                 border = '1.5px solid #10b981';
                                 color = '#065f46';
                                 badgeText = '✓ Correct Answer';
-                              }
-                              if (isOptChosen && !isOptRight) {
+                              } else if (isOptChosen && !isOptRight) {
                                 bg = '#fee2e2';
                                 border = '1.5px solid #ef4444';
                                 color = '#991b1b';
@@ -573,22 +596,23 @@ export default function ReviewAnswerkeyPage() {
 
                               return (
                                 <div key={opt.option_no} style={{
-                                  padding: '8px 12px', borderRadius: '8px', background: bg, border: border, color: color,
-                                  fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                  padding: '9px 12px', borderRadius: '8px', background: bg, border: border, color: color,
+                                  fontSize: '0.82rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                                  width: '100%', boxSizing: 'border-box', overflow: 'hidden', gap: '8px'
                                 }}>
-                                  <div style={{ flex: 1, display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                    <span style={{ fontWeight: 800, flexShrink: 0 }}>{opt.option_no}.</span>
+                                  <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'flex-start', gap: '6px', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                                    <span style={{ fontWeight: 800, flexShrink: 0, marginTop: '1px' }}>{opt.option_no}.</span>
                                     {cleanOptHtml ? (
-                                      <span style={{ display: 'inline-flex', alignItems: 'center' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
+                                      <div className="review-img-fluid" style={{ flex: 1, minWidth: 0, maxWidth: '100%', wordBreak: 'break-word', overflowWrap: 'break-word' }} dangerouslySetInnerHTML={{ __html: cleanOptHtml }} />
                                     ) : opt.option_image ? (
                                       // eslint-disable-next-line @next/next/no-img-element
-                                      <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxHeight: '36px', verticalAlign: 'middle' }} />
+                                      <img src={opt.option_image} alt={`Option ${opt.option_no}`} style={{ maxWidth: '100%', height: 'auto', maxHeight: '140px', objectFit: 'contain', display: 'block', borderRadius: '4px' }} />
                                     ) : (
-                                      <span>{cleanOptText}</span>
+                                      <span style={{ wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1, minWidth: 0 }}>{cleanOptText}</span>
                                     )}
                                   </div>
                                   {badgeText && (
-                                    <span style={{ fontSize: '0.68rem', fontWeight: 900, marginLeft: '6px', whiteSpace: 'nowrap' }}>
+                                    <span style={{ fontSize: '0.68rem', fontWeight: 900, marginLeft: '6px', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '2px' }}>
                                       {badgeText}
                                     </span>
                                   )}
