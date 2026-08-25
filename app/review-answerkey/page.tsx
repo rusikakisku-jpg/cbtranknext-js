@@ -563,7 +563,7 @@ export default function ReviewAnswerkeyPage() {
                         {q.options && q.options.length > 0 && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
                             {q.options.map(opt => {
-                              const isOptRight = opt.is_correct || isBonus;
+                              const isOptRight = !isBonus && opt.is_correct;
                               const chosenLetter = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'][opt.option_no - 1] || '';
                               const isOptChosen = (q.chosen_option_id && opt.option_id && q.chosen_option_id === opt.option_id) || 
                                                  (q.chosen_option && String(q.chosen_option).trim().toLowerCase() === String(opt.option_no).trim().toLowerCase()) ||
@@ -574,21 +574,19 @@ export default function ReviewAnswerkeyPage() {
                               let color = '#334155';
                               let badgeText = '';
 
-                              if (isBonus) {
-                                bg = '#f3e8ff';
-                                border = '1.5px solid #c084fc';
-                                color = '#6b21a8';
-                                badgeText = '★ Bonus (Benefit to All)';
-                              } else if (isOptRight) {
-                                bg = '#d1fae5';
-                                border = '1.5px solid #10b981';
-                                color = '#065f46';
-                                badgeText = '✓ Correct Answer';
-                              } else if (isOptChosen && !isOptRight) {
-                                bg = '#fee2e2';
-                                border = '1.5px solid #ef4444';
-                                color = '#991b1b';
-                                badgeText = '✗ Your Answer';
+                              if (!isBonus) {
+                                if (isOptRight) {
+                                  bg = '#d1fae5';
+                                  border = '1.5px solid #10b981';
+                                  color = '#065f46';
+                                  badgeText = '✓ Correct Answer';
+                                }
+                                if (isOptChosen && !isOptRight) {
+                                  bg = '#fee2e2';
+                                  border = '1.5px solid #ef4444';
+                                  color = '#991b1b';
+                                  badgeText = '✗ Your Answer';
+                                }
                               }
 
                               const cleanOptHtml = opt.option_html ? opt.option_html.replace(new RegExp(`^(\\s*(?:<[^>]+>\\s*)*)${opt.option_no}[\\.\\)]\\s*`, 'i'), '$1') : '';
