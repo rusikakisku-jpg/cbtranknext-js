@@ -82,6 +82,17 @@ export const FALLBACK_BLOG_POSTS: BlogPost[] = [
   }
 ];
 
+function formatCoverImageUrl(rawImage?: string | null): string | undefined {
+  if (!rawImage || typeof rawImage !== 'string') return undefined;
+  const trimmed = rawImage.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  const cleanPath = trimmed.replace(/^\/+/, '');
+  return `https://upload.cbtrank.com/${cleanPath}`;
+}
+
 export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://api.cbtrank.com/blogs)
   try {
@@ -92,7 +103,13 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
       const json = await workerRes.json();
       const rawBlogs = json?.data || json?.blogs || (Array.isArray(json) ? json : []);
       if (Array.isArray(rawBlogs) && rawBlogs.length > 0) {
-        const blogsList: BlogPost[] = rawBlogs.map((b: any) => ({
+        const publishedBlogs = rawBlogs.filter((b: any) => {
+          if (!b.status) return true;
+          const st = String(b.status).toLowerCase();
+          return st === 'publish' || st === 'published';
+        });
+
+        const blogsList: BlogPost[] = publishedBlogs.map((b: any) => ({
           slug: String(b.slug),
           title: String(b.title),
           excerpt: String(b.excerpt || b.description || b.title),
@@ -101,10 +118,12 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
           readTime: '4 min read',
           author_name: String(b.author_name || b.author || 'Team CBTRANK'),
           views: Number(b.views || 0),
-          coverImage: b.cover_image || b.image ? String(b.cover_image || b.image) : undefined,
+          coverImage: formatCoverImageUrl(b.cover_image || b.image),
           content: String(b.content || b.description || b.title)
         }));
-        return blogsList;
+        if (blogsList.length > 0) {
+          return blogsList;
+        }
       }
     }
   } catch (e) {
@@ -139,14 +158,26 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   }
 
   try {
-    // Strictly fetch ONLY from cbtrank_db D1 database (`blogs` table)
+    // Strictly fetch ONLY published posts from cbtrank_db D1 database (`blogs` table)
     const cbtrank_uuid = "fd29c541-3fd2-4fa8-8dc1-19809ab907c3";
-    const cbt_blogs = await queryD1(cbtrank_uuid, "SELECT * FROM blogs ORDER BY id DESC;");
+    let cbt_blogs = await queryD1(cbtrank_uuid, "SELECT * FROM blogs WHERE status = 'publish' OR status = 'published' ORDER BY id DESC;");
+    
+    // Fallback if status column variation occurs
+    if (!cbt_blogs || cbt_blogs.length === 0) {
+      cbt_blogs = await queryD1(cbtrank_uuid, "SELECT * FROM blogs ORDER BY id DESC;");
+    }
 
     const blogsList: BlogPost[] = [];
 
     for (const b of cbt_blogs) {
       if (!b.slug || !b.title) continue;
+
+      // Filter out draft posts safely
+      if (b.status) {
+        const st = String(b.status).toLowerCase();
+        if (st === 'draft') continue;
+        if (st !== 'publish' && st !== 'published') continue;
+      }
 
       blogsList.push({
         slug: String(b.slug),
@@ -157,7 +188,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
         readTime: '4 min read',
         author_name: String(b.author || 'Team CBTRANK'),
         views: Number(b.views || 0),
-        coverImage: b.image ? String(b.image) : undefined,
+        coverImage: formatCoverImageUrl(b.image || b.cover_image),
         content: String(b.description || b.title)
       });
     }
