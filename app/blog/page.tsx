@@ -59,6 +59,20 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
               ) : (
                 filteredPosts.map((post) => (
                   <article key={post.slug} className="hm-entry">
+                    {post.coverImage && (
+                      <div className="post-thumbnail">
+                        <Link href={`/blog/${post.slug}`}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={post.coverImage.startsWith('http') ? post.coverImage : `https://upload.cbtrank.com/${post.coverImage.replace(/^\/+/, '')}`}
+                            alt={post.title}
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                        </Link>
+                      </div>
+                    )}
                     <div className="entry-body" style={{ padding: '0 4px' }}>
                       <div className="post-categories">
                         <Link href="/blog">
@@ -166,6 +180,19 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
               <ul className="popular-posts-list">
                 {allPosts.slice(0, 5).map((post) => (
                   <li key={post.slug} className="popular-item">
+                    {post.coverImage && (
+                      <Link href={`/blog/${post.slug}`} style={{ flexShrink: 0 }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={post.coverImage.startsWith('http') ? post.coverImage : `https://upload.cbtrank.com/${post.coverImage.replace(/^\/+/, '')}`}
+                          alt={post.title}
+                          className="popular-thumb"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </Link>
+                    )}
                     <div className="popular-info">
                       <Link href={`/blog/${post.slug}`} className="popular-title-link">
                         {post.title}

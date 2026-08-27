@@ -79,9 +79,12 @@ export default async function BlogPostPage({ params }: PageProps) {
                 <div style={{ marginBottom: '20px', width: '100%', overflow: 'hidden', borderRadius: '8px' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={post.coverImage.startsWith('/') || post.coverImage.startsWith('http') ? post.coverImage : `/${post.coverImage}`}
+                    src={post.coverImage.startsWith('http') ? post.coverImage : (post.coverImage.startsWith('/') ? `https://upload.cbtrank.com${post.coverImage}` : `https://upload.cbtrank.com/${post.coverImage}`)}
                     alt={post.title}
                     style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }}
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
                   />
                 </div>
               )}
@@ -213,6 +216,19 @@ export default async function BlogPostPage({ params }: PageProps) {
               <ul className="popular-posts-list">
                 {allPosts.slice(0, 5).map((p) => (
                   <li key={p.slug} className="popular-item">
+                    {p.coverImage && (
+                      <Link href={`/blog/${p.slug}`} style={{ flexShrink: 0 }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={p.coverImage.startsWith('http') ? p.coverImage : `https://upload.cbtrank.com/${p.coverImage.replace(/^\/+/, '')}`}
+                          alt={p.title}
+                          className="popular-thumb"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      </Link>
+                    )}
                     <div className="popular-info">
                       <Link href={`/blog/${p.slug}`} className="popular-title-link">
                         {p.title}
