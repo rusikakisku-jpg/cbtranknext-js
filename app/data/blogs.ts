@@ -144,11 +144,10 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
       const res = await fetch(url, {
         method: "POST",
         headers,
-        body: JSON.stringify({ sql }),
-        next: { revalidate: 60 } // Cache for 60 seconds
+        body: JSON.stringify({ sql })
       });
       const data = await res.json();
-      if (data?.success && data?.result?.[0]?.results) {
+      if (data?.success && Array.isArray(data?.result?.[0]?.results)) {
         return data.result[0].results;
       }
     } catch (e) {
