@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { fetchBlogsFromCloudflareD1, BlogPost } from '../data/blogs';
+import { fetchBlogsFromCloudflareD1, BlogPost, FALLBACK_BLOG_POSTS } from '../data/blogs';
 
 export const metadata: Metadata = {
   title: 'Latest Exam Updates & Rank Analysis Articles | CBT RANK Blog',
@@ -20,22 +20,35 @@ interface BlogPageProps {
 }
 
 export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  const query = resolvedParams?.q || '';
+  let query = '';
+  try {
+    const resolvedParams = searchParams ? await Promise.resolve(searchParams) : {};
+    query = String(resolvedParams?.q || '').trim();
+  } catch (e) {
+    query = '';
+  }
 
-  const allPosts = await fetchBlogsFromCloudflareD1();
+  let allPosts: BlogPost[] = [];
+  try {
+    allPosts = await fetchBlogsFromCloudflareD1();
+  } catch (e) {
+    allPosts = FALLBACK_BLOG_POSTS;
+  }
+  if (!Array.isArray(allPosts) || allPosts.length === 0) {
+    allPosts = FALLBACK_BLOG_POSTS;
+  }
 
   const filteredPosts = query
     ? allPosts.filter(p =>
-        p.title.toLowerCase().includes(query.toLowerCase()) ||
-        p.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-        p.category.toLowerCase().includes(query.toLowerCase())
+        (p.title || '').toLowerCase().includes(query.toLowerCase()) ||
+        (p.excerpt || '').toLowerCase().includes(query.toLowerCase()) ||
+        (p.category || '').toLowerCase().includes(query.toLowerCase())
       )
     : allPosts;
 
-  const categories = Array.from(new Set(allPosts.map(p => p.category))).map(cat => ({
+  const categories = Array.from(new Set(allPosts.map(p => p.category || 'Exam Analysis'))).map(cat => ({
     category: cat,
-    count: allPosts.filter(p => p.category === cat).length,
+    count: allPosts.filter(p => (p.category || 'Exam Analysis') === cat).length,
   }));
 
   return (
@@ -65,10 +78,8 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={post.coverImage.startsWith('http') ? post.coverImage : `https://upload.cbtrank.com/${post.coverImage.replace(/^\/+/, '')}`}
-                            alt={post.title}
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                            }}
+                            alt={post.title || 'Blog Post'}
+                            loading="lazy"
                           />
                         </Link>
                       </div>
@@ -76,7 +87,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
                     <div className="entry-body" style={{ padding: '0 4px' }}>
                       <div className="post-categories">
                         <Link href="/blog">
-                          {post.category}
+                          {post.category || 'Exam Analysis'}
                         </Link>
                       </div>
 
@@ -89,10 +100,10 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
                       <div className="entry-meta">
                         <span className="byline">by {post.author_name || 'Team CBTRANK'}</span>
                         <span className="posted-on">
-                          &bull; {post.date}
+                          &bull; {post.date || 'Recent'}
                         </span>
                         <span>
-                          &bull; {post.readTime}
+                          &bull; {post.readTime || '3 min read'}
                         </span>
                       </div>
 
@@ -185,11 +196,9 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={post.coverImage.startsWith('http') ? post.coverImage : `https://upload.cbtrank.com/${post.coverImage.replace(/^\/+/, '')}`}
-                          alt={post.title}
+                          alt={post.title || 'Recent Post'}
                           className="popular-thumb"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
+                          loading="lazy"
                         />
                       </Link>
                     )}
@@ -197,7 +206,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
                       <Link href={`/blog/${post.slug}`} className="popular-title-link">
                         {post.title}
                       </Link>
-                      <span className="popular-date">{post.date}</span>
+                      <span className="popular-date">{post.date || 'Recent'}</span>
                     </div>
                   </li>
                 ))}

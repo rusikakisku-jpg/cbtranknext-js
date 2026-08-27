@@ -79,12 +79,10 @@ export default async function BlogPostPage({ params }: PageProps) {
                 <div style={{ marginBottom: '20px', width: '100%', overflow: 'hidden', borderRadius: '8px' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={post.coverImage.startsWith('http') ? post.coverImage : (post.coverImage.startsWith('/') ? `https://upload.cbtrank.com${post.coverImage}` : `https://upload.cbtrank.com/${post.coverImage}`)}
-                    alt={post.title}
+                    src={post.coverImage.startsWith('http') ? post.coverImage : `https://upload.cbtrank.com/${post.coverImage.replace(/^\/+/, '')}`}
+                    alt={post.title || 'Blog Post'}
                     style={{ width: '100%', height: 'auto', maxHeight: '400px', objectFit: 'contain' }}
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
+                    loading="lazy"
                   />
                 </div>
               )}
@@ -221,11 +219,9 @@ export default async function BlogPostPage({ params }: PageProps) {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={p.coverImage.startsWith('http') ? p.coverImage : `https://upload.cbtrank.com/${p.coverImage.replace(/^\/+/, '')}`}
-                          alt={p.title}
+                          alt={p.title || 'Recent Post'}
                           className="popular-thumb"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
+                          loading="lazy"
                         />
                       </Link>
                     )}
@@ -233,7 +229,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                       <Link href={`/blog/${p.slug}`} className="popular-title-link">
                         {p.title}
                       </Link>
-                      <span className="popular-date">{p.date}</span>
+                      <span className="popular-date">{p.date || 'Recent'}</span>
                     </div>
                   </li>
                 ))}
