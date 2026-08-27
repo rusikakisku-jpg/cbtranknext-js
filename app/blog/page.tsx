@@ -332,23 +332,6 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
               </div>
             )}
 
-            {/* Categories Widget */}
-            {categories.length > 0 && (
-              <div className="widget widget-categories">
-                <h3 className="widget-title">Categories</h3>
-                <ul className="cat-list">
-                  {categories.map((cat) => (
-                    <li key={cat.category} className="cat-item">
-                      <Link href={`/blog?q=${encodeURIComponent(cat.category)}`} className="cat-link">
-                        <span>{cat.category}</span>
-                      </Link>
-                      <span className="cat-count">{cat.count}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
           </aside>
 
         </div>
