@@ -116,7 +116,7 @@
 
     /* Expand / Collapse Interactive FAQ Accordion */
     .faq-accordion {
-      margin: 20px 0 30px;
+      margin: 20px 0 10px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -314,13 +314,6 @@
       </div>
     </details>
 
-  </div>
-
-  <!-- Footer Conclusion -->
-  <div style="margin-top: 36px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-    <p style="font-size: 14px; color: #6b7280;">
-      To evaluate your performance accurately, visit <strong><a href="https://cbtrank.com" target="_blank" rel="noopener noreferrer">CBT RANK (cbtrank.com)</a></strong> and calculate your answer key marks in seconds.
-    </p>
   </div>
 
 </article>
