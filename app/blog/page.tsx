@@ -124,7 +124,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
           </div>
 
           {/* Sidebar */}
-          <aside className="sidebar">
+          <aside className="sidebar sidebar-sticky">
             
             {/* Answer Key Calculator Button Widget */}
             <div className="widget widget-calc">
@@ -219,7 +219,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
               <ul className="cat-list">
                 {categories.map((cat) => (
                   <li key={cat.category} className="cat-item">
-                    <Link href="/blog" className="cat-link">
+                    <Link href={`/blog?q=${encodeURIComponent(cat.category)}`} className="cat-link">
                       <span>{cat.category}</span>
                     </Link>
                     <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#2563eb', background: '#eff6ff', padding: '2px 8px', borderRadius: '999px' }}>
