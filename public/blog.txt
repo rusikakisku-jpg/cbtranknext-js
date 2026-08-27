@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT RANK: Complete Guide to Answer Key Calculator & All-India Rank Predictor</title>
-  <meta name="description" content="Calculate your marks, section-wise score, shift rank, and category rank for SSC CGL, CHSL, RRB NTPC, Group D, ALP, Defence, and State CBT exams on CBT RANK.">
+  <title>CBT RANK: Answer Key Calculator & All-India Rank Predictor</title>
+  <meta name="description" content="Calculate your marks, section-wise score, shift rank, and category rank for SSC, Railway RRB, Defence, and State CBT exams on CBT RANK.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -39,37 +39,12 @@
       }
     }
 
-    .post-badge {
-      display: inline-block;
-      background-color: #eff6ff;
-      border: 1px solid #dbeafe;
-      color: #1d4ed8;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 14px;
-    }
-
     h1 {
       font-size: clamp(22px, 3.5vw, 30px);
       font-weight: 800;
       color: #111827;
       line-height: 1.35;
-      margin-bottom: 14px;
-    }
-
-    .post-meta {
-      font-size: 14px;
-      color: #6b7280;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
 
     h2 {
@@ -172,24 +147,59 @@
       background-color: #f9fafb;
     }
 
-    /* FAQ Section */
-    .faq-item {
+    /* Expand / Collapse Interactive FAQ Accordion */
+    .faq-accordion {
+      margin: 20px 0 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .faq-details {
       background-color: #f9fafb;
       border: 1px solid #e5e7eb;
-      border-radius: 6px;
-      padding: 16px;
-      margin-bottom: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.2s ease;
     }
-    .faq-item h4 {
+    .faq-details[open] {
+      border-color: #93c5fd;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
+    }
+    .faq-summary {
+      padding: 14px 18px;
       font-size: 15px;
       font-weight: 700;
       color: #111827;
-      margin-bottom: 6px;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
     }
-    .faq-item p {
-      font-size: 14px;
+    .faq-summary::-webkit-details-marker {
+      display: none;
+    }
+    .faq-summary::after {
+      content: "+";
+      font-size: 18px;
+      font-weight: 800;
+      color: #2563eb;
+      transition: transform 0.2s ease;
+    }
+    .faq-details[open] .faq-summary::after {
+      content: "-";
+      font-size: 20px;
+      color: #dc2626;
+    }
+    .faq-content {
+      padding: 0 18px 16px;
+      font-size: 14.5px;
       color: #4b5563;
-      margin: 0;
+      line-height: 1.7;
+      border-top: 1px solid #f3f4f6;
+      padding-top: 12px;
     }
 
     a {
@@ -206,20 +216,7 @@
 
 <article class="article-container">
 
-  <!-- Header -->
-  <header>
-    <span class="post-badge">Exam Analysis &amp; Guidance</span>
-    <h1>CBT RANK: The Ultimate All-in-One Answer Key Calculator &amp; Rank Predictor for Competitive Exams</h1>
-    <div class="post-meta">
-      <span>By <strong>Team CBT RANK</strong></span>
-      <span>&bull;</span>
-      <span>Published: August 2026</span>
-      <span>&bull;</span>
-      <span>7 Min Read</span>
-    </div>
-  </header>
-
-  <!-- Section 1 -->
+  <!-- Section 1: Intro -->
   <p>
     Waiting for official government examination results can be an agonizing and stressful experience for millions of competitive aspirants across India. After appearing for Computer Based Tests (CBT) conducted by organizations such as the <strong>Staff Selection Commission (SSC), Railway Recruitment Boards (RRB), Defence recruitment authorities, and State Public Service Commissions</strong>, candidates eagerly wait for the release of their official response sheets.
   </p>
@@ -245,7 +242,7 @@
   <h2>What is CBT RANK and How Does It Work?</h2>
 
   <p>
-    <strong>CBT RANK</strong> is an online analytics platform designed to help competitive exam students evaluate their performance immediately after an examination. When recruitment boards release answer key links (such as DigiAlm or commission portal links), our system reads the HTML response sheet, matches candidate responses against official keys, and generates an authentic score card.
+    <strong>CBT RANK</strong> is an online analytics platform designed to help competitive exam students evaluate their performance immediately after an examination. When recruitment boards release answer key links, our system reads the HTML response sheet, matches candidate responses against official keys, and generates an authentic score card.
   </p>
 
   <p>Key analytics provided include:</p>
@@ -368,32 +365,44 @@
   <ol>
     <li><strong>Access Official Portal:</strong> Visit your exam commission login portal and log in using your Roll Number / Registration Number and Password.</li>
     <li><strong>Open Response Sheet:</strong> Click on the link for "Candidate Response Sheet / Tentative Answer Key".</li>
-    <li><strong>Copy URL:</strong> Copy the complete web address from your browser URL address bar (e.g., <code>https://cdn.digialm.com/.../CandidateResponse.html</code>).</li>
+    <li><strong>Copy URL:</strong> Copy the complete web address from your browser URL address bar.</li>
     <li><strong>Paste into CBT RANK:</strong> Navigate to <strong><a href="https://cbtrank.com/answerkey" target="_blank" rel="noopener noreferrer">cbtrank.com/answerkey</a></strong> and paste the link into the designated field.</li>
     <li><strong>Submit &amp; View Results:</strong> Select your category and state, then click Submit to view your instant marks report, correct/wrong question summary, and live rank.</li>
   </ol>
 
-  <!-- Section 7 -->
+  <!-- Section 7: FAQs with Expand / Collapse Accordion -->
   <h2>Frequently Asked Questions (FAQs)</h2>
 
-  <div class="faq-item">
-    <h4>Is CBT RANK completely free to use?</h4>
-    <p>Yes, CBT RANK is 100% free for all competitive examination candidates across India without any subscription or payment requirement.</p>
-  </div>
+  <div class="faq-accordion">
+    
+    <details class="faq-details" open>
+      <summary class="faq-summary">Is CBT RANK completely free to use?</summary>
+      <div class="faq-content">
+        Yes, CBT RANK is 100% free for all competitive examination candidates across India without any subscription or payment requirement.
+      </div>
+    </details>
 
-  <div class="faq-item">
-    <h4>Is it safe to paste my answer key URL on cbtrank.com?</h4>
-    <p>Yes. CBT RANK only analyzes the publicly generated HTML markup of the response sheet to count correct and incorrect answers. We do not ask for or store passwords or sensitive private login credentials.</p>
-  </div>
+    <details class="faq-details">
+      <summary class="faq-summary">Is it safe to paste my answer key URL on cbtrank.com?</summary>
+      <div class="faq-content">
+        Yes. CBT RANK only analyzes the publicly generated HTML markup of the response sheet to count correct and incorrect answers. We do not ask for or store passwords or sensitive private login credentials.
+      </div>
+    </details>
 
-  <div class="faq-item">
-    <h4>Can I modify positive and negative marks manually?</h4>
-    <p>Yes. The platform auto-detects standard marking rules, but you can manually adjust values to reflect specific recruitment guidelines.</p>
-  </div>
+    <details class="faq-details">
+      <summary class="faq-summary">Can I modify positive and negative marks manually?</summary>
+      <div class="faq-content">
+        Yes. The platform auto-detects standard marking rules, but you can manually adjust values to reflect specific recruitment guidelines.
+      </div>
+    </details>
 
-  <div class="faq-item">
-    <h4>How accurate is the shift rank and category rank?</h4>
-    <p>The rankings update dynamically as candidates submit their response sheets. With thousands of authentic submissions per exam, the percentile and shift difficulty indicators provide a reliable benchmark ahead of official results.</p>
+    <details class="faq-details">
+      <summary class="faq-summary">How accurate is the shift rank and category rank?</summary>
+      <div class="faq-content">
+        The rankings update dynamically as candidates submit their response sheets. With thousands of authentic submissions per exam, the percentile and shift difficulty indicators provide a reliable benchmark ahead of official results.
+      </div>
+    </details>
+
   </div>
 
   <!-- Footer Conclusion -->
