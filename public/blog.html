@@ -3,190 +3,777 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT RANK: The Ultimate All-in-One Answer Key Calculator & Rank Predictor</title>
+  <title>CBT RANK: The Ultimate All-in-One Answer Key Calculator & Rank Predictor (SSC, Railway, Defence, State CBTs)</title>
+  <meta name="description" content="Calculate your exact score, section-wise marks, shift difficulty and real-time category rank for SSC CGL, CHSL, RRB NTPC, Group D, ALP & State exams on CBT RANK.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.8; color: #334155; max-width: 860px; margin: 0 auto; padding: 20px 14px; background: #ffffff; }
-    h1 { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.35; margin-bottom: 12px; }
-    h2 { font-size: 20px; font-weight: 800; color: #0f172a; margin: 28px 0 12px; padding-left: 8px; border-left: 4px solid #0066ff; }
-    h3 { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
-    p { font-size: 15px; margin-bottom: 16px; color: #334155; }
-    .badge { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px; }
-    .meta { font-size: 13px; color: #64748b; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #e2e8f0; }
-    .btn-box { text-align: center; margin: 26px 0; padding: 20px; background: #f0f7ff; border: 1px solid #93c5fd; border-radius: 8px; }
-    .btn-link { background: #0066ff; color: #ffffff !important; padding: 12px 28px; font-size: 15px; font-weight: 700; text-decoration: none; border-radius: 6px; display: inline-block; }
-    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; border: 1px solid #93c5fd; }
-    th, td { padding: 10px 12px; border: 1px solid #93c5fd; text-align: left; }
-    th { background: #f0f7ff; color: #1e40af; font-weight: 700; }
-    tr:nth-child(even) { background: #f8fafc; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 18px 0; }
-    .card { background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #0066ff; border-radius: 6px; padding: 14px; }
-    .card ul { padding-left: 16px; margin: 0; font-size: 13px; color: #475569; }
-    .step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 8px; font-size: 14px; }
-    .faq { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px; margin-bottom: 12px; }
-    .final-box { text-align: center; margin: 30px 0; padding: 24px 16px; background: #0f172a; border-radius: 8px; color: #ffffff; }
-    a { color: #0066ff; text-decoration: underline; font-weight: 600; }
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --accent: #06b6d4;
+      --success: #10b981;
+      --dark: #0f172a;
+      --dark-card: #1e293b;
+      --text: #334155;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.8;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+      background-size: 24px 24px;
+      padding: 30px 14px 80px;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.08);
+      overflow: hidden;
+    }
+
+    /* Hero Section */
+    .hero-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
+      padding: 44px 36px 36px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 3px solid var(--primary);
+    }
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      top: -30%;
+      right: -10%;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.4) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(37, 99, 235, 0.25);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .hero-title {
+      font-size: clamp(1.8rem, 3.8vw, 2.5rem);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      margin-bottom: 18px;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .author-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      font-weight: 700;
+    }
+    .author-avatar {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 0.8rem;
+    }
+
+    /* Content Wrapper */
+    .content-wrap {
+      padding: 36px 32px;
+    }
+    @media (max-width: 640px) {
+      .hero-banner { padding: 28px 20px; }
+      .content-wrap { padding: 24px 18px; }
+    }
+
+    p {
+      margin-bottom: 18px;
+      font-size: 1.02rem;
+      line-height: 1.85;
+      color: var(--text);
+    }
+    strong {
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: var(--dark);
+      margin: 36px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.015em;
+    }
+    h2::before {
+      content: "";
+      width: 4px;
+      height: 22px;
+      background: var(--primary);
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin: 20px 0 8px;
+    }
+
+    /* Interactive Calculator Simulation Card */
+    .interactive-calc-box {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border: 2px solid #3b82f6;
+      border-radius: 14px;
+      padding: 28px 24px;
+      margin: 32px 0;
+      color: #ffffff;
+      box-shadow: 0 12px 30px -8px rgba(37, 99, 235, 0.3);
+      text-align: center;
+    }
+    .interactive-calc-box h3 {
+      color: #ffffff;
+      font-size: 1.35rem;
+      margin: 0 0 6px 0;
+    }
+    .interactive-calc-box p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+    .calc-input-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .fake-input {
+      flex: 1;
+      min-width: 260px;
+      max-width: 480px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 13px 16px;
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+    }
+    .calc-cta-btn {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff !important;
+      font-size: 0.95rem;
+      font-weight: 800;
+      padding: 13px 26px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5);
+      transition: transform 0.2s ease;
+      white-space: nowrap;
+    }
+    .calc-cta-btn:hover {
+      transform: translateY(-2px);
+    }
+    .stats-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      flex-wrap: wrap;
+    }
+
+    /* 4-Feature Cards Grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 24px 0 32px;
+    }
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.25s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      border-color: #93c5fd;
+      background: #ffffff;
+      box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.1);
+    }
+    .feature-icon {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .feature-card h4 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    /* Beautiful Data Table */
+    .table-container {
+      overflow-x: auto;
+      margin: 24px 0 32px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      text-align: left;
+      background: #ffffff;
+    }
+    th, td {
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 800;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:nth-child(even) {
+      background: var(--bg);
+    }
+    .badge-auto {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .badge-override {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    /* 4-Box Exam Categories Grid */
+    .exam-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 24px 0 32px;
+    }
+    .exam-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      border-top: 3px solid var(--primary);
+    }
+    .exam-box h4 {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+    .exam-box ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .exam-box li {
+      font-size: 0.86rem;
+      color: var(--text);
+      padding: 5px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .exam-box li:last-child {
+      border-bottom: none;
+    }
+
+    /* Numbered Steps List */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 24px 0 32px;
+    }
+    .step-card {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .step-num {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 0.9rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-info h4 {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 3px;
+    }
+    .step-info p {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* FAQ Stack */
+    .faq-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 24px 0 32px;
+    }
+    .faq-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .faq-card h4 {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .faq-card p {
+      font-size: 0.88rem;
+      color: var(--text);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* Bottom Final Banner */
+    .final-cta-banner {
+      background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+      padding: 36px 24px;
+      border-radius: 14px;
+      color: #ffffff;
+      text-align: center;
+      margin-top: 36px;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+    }
+    .final-cta-banner h3 {
+      color: #ffffff;
+      font-size: 1.4rem;
+      margin: 0 0 10px;
+    }
+    .final-cta-banner p {
+      color: #dbeafe;
+      font-size: 0.92rem;
+      max-width: 580px;
+      margin: 0 auto 20px;
+    }
+    .final-btn {
+      background: #ffffff;
+      color: #1d4ed8 !important;
+      font-size: 0.98rem;
+      font-weight: 900;
+      padding: 13px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      transition: transform 0.2s ease;
+    }
+    .final-btn:hover {
+      transform: scale(1.03);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: underline;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
 
-  <div class="badge">Official Exam Guide &amp; Tool</div>
-  <h1>CBT RANK: The Ultimate All-in-One Answer Key Calculator &amp; Rank Predictor for SSC, Railway, Defence &amp; State CBT Exams</h1>
-  <div class="meta">Published by <strong>Team CBT RANK</strong> &bull; August 2026 &bull; 7 Min Read</div>
+<div class="container">
 
-  <p>Waiting for official government exam results can be an agonizing and stressful experience for millions of competitive aspirants across India. After appearing for Computer Based Tests (CBT) conducted by <strong>Staff Selection Commission (SSC), Railway Recruitment Boards (RRB), Defence, and State Public Service Commissions</strong>, the first major milestone is the release of the <strong>Official Response Sheet / Answer Key</strong>.</p>
-
-  <p>However, manually verifying 100 to 200 questions, calculating complex negative penalties (like -0.25, -0.33, or -0.50), and estimating shift-wise normalization is tedious, prone to human calculation errors, and gives you zero clarity about where you actually stand among competitors.</p>
-
-  <p>This is where <strong><a href="https://cbtrank.com" target="_blank">CBT RANK (cbtrank.com)</a></strong> revolutionizes your post-exam evaluation. With our advanced <strong>Answer Key Calculator &amp; Real-Time Rank Predictor</strong>, you simply paste your official answer key URL to receive an instant, 100% accurate score report and category-wise All-India Rank in just under 2 seconds.</p>
-
-  <div class="btn-box">
-    <h3 style="color:#1e40af; margin-bottom: 6px;">Calculate Your Marks &amp; Real-Time Rank Instantly</h3>
-    <p style="font-size: 13px; color: #475569; margin-bottom: 12px;">Paste your official response sheet link in CBT RANK Calculator to view section-wise marks, shift rank &amp; normalization forecast.</p>
-    <a href="https://cbtrank.com/answerkey" target="_blank" class="btn-link">⚡ Open CBT RANK Answer Key Calculator &rarr;</a>
-  </div>
-
-  <h2>What is CBT RANK (cbtrank.com)?</h2>
-  <p><strong>CBT RANK</strong> is India&apos;s leading automated Computer Based Test (CBT) answer key evaluation, score calculation, and rank analytics platform. Built specifically for competitive exam aspirants, our system automatically parses response sheet HTML documents, matches your chosen options against the commission&apos;s official answer keys, and calculates your raw score with pinpoint precision.</p>
-
-  <ul style="font-size: 14px; line-height: 1.8; margin-bottom: 20px; padding-left: 20px;">
-    <li><strong>Instant Raw Score Breakdown:</strong> View total questions attempted, unattempted, correct answers, wrong answers, and net raw score.</li>
-    <li><strong>Multi-Tier Rank System:</strong> Know your All-India Overall Rank, Category Rank, Shift Rank, and Gender-Wise Rank.</li>
-    <li><strong>Smart Customizable Marking Scheme:</strong> Supports +1, +2, +3 rewards and -0.25, -0.33, -0.50, or custom manual deductions.</li>
-    <li><strong>100% Safe &amp; Private:</strong> No passwords or private login credentials required. Only your public response URL is evaluated.</li>
-  </ul>
-
-  <h2>Multi-Level Rank &amp; Cut-Off Predictor Features</h2>
-  <p>Knowing only your raw marks isn&apos;t enough to determine whether you will qualify for Tier 2, CBT 2, Physical Endurance Tests (PET), or Document Verification (DV). CBT RANK provides comprehensive real-time ranking matrices:</p>
-
-  <ul style="font-size: 14px; line-height: 1.8; margin-bottom: 20px; padding-left: 20px;">
-    <li><strong>1. Overall All-India Rank:</strong> See where you stand among thousands of candidates across the entire country who appeared for the same exam.</li>
-    <li><strong>2. Shift Rank &amp; Shift Average Score:</strong> Multi-shift examinations (like SSC CGL, RRB NTPC, or Railway Group D) vary in toughness. CBT RANK calculates the average score of your specific shift, allowing you to see if your shift was hard, moderate, or easy.</li>
-    <li><strong>3. Community / Category Wise Rank:</strong> Evaluate your competition within your reservation category, including <strong>UR (Unreserved / General), OBC (Other Backward Classes), EWS (Economically Weaker Section), SC, ST, PwBD, and Ex-Servicemen</strong>.</li>
-    <li><strong>4. Gender-Wise Rank:</strong> Tailored rankings for Male and Female candidates for exams with gender-specific vacancies (e.g. Delhi Police Constable, Defence GD, State Police).</li>
-    <li><strong>5. Section-Wise Performance Breakdown:</strong> Detailed score cards for Reasoning, Quantitative Aptitude / Mathematics, General Awareness / GK, English Comprehension, and General Science.</li>
-  </ul>
-
-  <h2>Universal &amp; Customizable Marking Scheme Support</h2>
-  <p>Different exam boards follow distinct marking schemes. CBT RANK Answer Key Calculator automatically detects standard patterns while giving you the freedom to adjust values manually:</p>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Exam Category</th>
-        <th>Correct Marks (+ve)</th>
-        <th>Negative Marking (-ve)</th>
-        <th>CBT RANK Engine</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>SSC CGL, CHSL, CPO (Tier 1)</strong></td>
-        <td>+2.0 Marks</td>
-        <td>-0.50 Marks (1/4th)</td>
-        <td style="color:#16a34a; font-weight:700;">&check; Auto-Calculated</td>
-      </tr>
-      <tr>
-        <td><strong>Railway RRB NTPC, Group D, ALP, Tech</strong></td>
-        <td>+1.0 Mark</td>
-        <td>-0.33 Marks (1/3rd)</td>
-        <td style="color:#16a34a; font-weight:700;">&check; Auto-Calculated</td>
-      </tr>
-      <tr>
-        <td><strong>SSC CGL (Tier 2 Mains)</strong></td>
-        <td>+3.0 Marks</td>
-        <td>-1.00 Mark (1/3rd)</td>
-        <td style="color:#16a34a; font-weight:700;">&check; Auto-Calculated</td>
-      </tr>
-      <tr>
-        <td><strong>SSC GD Constable / Delhi Police</strong></td>
-        <td>+2.0 / +1.0 Mark</td>
-        <td>-0.25 / -0.50 Mark</td>
-        <td style="color:#16a34a; font-weight:700;">&check; Auto-Calculated</td>
-      </tr>
-      <tr>
-        <td><strong>State Exams (UP, Bihar, Odisha, Rajasthan)</strong></td>
-        <td>Custom (+1 / +2 / +4)</td>
-        <td>Custom / Zero Negative</td>
-        <td style="color:#0066ff; font-weight:700;">&check; Full Manual Override</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>All Competitive Exams Covered by cbtrank.com</h2>
-  <p>CBT RANK supports virtually every major recruitment board in India that releases candidate response sheets:</p>
-
-  <div class="grid">
-    <div class="card">
-      <h3>🏛️ SSC Exams</h3>
-      <ul>
-        <li>SSC CGL (Tier 1 &amp; 2)</li>
-        <li>SSC CHSL (10+2)</li>
-        <li>SSC MTS &amp; Havaldar</li>
-        <li>SSC GD Constable</li>
-        <li>SSC CPO Sub-Inspector</li>
-        <li>SSC Selection Post</li>
-      </ul>
+  <!-- Hero Banner -->
+  <header class="hero-banner">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span>
+      <span>Official Answer Key &amp; Rank Engine 2026</span>
     </div>
-    <div class="card">
-      <h3>🚆 Railway (RRB) Exams</h3>
-      <ul>
-        <li>RRB NTPC (Graduate &amp; 12th)</li>
-        <li>RRB Group D (Level-1)</li>
-        <li>RRB ALP (CBT 1 &amp; 2)</li>
-        <li>RRB Technician (Gr 1 &amp; 3)</li>
-        <li>RRB Junior Engineer (JE)</li>
-        <li>RPF SI &amp; Constable</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>🛡️ Defence &amp; Police</h3>
-      <ul>
-        <li>Delhi Police Constable &amp; HC</li>
-        <li>IAF AFCAT &amp; Agniveer Vayu</li>
-        <li>Indian Army Agniveer CEE</li>
-        <li>Indian Navy Agniveer SSR</li>
-        <li>Coast Guard (Navik GD/DB)</li>
-        <li>CAPF Assistant Commandant</li>
-      </ul>
-    </div>
-    <div class="card">
-      <h3>🗺️ State-Level CBTs</h3>
-      <ul>
-        <li>UP Police &amp; UPSSSC PET</li>
-        <li>Bihar SSC &amp; Police Constable</li>
-        <li>Odisha OSSC &amp; OSSSC</li>
-        <li>Rajasthan CET &amp; Police</li>
-        <li>MP ESB / Vyapam Exams</li>
-        <li>WBPRB &amp; Maharashtra Police</li>
-      </ul>
-    </div>
-  </div>
 
-  <h2>How to Use CBT RANK Answer Key Calculator (Step-by-Step)</h2>
-  <div class="step"><strong style="color:#0066ff;">Step 1:</strong> Log in to your exam candidate portal (e.g. SSC or RRB DigiAlm portal) and click on <em>"Candidate Response Sheet / Answer Key"</em>.</div>
-  <div class="step"><strong style="color:#0066ff;">Step 2:</strong> Copy the complete URL from your browser address bar (e.g. <code>https://cdn.digialm.com/.../CandidateResponse.html</code>).</div>
-  <div class="step"><strong style="color:#0066ff;">Step 3:</strong> Visit <strong><a href="https://cbtrank.com/answerkey" target="_blank">cbtrank.com/answerkey</a></strong> and paste your response sheet URL into the input field.</div>
-  <div class="step"><strong style="color:#16a34a;">Step 4:</strong> Select your category &amp; state, click <strong>Submit</strong>, and get your complete score card, section breakdown, and live rank instantly!</div>
+    <h1 class="hero-title">
+      CBT RANK: The Ultimate All-in-One Answer Key Calculator &amp; Rank Predictor
+    </h1>
 
-  <h2>Frequently Asked Questions (FAQs)</h2>
-  <div class="faq">
-    <h3>Q1. Is CBT RANK (cbtrank.com) completely free to use?</h3>
-    <p><strong>Yes!</strong> CBT RANK is 100% free for all competitive exam candidates across India without any subscription.</p>
-  </div>
-  <div class="faq">
-    <h3>Q2. Is it safe to paste my answer key URL on cbtrank.com?</h3>
-    <p><strong>Absolutely safe.</strong> CBT RANK only reads public HTML responses from the response sheet page. We never ask for passwords or private login credentials.</p>
-  </div>
-  <div class="faq">
-    <h3>Q3. Can I customize the negative marking if my exam board changes rules?</h3>
-    <p><strong>Yes!</strong> While standard penalties are auto-detected, candidates can manually customize positive marks and negative deductions at any time to match specific recruitment notifications.</p>
-  </div>
+    <div class="hero-meta">
+      <div class="author-pill">
+        <div class="author-avatar">C</div>
+        <span>By Team CBT RANK</span>
+      </div>
+      <span>&bull; August 2026</span>
+      <span>&bull; 7 Min Read</span>
+      <span>&bull; Verified Exam Analytics Tool</span>
+    </div>
+  </header>
 
-  <div class="final-box">
-    <h3 style="color:#fff; font-size:18px; margin-bottom:6px;">Ready to Check Your CBT Exam Score &amp; Rank?</h3>
-    <p style="color:#94a3b8; font-size:13px; margin-bottom:14px;">Stop wasting hours manually checking question papers. Get your official score card, accuracy percentage, and All-India rank in 2 seconds on CBT RANK.</p>
-    <a href="https://cbtrank.com/answerkey" target="_blank" class="btn-link">🚀 Calculate Your Marks on CBT RANK Now &rarr;</a>
-  </div>
+  <!-- Main Body Content -->
+  <main class="content-wrap">
+
+    <p style="font-size: 1.08rem; font-weight: 600; color: #1e293b; line-height: 1.85;">
+      Waiting for official government exam results can be an agonizing and stressful experience for millions of competitive aspirants across India. After appearing for Computer Based Tests (CBT) conducted by <strong>Staff Selection Commission (SSC), Railway Recruitment Boards (RRB), Defence, and State Public Service Commissions</strong>, the first major milestone is the release of the <strong>Official Response Sheet / Answer Key</strong>.
+    </p>
+
+    <p>
+      However, manually verifying 100 to 200 questions, calculating complex negative penalties (like -0.25, -0.33, or -0.50), and estimating shift-wise normalization is tedious, prone to calculation errors, and gives you zero clarity about where you actually stand among competitors.
+    </p>
+
+    <p>
+      This is where <strong><a href="https://cbtrank.com" target="_blank" rel="noopener noreferrer">CBT RANK (cbtrank.com)</a></strong> revolutionizes your post-exam evaluation. With our advanced <strong>Answer Key Calculator &amp; Real-Time Rank Predictor</strong>, you simply paste your official answer key URL to receive an instant, 100% accurate score report and category-wise All-India Rank in just under 2 seconds.
+    </p>
+
+    <!-- Interactive Simulator Box -->
+    <div class="interactive-calc-box">
+      <h3>⚡ Check Your CBT Exam Score &amp; Rank Instantly</h3>
+      <p>Paste your response sheet link from TCS iON / DigiAlm to evaluate section marks, raw score &amp; All-India shift rank.</p>
+      
+      <div class="calc-input-row">
+        <div class="fake-input">
+          <span>🔗</span>
+          <span>https://cdn.digialm.com/.../CandidateResponse.html</span>
+        </div>
+        <a href="https://cbtrank.com/answerkey" target="_blank" rel="noopener noreferrer" class="calc-cta-btn">
+          Calculate Score &rarr;
+        </a>
+      </div>
+
+      <div class="stats-row">
+        <span>⚡ 50,000+ Ranks Evaluated</span>
+        <span>&bull;</span>
+        <span>⏱️ Under 2 Seconds</span>
+        <span>&bull;</span>
+        <span>🎯 100% Accurate Normalization</span>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <h2>What is CBT RANK (cbtrank.com)?</h2>
+    
+    <p>
+      <strong>CBT RANK</strong> is India&apos;s leading automated Computer Based Test (CBT) answer key evaluation, score calculation, and rank analytics platform. Built specifically for competitive exam aspirants, our system automatically parses response sheet HTML documents, matches your chosen options against the commission&apos;s official answer keys, and calculates your raw score with pinpoint precision.
+    </p>
+
+    <!-- 4-Feature Cards Grid -->
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h4>Instant Raw Score</h4>
+        <p>Total attempted, unattempted, correct, wrong, and net raw score breakdown in seconds.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h4>Multi-Tier Rank System</h4>
+        <p>Live All-India Rank, Category Rank (UR/OBC/EWS/SC/ST), Shift Rank, and Gender-Wise Rank.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h4>Custom Marking Scheme</h4>
+        <p>Supports +1, +2, +3 rewards and -0.25, -0.33, -0.50, or custom manual deductions.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h4>100% Safe &amp; Private</h4>
+        <p>No passwords or login credentials required. Only public response sheet URL is evaluated.</p>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <h2>Multi-Level Rank &amp; Cut-Off Predictor Features</h2>
+    
+    <p>
+      Knowing only your raw marks isn&apos;t enough to determine whether you will qualify for Tier 2, CBT 2, Physical Endurance Tests (PET), or Document Verification (DV). CBT RANK provides comprehensive real-time ranking matrices:
+    </p>
+
+    <ul style="margin: 0 0 24px 20px; line-height: 1.8;">
+      <li><strong>1. Overall All-India Rank:</strong> See where you stand among thousands of candidates across the entire country who appeared for the same exam.</li>
+      <li><strong>2. Shift Rank &amp; Shift Average Score:</strong> Multi-shift examinations (like SSC CGL, RRB NTPC, or Railway Group D) vary in toughness. CBT RANK calculates the average score of your specific shift, allowing you to see if your shift was hard, moderate, or easy.</li>
+      <li><strong>3. Community / Category Wise Rank:</strong> Evaluate your competition within your reservation category, including <strong>UR (Unreserved / General), OBC (Other Backward Classes), EWS (Economically Weaker Section), SC, ST, PwBD, and Ex-Servicemen</strong>.</li>
+      <li><strong>4. Gender-Wise Rank:</strong> Tailored rankings for Male and Female candidates for exams with gender-specific vacancies (e.g. Delhi Police Constable, Defence GD, State Police).</li>
+      <li><strong>5. Section-Wise Performance Breakdown:</strong> Detailed score cards for Reasoning, Quantitative Aptitude / Mathematics, General Awareness / GK, English Comprehension, and General Science.</li>
+    </ul>
+
+    <!-- Section 3 -->
+    <h2>Universal &amp; Customizable Marking Scheme Support</h2>
+
+    <p>
+      Different exam boards follow distinct marking schemes. CBT RANK automatically detects standard patterns while giving you the freedom to adjust values manually:
+    </p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Exam Category</th>
+            <th>Correct (+ve)</th>
+            <th>Negative (-ve)</th>
+            <th>CBT RANK Engine</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SSC CGL, CHSL, CPO (Tier 1)</strong></td>
+            <td>+2.0 Marks</td>
+            <td>-0.50 Marks (1/4th)</td>
+            <td><span class="badge-auto">✓ Auto-Calculated</span></td>
+          </tr>
+          <tr>
+            <td><strong>Railway RRB NTPC, Group D, ALP, Tech</strong></td>
+            <td>+1.0 Mark</td>
+            <td>-0.33 Marks (1/3rd)</td>
+            <td><span class="badge-auto">✓ Auto-Calculated</span></td>
+          </tr>
+          <tr>
+            <td><strong>SSC CGL (Tier 2 Mains)</strong></td>
+            <td>+3.0 Marks</td>
+            <td>-1.00 Mark (1/3rd)</td>
+            <td><span class="badge-auto">✓ Auto-Calculated</span></td>
+          </tr>
+          <tr>
+            <td><strong>SSC GD Constable / Delhi Police</strong></td>
+            <td>+2.0 / +1.0 Mark</td>
+            <td>-0.25 / -0.50 Mark</td>
+            <td><span class="badge-auto">✓ Auto-Calculated</span></td>
+          </tr>
+          <tr>
+            <td><strong>State Exams (UP, Bihar, Odisha, Rajasthan)</strong></td>
+            <td>Custom (+1 / +2 / +4)</td>
+            <td>Custom / Zero</td>
+            <td><span class="badge-override">✓ Manual Override</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 4 -->
+    <h2>Competitive Exams Supported by cbtrank.com</h2>
+
+    <div class="exam-grid">
+      <div class="exam-box">
+        <h4>🏛️ SSC Exams</h4>
+        <ul>
+          <li>SSC CGL (Tier 1 &amp; Tier 2 Mains)</li>
+          <li>SSC CHSL (10+2 Level)</li>
+          <li>SSC MTS &amp; Havaldar</li>
+          <li>SSC GD Constable (CAPFs / SSF)</li>
+          <li>SSC CPO Sub-Inspector</li>
+          <li>SSC Selection Post (Phases 11, 12, 13)</li>
+        </ul>
+      </div>
+
+      <div class="exam-box">
+        <h4>🚆 Railway (RRB) Exams</h4>
+        <ul>
+          <li>RRB NTPC (Graduate &amp; 12th Level)</li>
+          <li>RRB Group D (Level-1 Posts)</li>
+          <li>RRB Assistant Loco Pilot (ALP)</li>
+          <li>RRB Technician (Grade 1 &amp; 3)</li>
+          <li>RRB Junior Engineer (JE &amp; SSE)</li>
+          <li>RPF SI &amp; RPF Constable</li>
+        </ul>
+      </div>
+
+      <div class="exam-box">
+        <h4>🛡️ Defence &amp; Police</h4>
+        <ul>
+          <li>Delhi Police Constable &amp; HC</li>
+          <li>IAF AFCAT &amp; Agniveer Vayu</li>
+          <li>Indian Army Agniveer CEE</li>
+          <li>Indian Navy Agniveer SSR / MR</li>
+          <li>Coast Guard (Navik GD / DB / Yantrik)</li>
+          <li>CAPF Assistant Commandant (AC)</li>
+        </ul>
+      </div>
+
+      <div class="exam-box">
+        <h4>🗺️ State-Level CBTs</h4>
+        <ul>
+          <li>UP Police Constable, UP SI, UPSSSC PET</li>
+          <li>Bihar SSC (BSSC CGL, Inter Level)</li>
+          <li>Odisha OSSC &amp; OSSSC (CGL, RI, Amin)</li>
+          <li>Rajasthan CET &amp; Police Constable</li>
+          <li>MP ESB / Vyapam (Police &amp; SI)</li>
+          <li>WBPRB &amp; Maharashtra Police</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <h2>How to Use CBT RANK Answer Key Calculator (Step-by-Step)</h2>
+
+    <div class="step-list">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-info">
+          <h4>Login to Official Portal</h4>
+          <p>Open your exam candidate login page (e.g. SSC or RRB DigiAlm portal) and click on &quot;Candidate Response Sheet / Answer Key&quot;.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-info">
+          <h4>Copy Answer Key URL</h4>
+          <p>Copy the complete web address from your browser URL bar (e.g. <code>https://cdn.digialm.com/.../CandidateResponse.html</code>).</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-info">
+          <h4>Paste URL on CBT RANK Calculator</h4>
+          <p>Visit <strong><a href="https://cbtrank.com/answerkey" target="_blank" rel="noopener noreferrer">cbtrank.com/answerkey</a></strong>, paste the link in the URL field, select your reservation category &amp; state, and click Submit.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num" style="background:#16a34a;">4</div>
+        <div class="step-info">
+          <h4>Get Instant Score &amp; Live Real-Time Rank</h4>
+          <p>Instantly view your full raw marks, correct/wrong question summary, shift percentile, and category-wise ranking.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 6 -->
+    <h2>Frequently Asked Questions (FAQs)</h2>
+
+    <div class="faq-stack">
+      <div class="faq-card">
+        <h4>Q1. Is CBT RANK (cbtrank.com) completely free to use?</h4>
+        <p><strong>Yes!</strong> CBT RANK is 100% free for all competitive exam candidates across India without any hidden fees or subscriptions.</p>
+      </div>
+
+      <div class="faq-card">
+        <h4>Q2. Is it safe to paste my response sheet URL on cbtrank.com?</h4>
+        <p><strong>Absolutely safe.</strong> CBT RANK only reads the public HTML responses generated on the official response sheet page. We never ask for passwords or private login credentials.</p>
+      </div>
+
+      <div class="faq-card">
+        <h4>Q3. Can I customize the negative marking for specific exams?</h4>
+        <p><strong>Yes!</strong> While standard penalties are auto-detected, candidates can manually adjust positive marks and negative deductions at any time to match specific recruitment notifications.</p>
+      </div>
+
+      <div class="faq-card">
+        <h4>Q4. How accurate is the Category and Shift Rank on cbtrank.com?</h4>
+        <p>Because thousands of candidates submit authentic response sheets for each major exam, CBT RANK provides highly accurate shift difficulty indices and category percentile rankings before official results are declared.</p>
+      </div>
+    </div>
+
+    <!-- Final Banner -->
+    <div class="final-cta-banner">
+      <h3>Ready to Check Your CBT Exam Score &amp; Rank?</h3>
+      <p>Stop wasting hours manually checking question papers. Get your official score card, accuracy percentage, and All-India rank in 2 seconds on CBT RANK.</p>
+      <a href="https://cbtrank.com/answerkey" target="_blank" rel="noopener noreferrer" class="final-btn">
+        <span>🚀 Open CBT RANK Calculator Now &rarr;</span>
+      </a>
+    </div>
+
+  </main>
+
+</div>
 
 </body>
 </html>
