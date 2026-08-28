@@ -767,7 +767,7 @@ export default function ResultPage() {
       <div style={{
         position: 'relative',
         zIndex: 1,
-        background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
+        background: '#0044cc',
         color: '#ffffff',
         padding: '12px 16px',
         textAlign: 'center',
