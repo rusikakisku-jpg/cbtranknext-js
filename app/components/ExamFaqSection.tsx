@@ -13,8 +13,8 @@ interface ExamFaqSectionProps {
 }
 
 export default function ExamFaqSection({ formattedTitle, faqs }: ExamFaqSectionProps) {
-  // First item open by default, supports multiple open/close smoothly
-  const [openIndices, setOpenIndices] = useState<number[]>([0]);
+  // All FAQ items closed by default, expand only on click
+  const [openIndices, setOpenIndices] = useState<number[]>([]);
 
   const toggleFaq = (index: number) => {
     setOpenIndices((prev) =>
