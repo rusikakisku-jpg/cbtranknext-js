@@ -127,6 +127,98 @@ export async function logUserRankAction(rankData: any) {
   }
 }
 
+export async function fetchLiveRankAction(params: {
+  examId?: string;
+  examSlug?: string;
+  examDate?: string;
+  examTime?: string;
+  category?: string;
+  totalMarks: number;
+  userId?: string;
+}) {
+  try {
+    const res = await fetch(`${BACKEND_BASE}/user_ranks?limit=1000`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY }
+    });
+
+    if (!res.ok) {
+      return { success: false };
+    }
+
+    const json = await res.json().catch(() => null);
+    const rows = (json && Array.isArray(json.data)) ? json.data : [];
+
+    const normMarks = Number(params.totalMarks) || 0;
+    const cleanExamId = (params.examId || '').trim();
+    const cleanSlug = (params.examSlug || '').trim();
+    const cleanCategory = (params.category || '').trim().toLowerCase();
+    const cleanDate = (params.examDate || '').trim();
+    const cleanTime = (params.examTime || '').trim();
+
+    // Filter candidates for matching exam
+    let examCandidates = rows.filter((r: any) => {
+      if (cleanExamId && r.exam_id && r.exam_id.toLowerCase() === cleanExamId.toLowerCase()) return true;
+      if (cleanSlug && cleanSlug !== 'general' && r.exam_slug && r.exam_slug.toLowerCase() === cleanSlug.toLowerCase()) return true;
+      return false;
+    });
+
+    if (examCandidates.length === 0) {
+      examCandidates = rows;
+    }
+
+    // 1. Overall Rank
+    const higherOverall = examCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    const overallRank = higherOverall + 1;
+    const totalOverall = Math.max(examCandidates.length, 1);
+
+    // 2. Shift Rank
+    let shiftCandidates = examCandidates.filter((r: any) => {
+      if (cleanDate && r.exam_date && r.exam_date === cleanDate) {
+        if (cleanTime && r.exam_time) return r.exam_time === cleanTime;
+        return true;
+      }
+      return false;
+    });
+    if (shiftCandidates.length === 0) {
+      shiftCandidates = examCandidates;
+    }
+    const higherShift = shiftCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    const shiftRank = higherShift + 1;
+    const totalShift = Math.max(shiftCandidates.length, 1);
+
+    // 3. Category Rank
+    let catCandidates = examCandidates.filter((r: any) => (r.category || '').trim().toLowerCase() === cleanCategory);
+    if (catCandidates.length === 0) {
+      catCandidates = examCandidates;
+    }
+    const higherCategory = catCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    const categoryRank = higherCategory + 1;
+    const totalCategory = Math.max(catCandidates.length, 1);
+
+    // 4. Percentile Score
+    let percentile = 99.0;
+    if (totalShift > 1) {
+      percentile = Math.min(99.9, Math.max(1.0, Number((((totalShift - higherShift) / totalShift) * 100).toFixed(2))));
+    }
+
+    return {
+      success: true,
+      data: {
+        overallRank,
+        totalOverall,
+        shiftRank,
+        totalShift,
+        categoryRank,
+        totalCategory,
+        percentile
+      }
+    };
+  } catch (e) {
+    return { success: false };
+  }
+}
+
 export async function submitContactMessageAction(msgData: { name: string; email: string; subject?: string; message: string }) {
   try {
     const res = await fetch(`${BACKEND_BASE}/messages`, {
