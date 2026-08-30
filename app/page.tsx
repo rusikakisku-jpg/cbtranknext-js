@@ -1,10 +1,11 @@
-'use client';
-
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import type { Metadata } from 'next';
 
-const WORKER_BASE = 'https://api.cbtrank.com';
+export const metadata: Metadata = {
+  title: 'CBT RANK - Latest Answer Keys & Rank Predictor',
+  description: 'Calculate your marks, shift rank, and category cutoffs instantly with CBTRank\'s Answer Key Calculator.',
+  keywords: ['CBT Rank', 'Answer Key Calculator', 'RRB', 'SSC', 'CBT exam', 'rank predictor'],
+};
 
 interface Exam {
   slug: string;
@@ -14,43 +15,29 @@ interface Exam {
   set_on_top?: number | string;
 }
 
-function escapeHtml(str: string | null | undefined): string {
-  if (str === null || str === undefined) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
 
-function SkeletonCard() {
-  return (
-    <div className="skeleton-card">
-      <div className="skeleton-left">
-        <div className="skeleton-line title"></div>
-        <div className="skeleton-line sub"></div>
-      </div>
-      <div className="skeleton-badge"></div>
-    </div>
-  );
+async function getExams(): Promise<Exam[]> {
+  try {
+    const res = await fetch(`${BACKEND_BASE}/exams`, {
+      next: { revalidate: 60 },
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch (e) {}
+  return [];
 }
 
 function ExamCard({ exam }: { exam: Exam }) {
   const isLatest = Number(exam.is_latest) === 1 || Number(exam.set_on_top) === 1;
-
-  const handleCardClick = () => {
-    try {
-      sessionStorage.setItem('cbtrank_active_exam', JSON.stringify(exam));
-    } catch (e) {}
-  };
-
-  // Clean URL: /{slug}/answerkey
   const href = `/${exam.slug}/answerkey`;
 
   return (
     <div className="exam-card">
-      <Link href={href} onClick={handleCardClick} prefetch={true} aria-label={exam.title}>
+      <Link href={href} prefetch={true} aria-label={exam.title}>
         <div className="exam-card-left">
           <div className="exam-title">
             <span>{exam.title}</span>
@@ -68,50 +55,8 @@ function ExamCard({ exam }: { exam: Exam }) {
   );
 }
 
-export default function HomePage() {
-  const [exams, setExams] = useState<Exam[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showBlogs] = useState(false);
-
-  // Always ensure Home Page starts at the top (0,0) on open
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    try {
-      sessionStorage.removeItem('cbtrank_home_scroll');
-    } catch (e) {}
-  }, []);
-
-  useEffect(() => {
-    // 1. Read cached exams for instant 0ms load
-    try {
-      const cached = localStorage.getItem('cbtrank_cached_exams');
-      if (cached) {
-        const parsed = JSON.parse(cached) as Exam[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setExams(parsed);
-          setLoading(false);
-        }
-      }
-    } catch (e) {}
-
-    // 2. Fetch fresh exams in background
-    async function fetchExams() {
-      try {
-        const res = await fetch(`${WORKER_BASE}/exams`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setExams(data);
-            try {
-              localStorage.setItem('cbtrank_cached_exams', JSON.stringify(data));
-            } catch (e) {}
-          }
-        }
-      } catch (e) {}
-      setLoading(false);
-    }
-    fetchExams();
-  }, []);
+export default async function HomePage() {
+  const exams = await getExams();
 
   const CalculatorIcon = () => (
     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +75,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className={`content-grid${showBlogs ? ' two-col' : ''}`}>
+        <div className="content-grid">
           {/* Exams Section */}
           <section id="exams-section">
             <div className="section-header">
@@ -145,14 +90,7 @@ export default function HomePage() {
             </div>
 
             <div className="exam-list" id="exam-list">
-              {loading ? (
-                <>
-                  <SkeletonCard />
-                  <SkeletonCard />
-                  <SkeletonCard />
-                  <SkeletonCard />
-                </>
-              ) : exams.length === 0 ? (
+              {exams.length === 0 ? (
                 <div className="empty-state">
                   No exams available right now. Check back soon!
                 </div>

@@ -767,7 +767,7 @@ export default function ResultPage() {
       <div style={{
         position: 'relative',
         zIndex: 1,
-        background: 'linear-gradient(135deg, #0044cc 0%, #0f172a 100%)',
+        background: '#0044cc',
         color: '#ffffff',
         padding: '12px 16px',
         textAlign: 'center',
@@ -873,29 +873,6 @@ export default function ResultPage() {
           </tr>
         </tfoot>
       </table>
-
-      {/* 4. Scorecard Footer (With Colored Top Border and Framed Badges) */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        background: '#eff6ff',
-        borderTop: '2px solid #0044cc',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '9px 14px',
-        fontSize: '0.7rem',
-        color: '#1e3a8a'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
-          <strong style={{ color: '#0044cc', letterSpacing: '0.02em' }}>CBTRANK.COM</strong>
-          <span style={{ color: '#64748b' }}>— Official Scorecard Report</span>
-        </div>
-        <div style={{ fontFamily: 'monospace', fontSize: '0.7rem', fontWeight: 800, color: '#0044cc', background: '#dbeafe', padding: '2px 8px', borderRadius: '4px', border: '1px solid #93c5fd' }}>
-          {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
-        </div>
-      </div>
     </div>
     </>
   );

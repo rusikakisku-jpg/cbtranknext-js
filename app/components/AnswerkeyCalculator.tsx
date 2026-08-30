@@ -2,9 +2,29 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { processAnswerKeyAction, logUserRankAction } from '../actions/calculate';
 
-const WORKER_BASE = 'https://api.cbtrank.com';
-// No static data — all locations and languages come from API only
+const DEFAULT_RRB_ZONES = [
+  "Ahmedabad", "Ajmer", "Prayagraj (Allahabad)", "Bengaluru (Bangalore)", "Bhopal", 
+  "Bhubaneswar", "Bilaspur", "Chandigarh", "Chennai", "Gorakhpur", "Guwahati", 
+  "Jammu Srinagar", "Kolkata", "Malda", "Mumbai", "Muzaffarpur", "Patna", 
+  "Ranchi", "Secunderabad", "Siliguri", "Thiruvananthapuram"
+];
+
+const DEFAULT_STATES = [
+  "Andaman & Nicobar", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", 
+  "Chandigarh", "Chhattisgarh", "Dadra & Nagar Haveli and Daman & Diu", "Delhi", 
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu & Kashmir", "Jharkhand", 
+  "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", 
+  "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", 
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Uttarakhand", "West Bengal"
+];
+
+const DEFAULT_LANGUAGES = [
+  "Assamese", "Bengali", "English", "Gujarati", "Hindi", "Kannada", 
+  "Malayalam", "Marathi", "Odia", "Punjabi", "Tamil", "Telugu", "Urdu"
+];
 
 function isRRBSlug(slug: string): boolean {
   if (!slug) return false;
@@ -341,13 +361,14 @@ interface AnswerkeyCalculatorProps {
 export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
+  const isRRB = isRRBSlug(examSlug);
   const [bannerTitle, setBannerTitle] = useState('Answer Key Calculator');
   const [bannerSub, setBannerSub] = useState('Paste your official answer key URL and add your exam details.');
-  const [locations, setLocations] = useState<string[]>([]);       // always from API
-  const [locationLabel, setLocationLabel] = useState('State / UT');
-  const [locationLoading, setLocationLoading] = useState(true);
-  const [languages, setLanguages] = useState<string[]>([]);        // always from API
-  const [langLoading, setLangLoading] = useState(true);
+  const [locations, setLocations] = useState<string[]>(isRRB ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
+  const [locationLabel, setLocationLabel] = useState(isRRB ? 'RRB Zones' : 'State / UT');
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [languages, setLanguages] = useState<string[]>(DEFAULT_LANGUAGES);
+  const [langLoading, setLangLoading] = useState(false);
   const [showHtmlPaste, setShowHtmlPaste] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
@@ -407,80 +428,19 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       setLocations(locArray);
       setLocationLoading(false);
     } else {
-      const locTypeId = isRRBSlug(slug) ? 1 : 2;
-      loadDynamicLocations(locTypeId);
-    }
-  }
-
-  async function loadDynamicLocations(locTypeId: number) {
-    const isRRB = locTypeId === 1;
-    setLocationLoading(true);
-    setLocations([]);  // clear first — no static fallback
-    setLocationLabel(isRRB ? 'RRB Zones' : 'State / UT');
-    try {
-      const res = await fetch(`${WORKER_BASE}/locations?id=${locTypeId}`);
-      if (res.ok) {
-        const data = await res.json();
-        let list: string[] = [];
-        if (typeof data === 'object' && !Array.isArray(data) && data !== null) {
-          const keys = Object.keys(data);
-          if (keys.length > 0) {
-            setLocationLabel(keys[0] || (isRRB ? 'RRB Zones' : 'State / UT'));
-            list = data[keys[0]] || [];
-          }
-        } else if (Array.isArray(data)) list = data;
-        setLocations(list.map((l: string | { name?: string }) => typeof l === 'string' ? l : (l.name || '')));
-      }
-    } catch (e) {
-      // API failed — show error in dropdown, no fallback
-      setLocations([]);
-    } finally {
-      setLocationLoading(false);
-    }
-  }
-
-  async function loadDynamicLanguages() {
-    try {
-      const cached = localStorage.getItem('cbtrank_cached_languages');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setLanguages(parsed);
-          setLangLoading(false);
-        }
-      }
-    } catch (e) {}
-
-    try {
-      const res = await fetch(`${WORKER_BASE}/languages`);
-      if (res.ok) {
-        const data = await res.json();
-        let list: string[] = [];
-        if (Array.isArray(data)) list = data;
-        else if (typeof data === 'object' && data !== null) {
-          const firstKey = Object.keys(data)[0];
-          if (Array.isArray(data[firstKey])) list = data[firstKey];
-        }
-        const mapped = list.map((l: string | { name?: string }) => typeof l === 'string' ? l : (l.name || ''));
-        setLanguages(mapped);
-        try { localStorage.setItem('cbtrank_cached_languages', JSON.stringify(mapped)); } catch (e) {}
-      }
-    } catch (e) {
-      // API failed — keep current state or clear if empty
-    } finally {
-      setLangLoading(false);
+      setLocations(isRRBSlug(slug) ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
+      setLocationLabel(isRRBSlug(slug) ? 'RRB Zones' : 'State / UT');
     }
   }
 
   useEffect(() => {
-    loadDynamicLanguages();
-
     if (!examSlug) {
       // Generic /answerkey page — clear old exam marking cache and load default locations
       sessionStorage.removeItem('cbtrank_exam_marks_right');
       sessionStorage.removeItem('cbtrank_exam_marks_wrong');
       sessionStorage.removeItem('cbtrank_active_exam');
-      loadDynamicLocations(2);
+      setLocations(DEFAULT_STATES);
+      setLocationLabel('State / UT');
       return;
     }
 
@@ -491,42 +451,16 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
         const cachedExam = JSON.parse(cached);
         if (cachedExam && cachedExam.slug === examSlug) {
           applyExamData(cachedExam, examSlug);
+          return;
         }
       }
     } catch (e) {}
 
-    // Fetch fresh from Worker API
-    fetch(`${WORKER_BASE}/exams?slug=${encodeURIComponent(examSlug)}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && data.success && data.data) {
-          applyExamData(data.data, examSlug);
-        } else if (!data || (data && !data.success)) {
-          // Exam not found — load defaults
-          loadDynamicLocations(isRRBSlug(examSlug) ? 1 : 2);
-        }
-      })
-      .catch(() => loadDynamicLocations(isRRBSlug(examSlug) ? 1 : 2));
+    // Fallback: apply default zone or state according to slug
+    setLocations(isRRBSlug(examSlug) ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
+    setLocationLabel(isRRBSlug(examSlug) ? 'RRB Zones' : 'State / UT');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examSlug]);
-
-
-
-  function logInvalidUrl(url: string) {
-    fetch(`${WORKER_BASE}/invalid_answerkey_urls`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    }).catch(() => {});
-  }
-
-  function logValidUrl(url: string) {
-    fetch(`${WORKER_BASE}/valid_answerkey_urls`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    }).catch(() => {});
-  }
 
   function logUserRank(data: {
     user_id: string;
@@ -543,11 +477,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     category: string;
     domain: string;
   }) {
-    fetch(`${WORKER_BASE}/user_ranks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).catch(() => {});
+    logUserRankAction(data).catch(() => {});
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -563,42 +493,31 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
 
-    const isCbexams = isCbexamsHost(urlVal);
-
     setSubmitting(true);
     setBtnText('Processing...');
 
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
 
-    // Dedicated HTTPS Domain Routing:
-    // If cbexams.com -> https://cbexams.quickgift.in/?url=...
-    // Else -> https://digialm.quickgift.in/?url=...
     try {
-      const apiUrl = isCbexams
-        ? `https://cbexams.quickgift.in/?url=${encodeURIComponent(urlVal)}`
-        : `https://digialm.quickgift.in/?url=${encodeURIComponent(urlVal)}`;
-      const smartRes = await fetch(apiUrl);
-      const smartData = await smartRes.json().catch(() => null);
+      const actionRes = await processAnswerKeyAction({
+        url: urlVal,
+        category,
+        gender,
+        state,
+        examSlug
+      });
 
-      if (smartRes.ok && smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
-        rawSmartData = smartData;
-        parsedResult = normalizeSmartApiResponse(smartData, urlVal);
-      } else if (smartData && (smartData.success === false || smartData.error)) {
-        logInvalidUrl(urlVal);
-        showToast(smartData.error || 'Failed to fetch scorecard. Please try again.');
-        setSubmitting(false);
-        setBtnText('Calculate Marks & Rank');
-        return;
+      if (actionRes && actionRes.success && actionRes.data) {
+        rawSmartData = actionRes.data;
+        parsedResult = normalizeSmartApiResponse(actionRes.data, urlVal);
       } else {
-        logInvalidUrl(urlVal);
-        showToast('Server response error. Please click Retry.');
+        showToast((actionRes && actionRes.error) || 'Failed to fetch scorecard. Please check URL.');
         setSubmitting(false);
         setBtnText('Calculate Marks & Rank');
         return;
       }
     } catch (err) {
-      logInvalidUrl(urlVal);
       showToast('Network error while connecting to server. Please try again.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
@@ -606,15 +525,13 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     }
 
     if (!parsedResult) {
-      logInvalidUrl(urlVal);
       showToast('No data found or Invalid Answer Key URL. Please check and retry.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
       return;
     }
 
-    // Safely log valid URL into DB asynchronously without blocking UI transition
-    logValidUrl(urlVal);
+    // Valid URL and User rank are securely processed server-side
 
     // Safely log candidate ranking data into user_ranks table asynchronously
     try {
@@ -660,6 +577,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     const categoryRank = Math.max(1, Math.floor(overallRank / 2.1));
 
     const isDigialm = isDigialmHost(urlVal);
+    const isCbexams = isCbexamsHost(urlVal);
     const providerType = isDigialm ? 'Digialm' : (isCbexams ? 'CBExams' : 'Official Portal');
 
     const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;

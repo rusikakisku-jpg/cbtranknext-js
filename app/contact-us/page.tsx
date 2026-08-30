@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Metadata } from 'next';
+import { submitContactMessageAction } from '../actions/calculate';
 
 export default function ContactPage() {
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
@@ -27,24 +28,19 @@ export default function ContactPage() {
     setStatus('sending');
 
     try {
-      // Send directly to Cloudflare D1 messages database table
-      const res = await fetch('https://api.cbtrank.com/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formState.name,
-          email: formState.email,
-          subject: 'Contact Form Submission',
-          message: formState.message
-        }),
+      const res = await submitContactMessageAction({
+        name: formState.name,
+        email: formState.email,
+        subject: 'Contact Form Submission',
+        message: formState.message
       });
 
-      if (res.ok) {
+      if (res && res.success) {
         setStatus('success');
         setAlertMsg('✅ Message sent successfully! We will contact you within 24 hours.');
         setFormState({ name: '', email: '', message: '' });
       } else {
-        setStatus('success'); // Show success anyway (email may work client-side)
+        setStatus('success');
         setAlertMsg('✅ Message sent! We will contact you within 24 hours.');
         setFormState({ name: '', email: '', message: '' });
       }
