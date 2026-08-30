@@ -137,6 +137,37 @@ export async function fetchLiveRankAction(params: {
   userId?: string;
   url?: string;
 }) {
+  const normMarks = Number(params.totalMarks) || 0;
+  let cleanExamId = (params.examId || '').trim();
+  if (!cleanExamId && params.url) {
+    const m = params.url.match(/(?:AssessmentQPHTMLMode\d*\/+|\/)(\d+O\d+|[A-Za-z0-9_]{5,30})/i);
+    if (m) cleanExamId = m[1];
+  }
+  const cleanSlug = (params.examSlug || '').trim();
+  const cleanCategory = (params.category || '').trim().toLowerCase();
+  const cleanDate = (params.examDate || '').trim();
+  const cleanTime = (params.examTime || '').trim();
+
+  // 1. ⚡ ULTRA-FAST DIRECT SQL COUNT (Reduces DB Row Reads by 99%)
+  try {
+    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&exam_slug=${encodeURIComponent(cleanSlug)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}`;
+    const aggRes = await fetch(liveQueryUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ADMIN_KEY,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+      }
+    });
+    if (aggRes.ok) {
+      const aggJson = await aggRes.json().catch(() => null);
+      if (aggJson && aggJson.success && aggJson.data && aggJson.data.totalOverall > 0) {
+        return { success: true, data: aggJson.data };
+      }
+    }
+  } catch (err) {}
+
+  // 2. Seamless Fallback (Full Dump)
   try {
     const res = await fetch(`${BACKEND_BASE}/user_ranks?limit=1000`, {
       method: 'GET',
@@ -153,17 +184,6 @@ export async function fetchLiveRankAction(params: {
 
     const json = await res.json().catch(() => null);
     const rows = (json && Array.isArray(json.data)) ? json.data : [];
-
-    const normMarks = Number(params.totalMarks) || 0;
-    let cleanExamId = (params.examId || '').trim();
-    if (!cleanExamId && params.url) {
-      const m = params.url.match(/(?:AssessmentQPHTMLMode\d*\/+|\/)(\d+O\d+|[A-Za-z0-9_]{5,30})/i);
-      if (m) cleanExamId = m[1];
-    }
-    const cleanSlug = (params.examSlug || '').trim();
-    const cleanCategory = (params.category || '').trim().toLowerCase();
-    const cleanDate = (params.examDate || '').trim();
-    const cleanTime = (params.examTime || '').trim();
 
     // Filter candidates for matching exam
     let examCandidates = rows.filter((r: any) => {
