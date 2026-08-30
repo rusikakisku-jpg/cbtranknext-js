@@ -1,0 +1,211 @@
+<div class="ossc-description-wrapper" style="font-family: Arial, Helvetica, sans-serif; color: #1e293b; line-height: 1.7; font-size: 16px; max-width: 860px; margin: 0 auto;">
+
+  <!-- Summary Box -->
+  <div style="background-color: #eff6ff; border-left: 4px solid #0044cc; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
+    <div style="display: inline-block; background-color: #0044cc; color: #ffffff; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;">
+      OSSC PM &amp; PET 2025 Guide
+    </div>
+    <p style="margin: 0; font-size: 15px; color: #1e3a8a; font-weight: 500;">
+      <strong>Official Summary:</strong> Odisha Staff Selection Commission (OSSC) conducts the Combined Recruitment Examination for posts having Physical Measurement and Physical Efficiency Test (PM &amp; PET-2025) under Directorate of Fire &amp; Emergency Services, Home Guards and Civil Defence. Follow this verified guide to check your official response sheet, calculate marks with <strong>0.25 negative marking</strong>, and check your real-time <strong>Shift Rank on CBTRank</strong>.
+    </p>
+  </div>
+
+  <!-- Section 1: Exam Pattern -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+    1. OSSC PM &amp; PET 2025 Written Exam Pattern &amp; Marks Distribution
+  </h2>
+  
+  <p style="color: #475569; margin-bottom: 16px;">
+    According to Section 5 of the official advertisement, Stage-I Written Examination consists of <strong>150 Objective MCQ Questions (150 Marks)</strong> with an exam duration of <strong>180 Minutes (3 Hours)</strong>. Each correct question carries <strong>1.0 Mark</strong>, while <strong>0.25 (1/4th) Mark</strong> is deducted for every incorrect response.
+  </p>
+
+  <!-- Responsive Exam Pattern Table -->
+  <div style="overflow-x: auto; margin: 18px 0 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background-color: #ffffff;">
+      <thead>
+        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Subject / Component</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Questions</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Marks</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Negative Marking</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #334155;">General English (Graduate Standard)</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #334155;">Odia Language (Comprehension &amp; Translation)</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #334155;">General Studies (Science, History, Geography, Polity, Reasoning)</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="background-color: #f0fdf4; font-weight: bold;">
+          <td style="padding: 12px 14px; color: #065f46;">TOTAL (Stage-I Written Exam)</td>
+          <td style="padding: 12px 14px; color: #065f46;">150 Questions</td>
+          <td style="padding: 12px 14px; color: #065f46;">150 Marks</td>
+          <td style="padding: 12px 14px; color: #059669;">0.25 Marks Deduction</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CTA Box -->
+  <div style="background-color: #0044cc; color: #ffffff; border-radius: 10px; padding: 20px; text-align: center; margin: 24px 0;">
+    <h3 style="color: #ffffff; font-size: 18px; font-weight: bold; margin: 0 0 6px 0;">
+      Calculate Your OSSC PM &amp; PET Score and Rank Online
+    </h3>
+    <p style="color: #dbeafe; font-size: 14px; margin: 0 0 14px 0;">
+      Paste your response sheet URL to check section-wise marks, negative deductions, and real-time shift rank.
+    </p>
+    <a href="https://cbtrank.com/ossc-physical-measurement-and-physical-efficiencytest-2025/answerkey" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #ffffff; color: #0044cc; font-weight: bold; font-size: 14px; padding: 10px 24px; border-radius: 50px; text-decoration: none;">
+      Open OSSC Calculator on CBTRank
+    </a>
+  </div>
+
+  <!-- Section 2: Step-by-Step Guide -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+    2. Step-by-Step Guide: How to Check Answer Key on CBTRank
+  </h2>
+
+  <div style="margin: 16px 0 24px;">
+    <!-- Step 1 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 1: Copy Official Response Sheet Link</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">
+        Log in to the official OSSC candidate portal (ossc.gov.in) using your User ID and Password. Open the Candidate Response sheet tab and copy the complete URL from your browser address bar.
+      </p>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 2: Open CBTRank OSSC PM &amp; PET Page</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">
+        Visit the calculator link: <a href="https://cbtrank.com/ossc-physical-measurement-and-physical-efficiencytest-2025/answerkey" target="_blank" style="color: #0044cc; font-weight: bold;">cbtrank.com/ossc-physical-measurement-and-physical-efficiencytest-2025/answerkey</a>.
+      </p>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 3: Paste URL and Select Category / Gender</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">
+        Paste your response sheet link into the box. Select your Category (UR, SEBC, SC, ST) and Gender (Male / Female).
+      </p>
+    </div>
+
+    <!-- Step 4 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 4: View Scorecard and Shift Rank</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">
+        Click "Calculate Marks and Rank". In 2 seconds, CBTRank generates your verified Net Score, Correct/Wrong count, 0.25 Negative Marks, Shift Rank, and full question-by-question review.
+      </p>
+    </div>
+  </div>
+
+  <!-- Section 3: Physical Standards -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+    3. OSSC Stage-II: Physical Measurement (PM) &amp; Physical Efficiency Test (PET)
+  </h2>
+
+  <p style="color: #475569; margin-bottom: 14px;">
+    Candidates scoring above the written exam cut-off are called for Stage-II (PM &amp; PET) at approximately <strong>10 times the vacancies</strong> for each category:
+  </p>
+
+  <div style="overflow-x: auto; margin: 14px 0 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background-color: #ffffff;">
+      <thead>
+        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Category / Community</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Height</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Weight</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Chest (Unexpanded / Expanded)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold;">UR &amp; SEBC (Men)</td>
+          <td style="padding: 10px 14px;">168 cm</td>
+          <td style="padding: 10px 14px;">55 kg</td>
+          <td style="padding: 10px 14px;">79 cm / 84 cm</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold;">UR &amp; SEBC (Women)</td>
+          <td style="padding: 10px 14px;">155 cm</td>
+          <td style="padding: 10px 14px;">47.5 kg</td>
+          <td style="padding: 10px 14px;">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold;">SC &amp; ST (Men)</td>
+          <td style="padding: 10px 14px;">163 cm</td>
+          <td style="padding: 10px 14px;">50 kg</td>
+          <td style="padding: 10px 14px;">76 cm / 81 cm</td>
+        </tr>
+        <tr style="background-color: #eff6ff;">
+          <td style="padding: 10px 14px; font-weight: bold;">SC &amp; ST (Women)</td>
+          <td style="padding: 10px 14px;">150 cm</td>
+          <td style="padding: 10px 14px;">45 kg</td>
+          <td style="padding: 10px 14px;">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 20px;">
+    <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">PET Physical Test Events (Qualifying):</strong>
+    <p style="font-size: 13px; color: #475569; margin: 0;">
+      • Men: 1.6 Km Running in 8 Minutes | Long Jump of 3.66 Meters in 3 attempts.<br>
+      • Women: 1.6 Km Running in 10 Minutes | Long Jump of 2.77 Meters in 3 attempts.
+    </p>
+  </div>
+
+  <!-- Section 4: Formula -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+    4. Official OSSC Negative Marking Formula
+  </h2>
+
+  <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 14px 16px; margin: 14px 0 20px; font-family: monospace; font-size: 14px; color: #0f172a;">
+    Net Raw Score = (Total Correct Answers * 1.0) - (Total Wrong Answers * 0.25)<br>
+    <span style="font-size: 12px; color: #64748b;">Note: Unattempted questions carry zero marks (no penalty).</span>
+  </div>
+
+  <!-- Section 5: FAQs -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+    5. Frequently Asked Questions (FAQs)
+  </h2>
+
+  <div style="margin: 14px 0 24px;">
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q1: What is the negative marking deduction in OSSC PM &amp; PET Written Exam?</strong>
+      <span style="color: #475569; font-size: 13px;">As per the official notification, 0.25 (1/4th) mark is deducted for each incorrect answer.</span>
+    </div>
+
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q2: How is Shift Rank calculated on CBTRank?</strong>
+      <span style="color: #475569; font-size: 13px;">CBTRank groups candidates appearing in the exact same exam shift to calculate your real-time Shift Rank.</span>
+    </div>
+
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q3: Is CBTRank free to use for OSSC candidates?</strong>
+      <span style="color: #475569; font-size: 13px;">Yes, CBTRank provides 100% free, fast, and secure answer key evaluation without saving your personal login password.</span>
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="text-align: center; margin-top: 24px; padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <h3 style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Check Your OSSC PM &amp; PET Score and Rank Now</h3>
+    <p style="font-size: 13px; color: #64748b; margin: 0 0 12px 0;">Fast and trusted answer key calculator for OSSC candidates.</p>
+    <a href="https://cbtrank.com/ossc-physical-measurement-and-physical-efficiencytest-2025/answerkey" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #0044cc; color: #ffffff; font-weight: bold; font-size: 13px; padding: 9px 22px; border-radius: 50px; text-decoration: none;">
+      Calculate Marks on CBTRank
+    </a>
+  </div>
+
+</div>
