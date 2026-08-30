@@ -3,10 +3,8 @@
 const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
 const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
 const PARSER_CLUSTER = [
-  'https://digialm.quickgift.in/?url=',
-  'http://147.93.154.159/api_smart.php?url=',
-  'http://15.207.33.39/api/v12/calculate?url=',
-  'http://3.108.145.65/api/v12/calculate?url='
+  'https://digialm1.cbtrank.online/api/v12/calculate?url=',
+  'https://digialm2.cbtrank.online/api/v12/calculate?url='
 ];
 const CBEXAMS_PARSER = 'https://cbexams.quickgift.in/?url=';
 
