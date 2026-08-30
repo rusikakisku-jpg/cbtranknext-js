@@ -349,7 +349,7 @@ export default function RankPage() {
                   lineHeight: 1.55,
                   fontWeight: 500
                 }}>
-                  Ranks calculated from real-time candidate attempts stored in Cloudflare D1 database.
+                  Live rank breakdown calculated among participating candidates for this exam.
                 </p>
 
                 {/* 3 Metric Live Rank Cards */}
@@ -407,23 +407,6 @@ export default function RankPage() {
                       </span>
                     </div>
                   </div>
-                </div>
-
-                {/* Percentile Pill */}
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: '#eff6ff',
-                  border: '1px solid #dbeafe',
-                  padding: '6px 14px',
-                  borderRadius: '10px',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  color: '#1e40af',
-                  marginBottom: '14px'
-                }}>
-                  📈 Shift Percentile: <span style={{ color: '#2563eb', fontSize: '0.9rem' }}>{loadingRank ? '...' : `${liveRank?.percentile || 99.0}%`}</span>
                 </div>
 
                 <div>
