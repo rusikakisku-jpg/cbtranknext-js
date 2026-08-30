@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { APP_FEATURE_FLAGS } from '../config/features';
+import { fetchLiveRankAction } from '../actions/calculate';
 
 interface Section {
   name: string;
@@ -54,6 +55,16 @@ export default function RankPage() {
   const [formData, setFormData] = useState<FormData | null>(null);
   const [rightVal, setRightVal] = useState(1.0);
   const [wrongVal, setWrongVal] = useState(0.25);
+  const [liveRank, setLiveRank] = useState<{
+    overallRank: number;
+    totalOverall: number;
+    shiftRank: number;
+    totalShift: number;
+    categoryRank: number;
+    totalCategory: number;
+    percentile: number;
+  } | null>(null);
+  const [loadingRank, setLoadingRank] = useState(true);
 
   useEffect(() => {
     try {
@@ -71,24 +82,59 @@ export default function RankPage() {
       const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
       const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
 
+      let currentRight = 1.0;
+      let currentWrong = 0.25;
+
       if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
-        setRightVal(parseFloat(savedRight));
+        currentRight = parseFloat(savedRight);
       } else if (form?.marks_right !== undefined && form?.marks_right !== null) {
-        setRightVal(Number(form.marks_right));
-      } else {
-        setRightVal(1.0);
+        currentRight = Number(form.marks_right);
       }
+      setRightVal(currentRight);
 
       if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
-        setWrongVal(parseFloat(savedWrong));
+        currentWrong = parseFloat(savedWrong);
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
-        setWrongVal(Number(form.marks_wrong));
-      } else {
-        setWrongVal(0.25);
+        currentWrong = Number(form.marks_wrong);
       }
+      setWrongVal(currentWrong);
 
       setResultData(result);
       setFormData(form);
+
+      // Compute raw marks for live database query
+      let tRight = 0, tWrong = 0, tBonus = 0;
+      result.sections?.forEach(s => {
+        tRight += s.correct;
+        tWrong += s.wrong;
+        tBonus += (s.bonus || 0);
+      });
+      if (tBonus === 0 && (result.bonusCount || result.rawBonusQuestions)) {
+        tBonus = Number(result.bonusCount || result.rawBonusQuestions || 0);
+      }
+      const rawScore = ((tRight + tBonus) * currentRight) - (tWrong * currentWrong);
+
+      const authCommRow = result.infoRows?.find(r => /community|caste|category/i.test(r.label));
+      const effCategory = authCommRow ? authCommRow.value : (form?.category || 'UR');
+      const rNum = result.rollNo || result.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
+
+      fetchLiveRankAction({
+        examId: result.examName || '',
+        examSlug: form?.provider_type || 'general',
+        examDate: result.testDate || '',
+        examTime: result.testTime || '',
+        category: effCategory,
+        totalMarks: rawScore,
+        userId: rNum
+      }).then(res => {
+        if (res && res.success && res.data) {
+          setLiveRank(res.data);
+        }
+        setLoadingRank(false);
+      }).catch(() => {
+        setLoadingRank(false);
+      });
+
     } catch (e) {
       router.push('/');
     }
@@ -229,7 +275,7 @@ export default function RankPage() {
                 </button>
               </div>
 
-              {/* Beautiful Rank Generating Status Notice Card */}
+              {/* Beautiful Live Rank Summary Showcase Card */}
               <div style={{
                 background: 'linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%)',
                 border: '1.5px solid #bfdbfe',
@@ -256,9 +302,9 @@ export default function RankPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#fef3c7',
-                  border: '1px solid #fde68a',
-                  color: '#92400e',
+                  background: '#dcfce7',
+                  border: '1px solid #86efac',
+                  color: '#15803d',
                   fontSize: '0.72rem',
                   fontWeight: 800,
                   padding: '3px 10px',
@@ -271,21 +317,20 @@ export default function RankPage() {
                     width: '7px',
                     height: '7px',
                     borderRadius: '50%',
-                    backgroundColor: '#f59e0b',
-                    display: 'inline-block',
-                    animation: 'pulse 1.5s infinite'
+                    backgroundColor: '#22c55e',
+                    display: 'inline-block'
                   }} />
-                  Calculation in Progress
+                  Live Rank Generated
                 </div>
 
                 <h2 style={{
-                  fontSize: '1.2rem',
+                  fontSize: '1.25rem',
                   fontWeight: 900,
                   color: '#0f172a',
                   margin: '0 0 6px 0',
                   letterSpacing: '-0.01em'
                 }}>
-                  Rank Not Generated Yet
+                  Official Competitive Rank Card
                 </h2>
 
                 <p style={{
@@ -296,76 +341,103 @@ export default function RankPage() {
                   lineHeight: 1.55,
                   fontWeight: 500
                 }}>
-                  We are currently aggregating response sheets from participating candidates. Your official <strong>Overall Rank</strong>, <strong>Shift Rank</strong>, and <strong>Category Rank</strong> will be generated shortly. Please check back after some time.
+                  Ranks calculated from real-time candidate attempts stored in Cloudflare D1 database.
                 </p>
 
-                {/* 3 Metric Placeholders */}
+                {/* 3 Metric Live Rank Cards */}
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                   gap: '10px',
-                  maxWidth: '540px',
+                  maxWidth: '580px',
                   margin: '0 auto 16px'
                 }}>
                   <div style={{
                     background: '#ffffff',
-                    border: '1px solid #e2e8f0',
+                    border: '1.5px solid #bfdbfe',
                     borderRadius: '12px',
-                    padding: '10px 8px',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                    padding: '12px 10px',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.08)'
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>🥇 Overall Rank</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>--</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#2563eb', marginTop: '4px' }}>
+                      {loadingRank ? '...' : `#${liveRank?.overallRank || overallRank}`}
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}> / {liveRank?.totalOverall || 1}</span>
+                    </div>
                   </div>
 
                   <div style={{
                     background: '#ffffff',
-                    border: '1px solid #e2e8f0',
+                    border: '1.5px solid #bbf7d0',
                     borderRadius: '12px',
-                    padding: '10px 8px',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                    padding: '12px 10px',
+                    boxShadow: '0 2px 8px rgba(22, 163, 74, 0.08)'
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>⏱️ Shift Rank</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#059669', marginTop: '4px' }}>--</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
+                      {loadingRank ? '...' : `#${liveRank?.shiftRank || shiftRank}`}
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}> / {liveRank?.totalShift || 1}</span>
+                    </div>
                   </div>
 
                   <div style={{
                     background: '#ffffff',
-                    border: '1px solid #e2e8f0',
+                    border: '1.5px solid #fed7aa',
                     borderRadius: '12px',
-                    padding: '10px 8px',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                    padding: '12px 10px',
+                    boxShadow: '0 2px 8px rgba(217, 119, 6, 0.08)'
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>👥 Category Rank</span>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>--</div>
+                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#d97706', marginTop: '4px' }}>
+                      {loadingRank ? '...' : `#${liveRank?.categoryRank || categoryRank}`}
+                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}> / {liveRank?.totalCategory || 1}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Refresh Status Action Button */}
-                <button
-                  type="button"
-                  onClick={() => window.location.reload()}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: 'linear-gradient(135deg, #0044cc 0%, #003399 100%)',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '8px 18px',
-                    borderRadius: '10px',
-                    fontWeight: 800,
-                    fontSize: '0.78rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0, 68, 204, 0.25)',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Check / Refresh Rank Status
-                </button>
+                {/* Percentile Pill */}
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#eff6ff',
+                  border: '1px solid #dbeafe',
+                  padding: '6px 14px',
+                  borderRadius: '10px',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  color: '#1e40af',
+                  marginBottom: '14px'
+                }}>
+                  📈 Shift Percentile: <span style={{ color: '#2563eb', fontSize: '0.9rem' }}>{loadingRank ? '...' : `${liveRank?.percentile || 99.0}%`}</span>
+                </div>
+
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'linear-gradient(135deg, #0044cc 0%, #003399 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 18px',
+                      borderRadius: '10px',
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(0, 68, 204, 0.25)',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh Live Rank Status
+                  </button>
+                </div>
               </div>
 
               {/* Subject-Wise Performance Breakdown Table */}
