@@ -135,11 +135,16 @@ export async function fetchLiveRankAction(params: {
   category?: string;
   totalMarks: number;
   userId?: string;
+  url?: string;
 }) {
   try {
     const res = await fetch(`${BACKEND_BASE}/user_ranks?limit=1000`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY }
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ADMIN_KEY,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+      }
     });
 
     if (!res.ok) {
@@ -150,7 +155,11 @@ export async function fetchLiveRankAction(params: {
     const rows = (json && Array.isArray(json.data)) ? json.data : [];
 
     const normMarks = Number(params.totalMarks) || 0;
-    const cleanExamId = (params.examId || '').trim();
+    let cleanExamId = (params.examId || '').trim();
+    if (!cleanExamId && params.url) {
+      const m = params.url.match(/(?:AssessmentQPHTMLMode\d*\/+|\/)(\d+O\d+|[A-Za-z0-9_]{5,30})/i);
+      if (m) cleanExamId = m[1];
+    }
     const cleanSlug = (params.examSlug || '').trim();
     const cleanCategory = (params.category || '').trim().toLowerCase();
     const cleanDate = (params.examDate || '').trim();
@@ -158,8 +167,8 @@ export async function fetchLiveRankAction(params: {
 
     // Filter candidates for matching exam
     let examCandidates = rows.filter((r: any) => {
-      if (cleanExamId && r.exam_id && r.exam_id.toLowerCase() === cleanExamId.toLowerCase()) return true;
-      if (cleanSlug && cleanSlug !== 'general' && r.exam_slug && r.exam_slug.toLowerCase() === cleanSlug.toLowerCase()) return true;
+      if (cleanExamId && r.exam_id && (r.exam_id.toLowerCase() === cleanExamId.toLowerCase() || (r.url && r.url.includes(cleanExamId)))) return true;
+      if (cleanSlug && cleanSlug !== 'general' && cleanSlug !== 'direct' && r.exam_slug && r.exam_slug.toLowerCase() === cleanSlug.toLowerCase()) return true;
       return false;
     });
 
@@ -170,7 +179,7 @@ export async function fetchLiveRankAction(params: {
     // 1. Overall Rank
     const higherOverall = examCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
     const overallRank = higherOverall + 1;
-    const totalOverall = Math.max(examCandidates.length, 1);
+    const totalOverall = examCandidates.length;
 
     // 2. Shift Rank
     let shiftCandidates = examCandidates.filter((r: any) => {
@@ -185,7 +194,7 @@ export async function fetchLiveRankAction(params: {
     }
     const higherShift = shiftCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
     const shiftRank = higherShift + 1;
-    const totalShift = Math.max(shiftCandidates.length, 1);
+    const totalShift = shiftCandidates.length;
 
     // 3. Category Rank
     let catCandidates = examCandidates.filter((r: any) => (r.category || '').trim().toLowerCase() === cleanCategory);
@@ -194,7 +203,7 @@ export async function fetchLiveRankAction(params: {
     }
     const higherCategory = catCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
     const categoryRank = higherCategory + 1;
-    const totalCategory = Math.max(catCandidates.length, 1);
+    const totalCategory = catCandidates.length;
 
     // 4. Percentile Score
     let percentile = 99.0;
