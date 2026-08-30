@@ -2,7 +2,13 @@
 
 const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
 const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
-const FALLBACK_PARSER = 'http://147.93.154.159/api_smart.php';
+const PARSER_CLUSTER = [
+  'https://digialm.quickgift.in/?url=',
+  'http://147.93.154.159/api_smart.php?url=',
+  'http://15.207.33.39/api/v12/calculate?url=',
+  'http://3.108.145.65/api/v12/calculate?url='
+];
+const CBEXAMS_PARSER = 'https://cbexams.quickgift.in/?url=';
 
 function cleanAndNormalizeUrl(raw: string): string {
   let url = (raw || '').trim();
@@ -51,45 +57,32 @@ export async function processAnswerKeyAction(params: {
   }
 
   const isCbexams = isCbexamsHost(urlVal);
-  const primaryEndpoint = isCbexams
-    ? `https://cbexams.quickgift.in/?url=${encodeURIComponent(urlVal)}`
-    : `https://digialm.quickgift.in/?url=${encodeURIComponent(urlVal)}`;
+  const targetEndpoints = isCbexams
+    ? [`${CBEXAMS_PARSER}${encodeURIComponent(urlVal)}`]
+    : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
 
   let smartData: any = null;
 
-  // 1. Primary Scraper Attempt
-  try {
-    const res = await fetch(primaryEndpoint, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/plain, */*'
-      }
-    });
-
-    if (res.ok) {
-      smartData = await res.json().catch(() => null);
-    }
-  } catch (err) {}
-
-  // 2. Fallback Scraper Attempt (if primary threw 500 error or returned invalid)
-  if (!smartData || (!smartData.success && !smartData.score_summary && !smartData.candidate_info && !smartData.candidateName)) {
+  // Seamless Multi-Server Cluster Fetch
+  for (const endpoint of targetEndpoints) {
     try {
-      const fallbackUrl = `${FALLBACK_PARSER}?url=${encodeURIComponent(urlVal)}`;
-      const fbRes = await fetch(fallbackUrl, {
+      const res = await fetch(endpoint, {
         method: 'GET',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
           'Accept': 'application/json, text/plain, */*'
-        }
+        },
+        signal: AbortSignal.timeout(6000)
       });
-      if (fbRes.ok) {
-        const fbData = await fbRes.json().catch(() => null);
-        if (fbData && (fbData.success === true || fbData.score_summary || fbData.candidate_info)) {
-          smartData = fbData;
+
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && (data.success === true || data.score_summary || data.candidate_info || data.candidateName)) {
+          smartData = data;
+          break; // Stop loop immediately once valid data is received
         }
       }
-    } catch (fbErr) {}
+    } catch (err) {}
   }
 
   // 3. Evaluate final data
