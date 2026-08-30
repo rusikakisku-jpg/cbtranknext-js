@@ -502,7 +502,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    let urlVal = formData.ans_key_url.trim();
+    let urlVal = formData.ans_key_url.trim().replace(/#.*$/, '');
     const { category, gender, state, consent } = formData;
 
     if (!urlVal || !category || !gender || !state || !consent) {
@@ -511,6 +511,11 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     }
 
     if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
+    try {
+      const parsed = new URL(urlVal);
+      parsed.pathname = parsed.pathname.replace(/\/+/g, '/');
+      urlVal = parsed.toString();
+    } catch (e) {}
 
     setSubmitting(true);
     setBtnText('Processing...');
