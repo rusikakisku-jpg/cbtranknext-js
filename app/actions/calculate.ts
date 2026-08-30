@@ -37,7 +37,16 @@ export async function processAnswerKeyAction(params: {
   examSlug?: string;
 }) {
   let urlVal = cleanAndNormalizeUrl(params.url);
-  if (!urlVal || urlVal.length < 15) {
+  if (!urlVal || urlVal.length < 10) {
+    if (urlVal) {
+      try {
+        await fetch(`${BACKEND_BASE}/invalid_answerkey_urls`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
+          body: JSON.stringify({ url: urlVal })
+        });
+      } catch (e) {}
+    }
     return { success: false, error: 'Please enter a valid official Answer Key URL.' };
   }
 
@@ -85,21 +94,25 @@ export async function processAnswerKeyAction(params: {
 
   // 3. Evaluate final data
   if (smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
-    // Async background logging to D1 with secret admin key
-    fetch(`${BACKEND_BASE}/valid_answerkey_urls`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
-      body: JSON.stringify({ url: urlVal })
-    }).catch(() => {});
+    // Await logging to D1 with secret admin key
+    try {
+      await fetch(`${BACKEND_BASE}/valid_answerkey_urls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
+        body: JSON.stringify({ url: urlVal })
+      });
+    } catch (e) {}
 
     return { success: true, data: smartData };
   } else {
-    // Log invalid URL
-    fetch(`${BACKEND_BASE}/invalid_answerkey_urls`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
-      body: JSON.stringify({ url: urlVal })
-    }).catch(() => {});
+    // Await logging invalid URL to D1 table
+    try {
+      await fetch(`${BACKEND_BASE}/invalid_answerkey_urls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
+        body: JSON.stringify({ url: urlVal })
+      });
+    } catch (e) {}
 
     return { 
       success: false, 
