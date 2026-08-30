@@ -352,17 +352,32 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
 
 // ─────────────────────────────────────────────────────────────────
 // Props: examSlug = the URL slug (e.g. "osssc-ri-ari-amin-icds-sfs-junior-assistant")
-//        pass null/'' for generic /answerkey page
-// ─────────────────────────────────────────────────────────────────
-interface AnswerkeyCalculatorProps {
-  examSlug?: string;
+function formatExamSlugTitle(slug: string): string {
+  if (!slug) return 'Answer Key Calculator';
+  const formatted = slug
+    .split('-')
+    .map((w: string) => {
+      const upper = w.toUpperCase();
+      if (['RRB', 'SSC', 'NTPC', 'CBT', 'UG', 'JE', 'CHSL', 'CGL', 'MTS', 'GD', 'OSSSC', 'OSSC', 'RI', 'ARI', 'AMIN', 'SFS', 'ICDS', 'AWO', 'TPO', 'ASI', 'SI'].includes(upper)) {
+        return upper;
+      }
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    })
+    .join(' ');
+  return `${formatted} Answer Key Calculator`;
 }
 
-export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculatorProps) {
+interface AnswerkeyCalculatorProps {
+  examSlug?: string;
+  initialTitle?: string;
+}
+
+export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
   const isRRB = isRRBSlug(examSlug);
-  const [bannerTitle, setBannerTitle] = useState('Answer Key Calculator');
+  const defaultBannerTitle = initialTitle || formatExamSlugTitle(examSlug);
+  const [bannerTitle, setBannerTitle] = useState(defaultBannerTitle);
   const [bannerSub, setBannerSub] = useState('Paste your official answer key URL and add your exam details.');
   const [locations, setLocations] = useState<string[]>(isRRB ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
   const [locationLabel, setLocationLabel] = useState(isRRB ? 'RRB Zones' : 'State / UT');
@@ -397,10 +412,14 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
   // Apply exam object data to form state
   function applyExamData(examObj: Record<string, unknown>, slug: string) {
     const title = (examObj.title as string) || '';
-    const subtitle = (examObj.subtitle as string) || `Paste your ${title} official answer key URL and add your exam details.`;
+    const subtitle = (examObj.subtitle as string) || `Paste your ${title || 'exam'} official answer key URL and add your exam details.`;
     const groupLabel = (examObj.location_type_id as string) || (isRRBSlug(slug) ? 'RRB Zones' : 'State / UT');
     
-    setBannerTitle('Answer Key Calculator');
+    if (title) {
+      setBannerTitle(title.toLowerCase().includes('answer key') ? title : `${title} Answer Key Calculator`);
+    } else {
+      setBannerTitle(defaultBannerTitle);
+    }
     setBannerSub(subtitle);
     setLocationLabel(groupLabel);
 

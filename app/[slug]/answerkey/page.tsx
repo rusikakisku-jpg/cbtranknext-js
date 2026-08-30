@@ -150,7 +150,7 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <AnswerkeyCalculator examSlug={slug} />
+      <AnswerkeyCalculator examSlug={slug} initialTitle={`${formattedTitle} Answer Key Calculator`} />
       <ExamFaqSection formattedTitle={formattedTitle} faqs={faqs} />
     </>
   );
