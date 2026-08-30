@@ -336,16 +336,6 @@ export default function RankPage() {
                   Live Rank Generated
                 </div>
 
-                <h2 style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 900,
-                  color: '#0f172a',
-                  margin: '0 0 6px 0',
-                  letterSpacing: '-0.01em'
-                }}>
-                  Official Competitive Rank Card
-                </h2>
-
                 <p style={{
                   fontSize: '0.84rem',
                   color: '#475569',
