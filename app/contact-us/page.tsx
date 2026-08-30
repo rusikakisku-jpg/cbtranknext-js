@@ -27,8 +27,8 @@ export default function ContactPage() {
     setStatus('sending');
 
     try {
-      // Send directly to Cloudflare D1 messages database table
-      const res = await fetch('https://api.cbtrank.com/messages', {
+      // Send through internal API route
+      const res = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

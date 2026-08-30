@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const WORKER_BASE = 'https://api.cbtrank.com';
+const WORKER_BASE = '/api';
 // No static data — all locations and languages come from API only
 
 function isRRBSlug(slug: string): boolean {
@@ -575,10 +575,11 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
     // If cbexams.com -> https://api.cbtrank.com/cbexams/?url=...
     // Else -> https://api.cbtrank.com/digialm/?url=...
     try {
-      const apiUrl = isCbexams
-        ? `https://api.cbtrank.com/cbexams/?url=${encodeURIComponent(urlVal)}`
-        : `https://api.cbtrank.com/digialm/?url=${encodeURIComponent(urlVal)}`;
-      const smartRes = await fetch(apiUrl);
+      const smartRes = await fetch('/api/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlVal })
+      });
       const smartData = await smartRes.json().catch(() => null);
 
       if (smartRes.ok && smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {

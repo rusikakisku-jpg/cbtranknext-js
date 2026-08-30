@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { Metadata } from 'next';
 
-const WORKER_BASE = 'https://api.cbtrank.com';
+const WORKER_BASE = '/api';
 
 interface Exam {
   slug: string;
