@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAnswerKeyAction, logUserRankAction } from '../actions/calculate';
+import { processAnswerKeyAction, logUserRankAction, fetchLiveRankAction } from '../actions/calculate';
 
 const DEFAULT_RRB_ZONES = [
   "Ahmedabad", "Ajmer", "Prayagraj (Allahabad)", "Bengaluru (Bangalore)", "Bhopal", 
@@ -533,29 +533,30 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
 
     // Valid URL and User rank are securely processed server-side
 
+    let domainHost = '';
+    try { domainHost = new URL(urlVal).hostname; } catch (e) {}
+    const userRoll = (rawSmartData?.exam_info?.user_id) || (parsedResult.rollNo) || (parsedResult.candidateName) || '';
+    const examPaperCode = (rawSmartData?.exam_info?.exam_id) || '';
+    const testExamDate = (rawSmartData?.exam_info?.exam_date) || (parsedResult.testDate) || '';
+    const testExamTime = (rawSmartData?.exam_info?.exam_time) || (parsedResult.testTime) || '';
+    const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
+    const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
+
+    const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
+    const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
+    const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
+      ? parseFloat(savedRight)
+      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
+    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+      ? parseFloat(savedWrong)
+      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
+
+    const effectiveBonus = parsedResult.bonusCount || 0;
+    const rawScoreVal = ((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong);
+
     // Safely log candidate ranking data into user_ranks table asynchronously
     try {
-      const domainHost = new URL(urlVal).hostname;
-      const userRoll = (rawSmartData?.exam_info?.user_id) || (parsedResult.rollNo) || (parsedResult.candidateName) || '';
-      const examPaperCode = (rawSmartData?.exam_info?.exam_id) || '';
-      const testExamDate = (rawSmartData?.exam_info?.exam_date) || (parsedResult.testDate) || '';
-      const testExamTime = (rawSmartData?.exam_info?.exam_time) || (parsedResult.testTime) || '';
-      const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
-      const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
-
-      const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
-      const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
-      const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
-        ? parseFloat(savedRight)
-        : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
-      const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
-        ? parseFloat(savedWrong)
-        : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
-
-      const effectiveBonus = parsedResult.bonusCount || 0;
-      const rawScoreVal = ((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong);
-
-      logUserRank({
+      logUserRankAction({
         user_id: userRoll,
         url: urlVal,
         exam_slug: examSlug || 'general',
@@ -572,24 +573,30 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       });
     } catch (e) {}
 
-    const overallRank = Math.floor(Math.random() * 45) + 4;
-    const shiftRank = Math.max(1, Math.floor(overallRank / 3.2));
-    const categoryRank = Math.max(1, Math.floor(overallRank / 2.1));
+    let liveRankObj: any = null;
+    try {
+      const liveRes = await fetchLiveRankAction({
+        examId: examPaperCode,
+        examSlug: examSlug || 'general',
+        examDate: testExamDate,
+        examTime: testExamTime,
+        category: category || 'UR',
+        totalMarks: rawScoreVal,
+        userId: userRoll,
+        url: urlVal
+      });
+      if (liveRes && liveRes.success && liveRes.data) {
+        liveRankObj = liveRes.data;
+      }
+    } catch (e) {}
+
+    const overallRank = liveRankObj ? liveRankObj.overallRank : 1;
+    const shiftRank = liveRankObj ? liveRankObj.shiftRank : 1;
+    const categoryRank = liveRankObj ? liveRankObj.categoryRank : 1;
 
     const isDigialm = isDigialmHost(urlVal);
     const isCbexams = isCbexamsHost(urlVal);
     const providerType = isDigialm ? 'Digialm' : (isCbexams ? 'CBExams' : 'Official Portal');
-
-    const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
-    const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
-    const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
-    const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
-    const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
-      ? parseFloat(savedRight)
-      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
-    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
-      ? parseFloat(savedWrong)
-      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
 
     try {
       sessionStorage.setItem('cbtrank_form_data', JSON.stringify({
@@ -607,6 +614,7 @@ export default function AnswerkeyCalculator({ examSlug = '' }: AnswerkeyCalculat
       sessionStorage.setItem('cbtrank_result_data', JSON.stringify({
         ...parsedResult,
         overallRank, shiftRank, categoryRank,
+        liveRank: liveRankObj,
       }));
       sessionStorage.setItem('cbtrank_show_tg_popup', 'true');
     } catch (e) {}

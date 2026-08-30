@@ -125,6 +125,11 @@ export default function RankPage() {
         if (m) extractedExamId = m[1];
       }
 
+      if ((result as any).liveRank) {
+        setLiveRank((result as any).liveRank);
+        setLoadingRank(false);
+      }
+
       fetchLiveRankAction({
         examId: extractedExamId || result.examName || '',
         examSlug: form?.provider_type || 'general',
@@ -173,9 +178,9 @@ export default function RankPage() {
   const authenticCommunityRow = resultData.infoRows?.find(r => /community|caste|category/i.test(r.label));
   const effectiveCommunity = authenticCommunityRow ? authenticCommunityRow.value : (formData?.category || 'UR');
 
-  const overallRank = resultData.overallRank || Math.floor(Math.random() * 45) + 4;
-  const shiftRank = resultData.shiftRank || Math.max(1, Math.floor(overallRank / 3.2));
-  const categoryRank = resultData.categoryRank || Math.max(1, Math.floor(overallRank / 2.1));
+  const overallRank = liveRank?.overallRank || resultData.overallRank || 1;
+  const shiftRank = liveRank?.shiftRank || resultData.shiftRank || 1;
+  const categoryRank = liveRank?.categoryRank || resultData.categoryRank || 1;
 
   return (
     <main>
@@ -369,9 +374,9 @@ export default function RankPage() {
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>🥇 Overall Rank</span>
                     <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#2563eb', marginTop: '4px' }}>
-                      {loadingRank ? '...' : `#${liveRank ? liveRank.overallRank : (overallRank <= 1 ? 1 : overallRank)}`}
+                      {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.overallRank : overallRank}`}
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
-                        {' / '}{liveRank ? Math.max(liveRank.totalOverall, liveRank.overallRank) : (overallRank <= 1 ? 1 : Math.max(overallRank + 12, 28))}
+                        {' / '}{liveRank ? liveRank.totalOverall : (overallRank <= 1 ? 1 : overallRank)}
                       </span>
                     </div>
                   </div>
@@ -385,9 +390,9 @@ export default function RankPage() {
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>⏱️ Shift Rank</span>
                     <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
-                      {loadingRank ? '...' : `#${liveRank ? liveRank.shiftRank : (shiftRank <= 1 ? 1 : shiftRank)}`}
+                      {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.shiftRank : shiftRank}`}
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
-                        {' / '}{liveRank ? Math.max(liveRank.totalShift, liveRank.shiftRank) : (shiftRank <= 1 ? 1 : Math.max(shiftRank + 6, 15))}
+                        {' / '}{liveRank ? liveRank.totalShift : (shiftRank <= 1 ? 1 : shiftRank)}
                       </span>
                     </div>
                   </div>
@@ -401,9 +406,9 @@ export default function RankPage() {
                   }}>
                     <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>👥 Category Rank</span>
                     <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#d97706', marginTop: '4px' }}>
-                      {loadingRank ? '...' : `#${liveRank ? liveRank.categoryRank : (categoryRank <= 1 ? 1 : categoryRank)}`}
+                      {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.categoryRank : categoryRank}`}
                       <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
-                        {' / '}{liveRank ? Math.max(liveRank.totalCategory, liveRank.categoryRank) : (categoryRank <= 1 ? 1 : Math.max(categoryRank + 5, 12))}
+                        {' / '}{liveRank ? liveRank.totalCategory : (categoryRank <= 1 ? 1 : categoryRank)}
                       </span>
                     </div>
                   </div>
