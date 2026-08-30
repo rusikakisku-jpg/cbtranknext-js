@@ -4,8 +4,6 @@ const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
 const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
 const PARSER_CLUSTER = [
   'https://api.cbtrank.com/digialm/?url=',
-  'https://api.cbtrank.com/digialm/?url=',
-  'https://api.cbtrank.com/digialm/?url=',
   'https://api.cbtrank.com/digialm/?url='
 ];
 const CBEXAMS_PARSER = 'https://api.cbtrank.com/cbexams/?url=';
