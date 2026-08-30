@@ -66,7 +66,7 @@ export default async function AltExamAnswerkeyPage({ params }: PageProps) {
 
   return (
     <>
-      <AnswerkeyCalculator examSlug={slug} />
+      <AnswerkeyCalculator examSlug={slug} initialTitle={`${formattedTitle} Answer Key Calculator`} />
       <ExamFaqSection formattedTitle={formattedTitle} faqs={faqs} />
     </>
   );
