@@ -343,9 +343,21 @@ export async function getBase64ImageAction(imageUrl: string): Promise<string> {
     if (res.ok) {
       const contentType = res.headers.get('content-type') || 'image/png';
       const arrayBuffer = await res.arrayBuffer();
-      const base64 = typeof Buffer !== 'undefined'
-        ? Buffer.from(arrayBuffer).toString('base64')
-        : btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      
+      let base64 = '';
+      if (typeof Buffer !== 'undefined') {
+        base64 = Buffer.from(arrayBuffer).toString('base64');
+      } else {
+        let binary = '';
+        const bytes = new Uint8Array(arrayBuffer);
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+          binary += String.fromCharCode.apply(null, Array.from(chunk));
+        }
+        base64 = btoa(binary);
+      }
+
       return `data:${contentType};base64,${base64}`;
     }
   } catch (e) {}

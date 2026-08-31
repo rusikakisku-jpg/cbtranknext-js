@@ -157,22 +157,6 @@ export default function RankPage() {
     return null;
   }
 
-  let totalRight = 0, totalWrong = 0, totalUnattempted = 0, totalBonus = 0;
-  resultData.sections?.forEach(s => {
-    totalRight += s.correct;
-    totalWrong += s.wrong;
-    totalBonus += (s.bonus || 0);
-    totalUnattempted += s.unattempted;
-  });
-  if (totalBonus === 0 && (resultData.bonusCount || resultData.rawBonusQuestions)) {
-    totalBonus = Number(resultData.bonusCount || resultData.rawBonusQuestions || 0);
-  }
-
-  const rawMarks = ((totalRight + totalBonus) * rightVal) - (totalWrong * wrongVal);
-  const totalAttempted = totalRight + totalWrong;
-  const totalQuestions = totalRight + totalWrong + totalUnattempted;
-  const accuracy = totalAttempted > 0 ? Math.round((totalRight / totalAttempted) * 100) : 0;
-
   const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate/i.test(r.label))?.value || 'Verified Candidate';
   const rollNumber = resultData.rollNo || resultData.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
   const authenticCommunityRow = resultData.infoRows?.find(r => /community|caste|category/i.test(r.label));
