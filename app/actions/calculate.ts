@@ -33,6 +33,15 @@ function isCbexamsHost(raw: string): boolean {
   } catch (e) { return false; }
 }
 
+function isValidSmartData(data: any): boolean {
+  if (!data) return false;
+  if (data.success === false) return false;
+  const totalQ = Number(data.score_summary?.total_questions ?? data.questions_summary?.length ?? 0);
+  const candName = data.candidateName || data.candidate_info?.['Candidate Name'] || data.candidate_info?.['Participant Name'] || data.candidate_info?.['Applicant Name'] || data.name;
+  if (totalQ === 0 && !candName) return false;
+  return true;
+}
+
 export async function processAnswerKeyAction(params: {
   url: string;
   category?: string;
@@ -75,10 +84,10 @@ export async function processAnswerKeyAction(params: {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json().catch(() => null);
-    if (data && (data.success === true || data.score_summary || data.candidate_info || data.candidateName)) {
+    if (data && isValidSmartData(data)) {
       return data;
     }
-    throw new Error('Invalid response structure');
+    throw new Error(data?.error || 'Invalid response structure');
   });
 
   try {
@@ -97,7 +106,7 @@ export async function processAnswerKeyAction(params: {
         });
         if (res.ok) {
           const data = await res.json().catch(() => null);
-          if (data && (data.success === true || data.score_summary || data.candidate_info || data.candidateName)) {
+          if (data && isValidSmartData(data)) {
             smartData = data;
             break;
           }
@@ -107,7 +116,7 @@ export async function processAnswerKeyAction(params: {
   }
 
   // 3. Evaluate final data
-  if (smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
+  if (smartData && isValidSmartData(smartData)) {
     // Convert header banner image to Base64 to eliminate CORS blank canvas issues during scorecard image download
     const rawBannerImg = smartData.header_banner_img || smartData.header_image || smartData.headerImgUrl || smartData.logo;
     if (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) {
