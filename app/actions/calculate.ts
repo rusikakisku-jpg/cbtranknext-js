@@ -6,10 +6,7 @@ const PARSER_CLUSTER = [
   'https://api.cbtrank.com/digialm/?url=',
   'https://api.cbtrank.com/digialm/?url='
 ];
-const CBEXAMS_PARSER_CLUSTER = [
-  'https://api.cbtrank.com/cbexams/?url=',
-  'https://api.cbtrank.com/?url='
-];
+const CBEXAMS_PARSER = 'https://api.cbtrank.com/cbexams/?url=';
 
 function cleanAndNormalizeUrl(raw: string): string {
   let url = (raw || '').trim();
@@ -59,7 +56,7 @@ export async function processAnswerKeyAction(params: {
 
   const isCbexams = isCbexamsHost(urlVal);
   const targetEndpoints = isCbexams
-    ? CBEXAMS_PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`)
+    ? [`${CBEXAMS_PARSER}${encodeURIComponent(urlVal)}`]
     : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
 
   let smartData: any = null;
