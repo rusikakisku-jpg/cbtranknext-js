@@ -253,19 +253,24 @@ function parseResponseSheetHtml(htmlText: string, baseUrl: string): ParseResult 
   return { correctCount, wrongCount, unattemptedCount, candidateName, rollNo, testDate, testTime, testCenter, examName, headerImgUrl, infoRows, sections };
 }
 
-// Normalize JSON data received from http://147.93.154.159/api_smart.php
+function cleanCandidateVal(raw: any): string {
+  if (raw === undefined || raw === null) return '';
+  return String(raw).replace(/^[:\s-]+/, '').trim();
+}
+
+// Normalize JSON data received from parser clusters (DigiALM & CBExams)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const info = data.candidate_info || {};
   const score = data.score_summary || {};
   const secSummary = data.section_summary || {};
   
-  const candidateName = info['Applicant Name'] || info['Candidate Name'] || info['Participant Name'] || info['Name'] || data.candidateName || data.name || 'Verified Candidate';
-  const rollNo = info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Application Id'] || info['Application ID'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*(id|no)|ticket/i.test(k))?.[1] || data.rollNo || data.exam_info?.user_id || '';
-  const testDate = info['Test Date'] || info['Exam Date'] || info['Date of Exam'] || data.testDate || data.exam_info?.exam_date || '';
-  const testTime = info['Test Time'] || info['Exam Time'] || info['Shift'] || info['Shift Timing'] || data.testTime || data.exam_info?.exam_time || '';
-  const testCenter = info['Test Centre Name'] || info['Test Center Name'] || info['Test Centre'] || info['Venue'] || data.testCenter || '';
-  const examName = info['Subject'] || info['Assessment Name'] || info['Post Name'] || info['Exam Name'] || info['Exam'] || data.header_banner_text || data.exam_info?.detected_exam_name || data.examName || '';
+  const candidateName = cleanCandidateVal(info['Applicant Name'] || info['Candidate Name'] || info['Participant Name'] || info['Name'] || data.candidateName || data.name || 'Verified Candidate');
+  const rollNo = cleanCandidateVal(info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Application Id'] || info['Application ID'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*(id|no)|ticket/i.test(k))?.[1] || data.rollNo || data.exam_info?.user_id || '');
+  const testDate = cleanCandidateVal(info['Test Date'] || info['Exam Date'] || info['Date of Exam'] || data.testDate || data.exam_info?.exam_date || '');
+  const testTime = cleanCandidateVal(info['Test Time'] || info['Test Time and Shift'] || info['Exam Time'] || info['Shift'] || info['Shift Timing'] || data.testTime || data.exam_info?.exam_time || '');
+  const testCenter = cleanCandidateVal(info['Test Centre Name'] || info['Test Center Name'] || info['Test Centre'] || info['Centre Name'] || info['Center Name'] || info['Venue'] || data.testCenter || '');
+  const examName = cleanCandidateVal(info['Subject'] || info['Assessment Name'] || info['Post Name'] || info['Exam Name'] || info['Exam'] || data.header_banner_text || data.exam_info?.detected_exam_name || data.examName || '');
   const headerImgUrl = data.header_banner_img || data.header_image || data.headerImgUrl || data.logo || '';
   const headerBannerText = data.header_banner_text || data.headerBannerText || examName || '';
   const questionsSummary = data.questions_summary || data.questions || [];
@@ -316,9 +321,10 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const infoRows: Array<{ label: string; value: string }> = [];
   if (typeof info === 'object' && info !== null && Object.keys(info).length > 0) {
     Object.entries(info).forEach(([label, value]) => {
-      if (value !== undefined && value !== null && String(value).trim() !== '') {
-        const cleanLabel = /community|caste/i.test(label) ? 'Community' : label;
-        infoRows.push({ label: cleanLabel, value: String(value) });
+      const cleanVal = cleanCandidateVal(value);
+      if (cleanVal !== '') {
+        const cleanLabel = /community|caste/i.test(label) ? 'Community' : label.replace(/^[:\s-]+/, '').replace(/[:\s-]+$/, '').trim();
+        infoRows.push({ label: cleanLabel, value: cleanVal });
       }
     });
   } else {
