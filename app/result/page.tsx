@@ -763,20 +763,49 @@ export default function ResultPage() {
         ))}
       </div>
 
-      {/* 1. Header Section (Exam Name, Full Width, Flush) */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        background: '#0044cc',
-        color: '#ffffff',
-        padding: '12px 16px',
-        textAlign: 'center',
-        borderBottom: '2px solid #0044cc'
-      }}>
-        <h2 style={{ fontSize: '1.08rem', fontWeight: 900, margin: 0, lineHeight: 1.3, color: '#ffffff' }}>
-          {resultData.examName || resultData.headerBannerText || 'CBT Competitive Examination'}
-        </h2>
-      </div>
+      {/* 1. Header Section (Exam Header Logo / Banner Image OR Text Banner) */}
+      {resultData.headerImgUrl ? (
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          background: '#ffffff',
+          padding: '10px 16px',
+          textAlign: 'center',
+          borderBottom: '2px solid #0044cc',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '48px'
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={resultData.headerImgUrl}
+            alt="Exam Header Logo"
+            crossOrigin="anonymous"
+            style={{
+              maxHeight: '65px',
+              maxWidth: '100%',
+              objectFit: 'contain',
+              display: 'block',
+              margin: '0 auto'
+            }}
+          />
+        </div>
+      ) : (
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          background: '#0044cc',
+          color: '#ffffff',
+          padding: '12px 16px',
+          textAlign: 'center',
+          borderBottom: '2px solid #0044cc'
+        }}>
+          <h2 style={{ fontSize: '1.08rem', fontWeight: 900, margin: 0, lineHeight: 1.3, color: '#ffffff' }}>
+            {resultData.headerBannerText || resultData.examName || 'CBT Competitive Examination'}
+          </h2>
+        </div>
+      )}
 
       {/* Candidate Details Table (Edge to Edge, 2 Columns: Label | Value) */}
       <table style={{
