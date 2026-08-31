@@ -131,14 +131,15 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   }
 
   // 2. Secondary Fallback: Direct Cloudflare D1 REST API query
-  const account_id = "38c7d789225e89652dd6bb111403db5d";
-  const token = process.env.CF_D1_TOKEN || ["cfut_umhNZGH5mokB88O6AH", "QVSURuP6AW48AIry4wVFaW74f7f9b6"].join("");
+  const account_id = process.env.CF_ACCOUNT_ID || "38c7d789225e89652dd6bb111403db5d";
+  const token = process.env.CF_D1_TOKEN || "";
   const headers = {
     "Authorization": `Bearer ${token}`,
     "Content-Type": "application/json"
   };
 
   async function queryD1(db_uuid: string, sql: string) {
+    if (!token) return [];
     try {
       const url = `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${db_uuid}/query`;
       const res = await fetch(url, {
