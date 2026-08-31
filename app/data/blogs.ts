@@ -131,7 +131,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   }
 
   // 2. Secondary Fallback: Direct Cloudflare D1 REST API query
-  const account_id = process.env.CF_ACCOUNT_ID || "38c7d789225e89652dd6bb111403db5d";
+  const account_id = process.env.CF_ACCOUNT_ID || "";
   const token = process.env.CF_D1_TOKEN || "";
   const headers = {
     "Authorization": `Bearer ${token}`,
@@ -139,7 +139,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   };
 
   async function queryD1(db_uuid: string, sql: string) {
-    if (!token) return [];
+    if (!token || !account_id || !db_uuid) return [];
     try {
       const url = `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${db_uuid}/query`;
       const res = await fetch(url, {
@@ -159,7 +159,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
 
   try {
     // Strictly fetch ONLY published posts from cbtrank_db D1 database (`blogs` table)
-    const cbtrank_uuid = "fd29c541-3fd2-4fa8-8dc1-19809ab907c3";
+    const cbtrank_uuid = process.env.CF_D1_DATABASE_ID || "";
     let cbt_blogs = await queryD1(cbtrank_uuid, "SELECT * FROM blogs WHERE status = 'publish' OR status = 'published' ORDER BY id DESC;");
     
     // Fallback if status column variation occurs

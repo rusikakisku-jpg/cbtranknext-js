@@ -370,7 +370,6 @@ export default function ResultPage() {
   const { raw, totalRight, totalWrong, totalUnattempted, totalBonus } = calcMarks(resultData.sections, rightVal, wrongVal, bonusCountFromData);
   const totalAttempted = totalRight + totalWrong + (hasBonus ? totalBonus : 0);
   const totalQuestions = totalRight + totalWrong + totalUnattempted + (hasBonus ? totalBonus : 0);
-  const accuracy = totalAttempted > 0 ? (((totalRight + (hasBonus ? totalBonus : 0)) / totalAttempted) * 100).toFixed(1) : '0.0';
 
   const candidateName = resultData.candidateName || resultData.infoRows?.find(r => /name|candidate|participant/i.test(r.label))?.value || 'Verified Candidate';
   const candidateRollNo = resultData.rollNo || resultData.infoRows?.find(r => /roll|registration|id|applicant|user|ticket/i.test(r.label))?.value || formData?.ans_key_url?.match(/[\/=](\d{8,12})/)?.[1] || formData?.ans_key_url?.match(/\/pub\/([^\/]+)\//i)?.[1] || '';
