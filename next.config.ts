@@ -25,6 +25,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/answerkey/:slug',
+        destination: '/:slug/answerkey',
+        permanent: true,
+      },
+      {
         source: '/index.php',
         destination: '/',
         permanent: true,
