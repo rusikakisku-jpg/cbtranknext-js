@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { APP_FEATURE_FLAGS } from '../config/features';
+import { getBase64ImageAction } from '../actions/calculate';
 
 function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
   const [mounted, setMounted] = useState(false);
@@ -253,6 +254,25 @@ export default function ResultPage() {
       setResultData(result);
       setFormData(form);
 
+      // Auto-convert header image to Base64 in background so canvas export is instant and 100% CORS safe
+      if (result.headerImgUrl && typeof result.headerImgUrl === 'string' && !result.headerImgUrl.startsWith('data:image')) {
+        getBase64ImageAction(result.headerImgUrl)
+          .then((b64) => {
+            if (b64 && b64.startsWith('data:image')) {
+              setResultData((prev) => (prev ? { ...prev, headerImgUrl: b64 } : prev));
+              try {
+                const cached = sessionStorage.getItem('cbtrank_result_data');
+                if (cached) {
+                  const cObj = JSON.parse(cached);
+                  cObj.headerImgUrl = b64;
+                  sessionStorage.setItem('cbtrank_result_data', JSON.stringify(cObj));
+                }
+              } catch (e) {}
+            }
+          })
+          .catch(() => {});
+      }
+
       if (ENABLE_TELEGRAM_DIALOG) {
         const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
         if (showFlag === 'true') {
@@ -297,6 +317,19 @@ export default function ResultPage() {
 
     try {
       setIsGeneratingImg(true);
+
+      // Ensure header image is Base64 to guarantee 0% CORS canvas blank space in downloaded image
+      if (resultData?.headerImgUrl && !resultData.headerImgUrl.startsWith('data:image')) {
+        try {
+          const b64 = await getBase64ImageAction(resultData.headerImgUrl);
+          if (b64 && b64.startsWith('data:image')) {
+            setResultData((prev) => (prev ? { ...prev, headerImgUrl: b64 } : prev));
+            // Brief pause to allow DOM update
+            await new Promise((r) => setTimeout(r, 80));
+          }
+        } catch (e) {}
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const html2canvasModule = (await import('html2canvas')) as any;
       const html2canvas = html2canvasModule.default || html2canvasModule;
@@ -781,7 +814,6 @@ export default function ResultPage() {
           <img
             src={resultData.headerImgUrl}
             alt="Exam Header Logo"
-            crossOrigin="anonymous"
             style={{
               maxHeight: '65px',
               maxWidth: '100%',
