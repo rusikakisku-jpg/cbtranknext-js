@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/'],
+      disallow: ['/api/', '/result', '/rank', '/review-answerkey'],
     },
     sitemap: 'https://cbtrank.com/sitemap.xml',
   };
