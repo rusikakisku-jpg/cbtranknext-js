@@ -69,19 +69,20 @@ export async function processAnswerKeyAction(params: {
     : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
 
   let smartData: any = null;
-  const raceTimeoutMs = isCbexams ? 22000 : 8000;
-  const fallbackTimeoutMs = isCbexams ? 22000 : 5000;
 
-  // 1. ⚡ Fast Parallel Multi-Server Race
+  // 1. ⚡ Fast Parallel Multi-Server Race (No timeout cancellation for CBExams)
   const fetchPromises = targetEndpoints.map(async (endpoint) => {
-    const res = await fetch(endpoint, {
+    const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*'
-      },
-      signal: AbortSignal.timeout(raceTimeoutMs)
-    });
+      }
+    };
+    if (!isCbexams) {
+      fetchOptions.signal = AbortSignal.timeout(12000);
+    }
+    const res = await fetch(endpoint, fetchOptions);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json().catch(() => null);
     if (data && isValidSmartData(data)) {
@@ -96,14 +97,17 @@ export async function processAnswerKeyAction(params: {
     // 2. Sequential Fallback
     for (const endpoint of targetEndpoints) {
       try {
-        const res = await fetch(endpoint, {
+        const fetchOptions: RequestInit = {
           method: 'GET',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*'
-          },
-          signal: AbortSignal.timeout(fallbackTimeoutMs)
-        });
+          }
+        };
+        if (!isCbexams) {
+          fetchOptions.signal = AbortSignal.timeout(10000);
+        }
+        const res = await fetch(endpoint, fetchOptions);
         if (res.ok) {
           const data = await res.json().catch(() => null);
           if (data && isValidSmartData(data)) {
