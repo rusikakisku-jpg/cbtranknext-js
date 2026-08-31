@@ -60,8 +60,10 @@ export async function processAnswerKeyAction(params: {
     : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
 
   let smartData: any = null;
+  const raceTimeoutMs = isCbexams ? 22000 : 8000;
+  const fallbackTimeoutMs = isCbexams ? 22000 : 5000;
 
-  // 1. ⚡ Fast Parallel Multi-Server Race (Returns in ~150ms)
+  // 1. ⚡ Fast Parallel Multi-Server Race
   const fetchPromises = targetEndpoints.map(async (endpoint) => {
     const res = await fetch(endpoint, {
       method: 'GET',
@@ -69,7 +71,7 @@ export async function processAnswerKeyAction(params: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*'
       },
-      signal: AbortSignal.timeout(6000)
+      signal: AbortSignal.timeout(raceTimeoutMs)
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json().catch(() => null);
@@ -91,7 +93,7 @@ export async function processAnswerKeyAction(params: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*'
           },
-          signal: AbortSignal.timeout(4000)
+          signal: AbortSignal.timeout(fallbackTimeoutMs)
         });
         if (res.ok) {
           const data = await res.json().catch(() => null);
