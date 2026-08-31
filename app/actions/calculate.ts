@@ -1,7 +1,7 @@
 'use server';
 
 const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
-const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
+const ADMIN_KEY = process.env.ADMIN_API_KEY || '';
 const PARSER_CLUSTER = [
   'https://digialm1.cbtrank.online/api/v12/calculate?url=',
   'https://digialm2.cbtrank.online/api/v12/calculate?url='
@@ -343,7 +343,9 @@ export async function getBase64ImageAction(imageUrl: string): Promise<string> {
     if (res.ok) {
       const contentType = res.headers.get('content-type') || 'image/png';
       const arrayBuffer = await res.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString('base64');
+      const base64 = typeof Buffer !== 'undefined'
+        ? Buffer.from(arrayBuffer).toString('base64')
+        : btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
       return `data:${contentType};base64,${base64}`;
     }
   } catch (e) {}
