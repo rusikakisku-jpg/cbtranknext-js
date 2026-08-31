@@ -40,9 +40,8 @@ export default function ContactPage() {
         setAlertMsg('✅ Message sent successfully! We will contact you within 24 hours.');
         setFormState({ name: '', email: '', message: '' });
       } else {
-        setStatus('success');
-        setAlertMsg('✅ Message sent! We will contact you within 24 hours.');
-        setFormState({ name: '', email: '', message: '' });
+        setStatus('error');
+        setAlertMsg('❌ Failed to send message. Please try again or email us directly at contact.cbtrank@gmail.com.');
       }
     } catch (err) {
       // Fallback: open mailto
