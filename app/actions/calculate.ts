@@ -106,6 +106,20 @@ export async function processAnswerKeyAction(params: {
 
   // 3. Evaluate final data
   if (smartData && (smartData.success === true || smartData.score_summary || smartData.candidate_info || smartData.candidateName)) {
+    // Convert header banner image to Base64 to eliminate CORS blank canvas issues during scorecard image download
+    const rawBannerImg = smartData.header_banner_img || smartData.header_image || smartData.headerImgUrl || smartData.logo;
+    if (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) {
+      try {
+        const b64 = await getBase64ImageAction(rawBannerImg);
+        if (b64 && b64.startsWith('data:image')) {
+          smartData.header_banner_img = b64;
+          smartData.header_image = b64;
+          smartData.headerImgUrl = b64;
+          smartData.logo = b64;
+        }
+      } catch (e) {}
+    }
+
     // Await logging to D1 with secret admin key
     try {
       await fetch(`${BACKEND_BASE}/valid_answerkey_urls`, {
@@ -278,4 +292,28 @@ export async function submitContactMessageAction(msgData: { name: string; email:
   } catch (e) {
     return { success: false };
   }
+}
+
+export async function getBase64ImageAction(imageUrl: string): Promise<string> {
+  if (!imageUrl || typeof imageUrl !== 'string' || imageUrl.startsWith('data:image')) {
+    return imageUrl || '';
+  }
+  try {
+    let cleanUrl = imageUrl.trim();
+    if (!/^https?:\/\//i.test(cleanUrl)) cleanUrl = 'https://' + cleanUrl;
+    const res = await fetch(cleanUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+      },
+      signal: AbortSignal.timeout(5000)
+    });
+    if (res.ok) {
+      const contentType = res.headers.get('content-type') || 'image/png';
+      const arrayBuffer = await res.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString('base64');
+      return `data:${contentType};base64,${base64}`;
+    }
+  } catch (e) {}
+  return imageUrl;
 }
