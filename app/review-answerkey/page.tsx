@@ -109,13 +109,16 @@ export default function ReviewAnswerkeyPage() {
         setRightVal(1.0);
       }
 
+      let effectiveWrong = 0.25;
       if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
-        setWrongVal(parseFloat(savedWrong));
+        effectiveWrong = parseFloat(savedWrong);
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
-        setWrongVal(Number(form.marks_wrong));
-      } else {
-        setWrongVal(0.25);
+        effectiveWrong = Number(form.marks_wrong);
       }
+      if (Math.abs(effectiveWrong - 0.33) <= 0.01 || Math.abs(effectiveWrong - (1 / 3)) <= 0.01) {
+        effectiveWrong = 1 / 3;
+      }
+      setWrongVal(effectiveWrong);
 
       setResultData(result);
       setFormData(form);
