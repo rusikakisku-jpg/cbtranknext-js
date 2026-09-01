@@ -122,11 +122,7 @@ export default function RankPage() {
       const rNum = result.rollNo || result.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
       const ansUrl = form?.ans_key_url || '';
 
-      let extractedExamId = result.examId || form?.exam_id || '';
-      if (!extractedExamId && ansUrl) {
-        const m = ansUrl.match(/(?:AssessmentQPHTMLMode\d*\/+|\/)(\d+O\d+|[A-Za-z0-9_]{5,30})/i);
-        if (m) extractedExamId = m[1];
-      }
+      const officialExamId = result.examId || form?.exam_id || '';
 
       if ((result as any).liveRank) {
         setLiveRank((result as any).liveRank);
@@ -134,7 +130,7 @@ export default function RankPage() {
       }
 
       fetchLiveRankAction({
-        examId: extractedExamId || result.examName || '',
+        examId: officialExamId,
         examSlug: form?.exam_slug || 'general',
         examDate: result.testDate || '',
         examTime: result.testTime || '',
