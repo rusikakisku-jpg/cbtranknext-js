@@ -211,7 +211,7 @@ export async function fetchLiveRankAction(params: {
 
   // 1. ⚡ ULTRA-FAST DIRECT SQL COUNT (Reduces DB Row Reads by 99%)
   try {
-    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&exam_slug=${encodeURIComponent(cleanSlug)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}`;
+    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}`;
     const aggRes = await fetch(liveQueryUrl, {
       method: 'GET',
       headers: {
@@ -246,11 +246,12 @@ export async function fetchLiveRankAction(params: {
     const json = await res.json().catch(() => null);
     const rows = (json && Array.isArray(json.data)) ? json.data : [];
 
-    // Filter candidates for matching exam
+    // Filter candidates strictly by EXACT exam_id match ONLY (e.g. '1234' !== '12345')
     let examCandidates = rows.filter((r: any) => {
-      if (cleanExamId && r.exam_id && (r.exam_id.toLowerCase() === cleanExamId.toLowerCase() || (r.url && r.url.includes(cleanExamId)))) return true;
-      if (cleanSlug && cleanSlug !== 'general' && cleanSlug !== 'direct' && r.exam_slug && r.exam_slug.toLowerCase() === cleanSlug.toLowerCase()) return true;
-      return false;
+      if (!cleanExamId) return false;
+      const rowExamId = String(r.exam_id || '').trim().toLowerCase();
+      const targetExamId = cleanExamId.toLowerCase();
+      return rowExamId === targetExamId;
     });
 
     if (examCandidates.length === 0) {

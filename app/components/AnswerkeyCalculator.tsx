@@ -610,7 +610,6 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     try {
       const liveRes = await fetchLiveRankAction({
         examId: examPaperCode,
-        examSlug: examSlug || 'general',
         examDate: testExamDate,
         examTime: testExamTime,
         category: category || 'UR',
