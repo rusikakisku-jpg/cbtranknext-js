@@ -47,6 +47,7 @@ interface FormData {
   provider_type?: string;
   marks_right?: number;
   marks_wrong?: number;
+  exam_slug?: string;
 }
 
 export default function RankPage() {
@@ -132,7 +133,7 @@ export default function RankPage() {
 
       fetchLiveRankAction({
         examId: extractedExamId || result.examName || '',
-        examSlug: form?.provider_type || 'general',
+        examSlug: form?.exam_slug || 'general',
         examDate: result.testDate || '',
         examTime: result.testTime || '',
         category: effCategory,

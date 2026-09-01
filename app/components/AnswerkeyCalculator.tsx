@@ -640,6 +640,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
         provider_type: providerType,
         marks_right: marksRight,
         marks_wrong: marksWrong,
+        exam_slug: examSlug || 'general',
       }));
       sessionStorage.setItem('cbtrank_result_data', JSON.stringify({
         ...parsedResult,
