@@ -65,29 +65,6 @@ function isCbexamsHost(raw: string): boolean {
   } catch (e) { return false; }
 }
 
-function chosenToIndex(s: string | null): number | null {
-  if (!s) return null;
-  s = s.trim();
-  if (!s || s === '--' || s === '-') return null;
-  if (/^[A-D]$/i.test(s)) return s.toUpperCase().charCodeAt(0) - 64;
-  const numMatch = s.match(/^(\d+)$/);
-  if (numMatch) return parseInt(numMatch[1], 10);
-  return null;
-}
-
-function makeAbsoluteUrl(src: string, baseUrl: string): string {
-  if (!src) return '';
-  if (/^https?:\/\//i.test(src) || src.startsWith('data:')) return src;
-  if (!baseUrl || !/^https?:\/\//i.test(baseUrl)) return src;
-  try {
-    const base = new URL(baseUrl);
-    if (src.startsWith('/')) return base.origin + src;
-    const pathParts = base.pathname.split('/');
-    pathParts.pop();
-    return base.origin + pathParts.join('/') + '/' + src;
-  } catch (e) { return src; }
-}
-
 interface ParseResult {
   correctCount: number;
   wrongCount: number;
@@ -107,151 +84,6 @@ interface ParseResult {
   sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   questionsSummary?: Array<any>;
-}
-
-function parseResponseSheetHtml(htmlText: string, baseUrl: string): ParseResult {
-  const doc = new DOMParser().parseFromString(htmlText || '', 'text/html');
-  let correctCount = 0, wrongCount = 0, unattemptedCount = 0;
-  let candidateName = '', rollNo = '', testDate = '', testTime = '', testCenter = '', examName = '', headerImgUrl = '';
-  const infoRows: Array<{ label: string; value: string }> = [];
-
-  const mainInfoPnlNode = doc.querySelector('.main-info-pnl');
-  if (mainInfoPnlNode) {
-    mainInfoPnlNode.querySelectorAll('img').forEach((img: Element) => {
-      if (!headerImgUrl) {
-        const rawSrc = img.getAttribute('src') || '';
-        if (rawSrc && !rawSrc.startsWith('data:image')) headerImgUrl = makeAbsoluteUrl(rawSrc, baseUrl);
-      }
-    });
-  }
-  if (!headerImgUrl) {
-    doc.querySelectorAll('table img, img').forEach((img: Element) => {
-      if (!headerImgUrl) {
-        const rawSrc = img.getAttribute('src') || '';
-        if (rawSrc && !rawSrc.startsWith('data:image')) headerImgUrl = makeAbsoluteUrl(rawSrc, baseUrl);
-      }
-    });
-  }
-
-  const mainInfoPnl = doc.querySelector('.main-info-pnl, table');
-  if (mainInfoPnl) {
-    mainInfoPnl.querySelectorAll('tr').forEach((tr: Element) => {
-      const tds = tr.querySelectorAll('td, th');
-      if (tds.length >= 2) {
-        const lbl = tds[0].textContent?.trim() || '';
-        const val = tds[1].textContent?.trim() || '';
-        if (lbl && val && !lbl.toLowerCase().includes('photograph') && !val.startsWith('data:image')) {
-          infoRows.push({ label: lbl, value: val });
-          const lowerLbl = lbl.toLowerCase();
-          if (lowerLbl.includes('participant name') || lowerLbl.includes('candidate name')) candidateName = val;
-          else if (/roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*no|ticket/i.test(lowerLbl)) {
-            if (!rollNo) rollNo = val;
-          }
-          else if (lowerLbl.includes('test date')) testDate = val;
-          else if (lowerLbl.includes('test time')) testTime = val;
-          else if (lowerLbl.includes('center') || lowerLbl.includes('venue')) testCenter = val;
-          else if (lowerLbl.includes('subject') || lowerLbl.includes('exam')) examName = val;
-        }
-      }
-    });
-  }
-
-  if (!rollNo && baseUrl) {
-    const urlMatch = baseUrl.match(/\/pub\/([^\/]+)\//i) || baseUrl.match(/[\/=](\d{8,12})/);
-    if (urlMatch) rollNo = urlMatch[1];
-  }
-  if (!candidateName) candidateName = rollNo ? `Candidate (${rollNo})` : 'Verified Candidate';
-
-  const sections: ParseResult['sections'] = [];
-  const secNodes = doc.querySelectorAll('.section-cntnr, .grp-cntnr');
-
-  if (secNodes && secNodes.length > 0) {
-    secNodes.forEach((secNode: Element) => {
-      let secName = '';
-      const lblNode = secNode.querySelector('.section-lbl span.bold, .section-lbl span, .section-lbl');
-      if (lblNode) secName = (lblNode.textContent || '').replace(/^Section\s*:\s*/i, '').trim();
-      if (!secName) secName = `Section ${sections.length + 1}`;
-
-      let secCorrect = 0, secWrong = 0, secUnattempted = 0;
-
-      secNode.querySelectorAll('.question-pnl, .question-panel, .questionBox').forEach((panel: Element) => {
-        let chosenOpt: number | null = null, rightOpt: number | null = null;
-        panel.querySelectorAll('td').forEach((td: Element) => {
-          const txt = td.textContent || '';
-          if (txt.toLowerCase().includes('chosen option')) {
-            const parts = txt.split(':');
-            if (parts.length > 1) chosenOpt = chosenToIndex(parts[1].trim());
-            else {
-              const nextTd = td.nextElementSibling;
-              if (nextTd) chosenOpt = chosenToIndex(nextTd.textContent?.trim() || null);
-            }
-          }
-        });
-
-        secNode.querySelectorAll('.questionRowTbl').forEach((tbl: Element) => {
-          tbl.querySelectorAll('tr').forEach((tr: Element, index: number) => {
-            if (tr.querySelector('.rightAns') || tr.classList.contains('rightAns') || tr.innerHTML.includes('rightAns')) {
-              rightOpt = index + 1;
-            }
-          });
-        });
-
-        if (!rightOpt) {
-          const rightAnsTd = panel.querySelector('td.rightAns, .rightAns');
-          if (rightAnsTd) {
-            const parentTr = rightAnsTd.closest('tr');
-            if (parentTr && parentTr.parentNode) {
-              const siblings = Array.from((parentTr.parentNode as Element).children);
-              const pos = siblings.indexOf(parentTr);
-              if (pos !== -1) rightOpt = pos + 1;
-            }
-          }
-        }
-
-        if (chosenOpt === null) secUnattempted++;
-        else if (rightOpt !== null && chosenOpt === rightOpt) secCorrect++;
-        else secWrong++;
-      });
-
-      const secTotal = secCorrect + secWrong + secUnattempted;
-      if (secTotal > 0) {
-        sections.push({ name: secName, total: secTotal, correct: secCorrect, wrong: secWrong, unattempted: secUnattempted });
-        correctCount += secCorrect; wrongCount += secWrong; unattemptedCount += secUnattempted;
-      }
-    });
-  }
-
-  if (sections.length === 0) {
-    const qPanels = doc.querySelectorAll('.question-pnl, .question-panel, .questionBox');
-    if (qPanels && qPanels.length > 0) {
-      qPanels.forEach((panel: Element) => {
-        let chosenOpt: number | null = null, rightOpt: number | null = null;
-        panel.querySelectorAll('td').forEach((td: Element) => {
-          const txt = td.textContent || '';
-          if (txt.includes('Chosen Option')) {
-            const parts = txt.split(':');
-            if (parts.length > 1) chosenOpt = chosenToIndex(parts[1].trim());
-          }
-        });
-        const rightCell = panel.querySelector('.rightAns, td.rightAns');
-        if (rightCell) {
-          const parentRow = rightCell.closest('tr');
-          if (parentRow) {
-            const optNumCell = parentRow.querySelector('td');
-            if (optNumCell) {
-              const m = (optNumCell.textContent || '').trim().match(/^(\d+)\./);
-              if (m) rightOpt = parseInt(m[1], 10);
-            }
-          }
-        }
-        if (chosenOpt === null) unattemptedCount++;
-        else if (rightOpt !== null && chosenOpt === rightOpt) correctCount++;
-        else wrongCount++;
-      });
-    }
-  }
-
-  return { correctCount, wrongCount, unattemptedCount, candidateName, rollNo, testDate, testTime, testCenter, examName, headerImgUrl, infoRows, sections };
 }
 
 function cleanCandidateVal(raw: any): string {
@@ -489,24 +321,6 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     setLocationLabel(isRRBSlug(examSlug) ? 'RRB Zones' : 'State / UT');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examSlug]);
-
-  function logUserRank(data: {
-    user_id: string;
-    url: string;
-    exam_slug: string;
-    paper_language: string;
-    url_hash?: string;
-    total_marks: number;
-    exam_date: string;
-    exam_time: string;
-    exam_id: string;
-    location: string;
-    gender: string;
-    category: string;
-    domain: string;
-  }) {
-    logUserRankAction(data).catch(() => {});
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
