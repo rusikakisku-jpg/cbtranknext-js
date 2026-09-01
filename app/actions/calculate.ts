@@ -203,11 +203,7 @@ export async function fetchLiveRankAction(params: {
   url?: string;
 }) {
   const normMarks = Number(params.totalMarks) || 0;
-  let cleanExamId = (params.examId || '').trim();
-  if (!cleanExamId && params.url) {
-    const m = params.url.match(/(?:AssessmentQPHTMLMode\d*\/+|\/)(\d+O\d+|[A-Za-z0-9_]{5,30})/i);
-    if (m) cleanExamId = m[1];
-  }
+  const cleanExamId = (params.examId || '').trim();
   const cleanSlug = (params.examSlug || '').trim();
   const cleanCategory = (params.category || '').trim().toLowerCase();
   const cleanDate = (params.examDate || '').trim();
