@@ -44,6 +44,7 @@ interface ResultData {
   testTime: string;
   testCenter: string;
   examName: string;
+  examId?: string;
   headerImgUrl: string;
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
@@ -71,6 +72,7 @@ interface FormData {
   marks_right?: number;
   marks_wrong?: number;
   exam_slug?: string;
+  exam_id?: string;
 }
 
 export default function ReviewAnswerkeyPage() {
