@@ -70,6 +70,7 @@ interface FormData {
   provider_type?: string;
   marks_right?: number;
   marks_wrong?: number;
+  exam_slug?: string;
 }
 
 export default function ReviewAnswerkeyPage() {
