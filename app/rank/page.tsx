@@ -100,6 +100,9 @@ export default function RankPage() {
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         currentWrong = Number(form.marks_wrong);
       }
+      if (Math.abs(currentWrong - 0.33) <= 0.01 || Math.abs(currentWrong - (1 / 3)) <= 0.01) {
+        currentWrong = 1 / 3;
+      }
       setWrongVal(currentWrong);
 
       setResultData(result);

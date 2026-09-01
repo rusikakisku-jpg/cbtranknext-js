@@ -394,9 +394,13 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
       ? parseFloat(savedRight)
       : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
-    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+    let marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
       ? parseFloat(savedWrong)
-      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? 0.33 : 0.25));
+      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? (1 / 3) : 0.25));
+
+    if (Math.abs(marksWrong - 0.33) <= 0.01 || Math.abs(marksWrong - (1 / 3)) <= 0.01) {
+      marksWrong = 1 / 3;
+    }
 
     const effectiveBonus = parsedResult.bonusCount || 0;
     const rawScoreVal = ((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong);
