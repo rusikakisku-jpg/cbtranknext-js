@@ -22,6 +22,7 @@ interface ResultData {
   testTime: string;
   testCenter: string;
   examName: string;
+  examId?: string;
   headerImgUrl: string;
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
@@ -48,6 +49,7 @@ interface FormData {
   marks_right?: number;
   marks_wrong?: number;
   exam_slug?: string;
+  exam_id?: string;
 }
 
 export default function RankPage() {
@@ -120,8 +122,8 @@ export default function RankPage() {
       const rNum = result.rollNo || result.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
       const ansUrl = form?.ans_key_url || '';
 
-      let extractedExamId = '';
-      if (ansUrl) {
+      let extractedExamId = result.examId || form?.exam_id || '';
+      if (!extractedExamId && ansUrl) {
         const m = ansUrl.match(/(?:AssessmentQPHTMLMode\d*\/+|\/)(\d+O\d+|[A-Za-z0-9_]{5,30})/i);
         if (m) extractedExamId = m[1];
       }
