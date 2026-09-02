@@ -37,7 +37,9 @@ interface BlogPageProps {
 
 function cleanExcerpt(text?: string): string {
   if (!text) return '';
-  return text.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+  const clean = text.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+  if (clean.length <= 160) return clean;
+  return clean.slice(0, 157).trim() + '...';
 }
 
 function getCoverUrl(coverImage?: string | null): string {

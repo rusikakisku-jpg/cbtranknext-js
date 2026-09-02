@@ -247,48 +247,67 @@ export async function fetchLiveRankAction(params: {
     const rows = (json && Array.isArray(json.data)) ? json.data : [];
 
     // Filter candidates strictly by EXACT exam_id match ONLY (e.g. '1234' !== '12345')
-    let examCandidates = rows.filter((r: any) => {
+    const examCandidates = rows.filter((r: any) => {
       if (!cleanExamId) return false;
       const rowExamId = String(r.exam_id || '').trim().toLowerCase();
       const targetExamId = cleanExamId.toLowerCase();
       return rowExamId === targetExamId;
     });
 
+    // If no candidate exists yet for this exam_id, this candidate is 1st (never mix with other exams)
     if (examCandidates.length === 0) {
-      examCandidates = rows;
+      return {
+        success: true,
+        data: {
+          overallRank: 1,
+          totalOverall: 1,
+          shiftRank: 1,
+          totalShift: 1,
+          categoryRank: 1,
+          totalCategory: 1,
+          percentile: 100.0
+        }
+      };
     }
 
-    // 1. Overall Rank
+    // 1. Overall Rank (Strictly within the same exam_id)
     const higherOverall = examCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
     const overallRank = higherOverall + 1;
-    const totalOverall = examCandidates.length;
+    const totalOverall = Math.max(overallRank, examCandidates.length);
 
-    // 2. Shift Rank
-    let shiftCandidates = examCandidates.filter((r: any) => {
+    // 2. Shift Rank (Strictly within the same exam_date and exam_time)
+    const shiftCandidates = examCandidates.filter((r: any) => {
       if (cleanDate && r.exam_date && r.exam_date === cleanDate) {
         if (cleanTime && r.exam_time) return r.exam_time === cleanTime;
         return true;
       }
       return false;
     });
-    if (shiftCandidates.length === 0) {
-      shiftCandidates = examCandidates;
-    }
-    const higherShift = shiftCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
-    const shiftRank = higherShift + 1;
-    const totalShift = shiftCandidates.length;
 
-    // 3. Category Rank
-    let catCandidates = examCandidates.filter((r: any) => (r.category || '').trim().toLowerCase() === cleanCategory);
-    if (catCandidates.length === 0) {
-      catCandidates = examCandidates;
+    let shiftRank = 1;
+    let totalShift = 1;
+    let higherShift = 0;
+
+    if (shiftCandidates.length > 0) {
+      higherShift = shiftCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+      shiftRank = higherShift + 1;
+      totalShift = Math.max(shiftRank, shiftCandidates.length);
     }
-    const higherCategory = catCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
-    const categoryRank = higherCategory + 1;
-    const totalCategory = catCandidates.length;
+
+    // 3. Category Rank (Strictly within the same category)
+    const catCandidates = examCandidates.filter((r: any) => (r.category || '').trim().toLowerCase() === cleanCategory);
+
+    let categoryRank = 1;
+    let totalCategory = 1;
+
+    if (catCandidates.length > 0) {
+      const higherCategory = catCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+      categoryRank = higherCategory + 1;
+      totalCategory = Math.max(categoryRank, catCandidates.length);
+    }
 
     // 4. Percentile Score
-    let percentile = 99.0;
+    let percentile = 100.0;
     if (totalShift > 1) {
       percentile = Math.min(99.9, Math.max(1.0, Number((((totalShift - higherShift) / totalShift) * 100).toFixed(2))));
     }
