@@ -20,12 +20,39 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const canonicalUrl = `https://cbtrank.com/blog/${slug}`;
+  const coverUrl = post.coverImage
+    ? (post.coverImage.startsWith('http') ? post.coverImage : `https://upload.cbtrank.com/${post.coverImage.replace(/^\/+/, '')}`)
+    : 'https://upload.cbtrank.com/logo.png';
+
   return {
     title: `${post.title} | CBT RANK Blog`,
     description: post.excerpt,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
+      url: canonicalUrl,
+      type: 'article',
+      siteName: 'CBT RANK',
+      publishedTime: post.date,
+      authors: [post.author_name || 'Team CBTRANK'],
+      images: [
+        {
+          url: coverUrl,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.excerpt,
+      images: [coverUrl],
     },
   };
 }
@@ -60,8 +87,69 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const currentUrl = `https://cbtrank.com/blog/${post.slug}`;
 
+  // 1. BlogPosting Schema (Google Rich Results / Google Discover)
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    'headline': post.title,
+    'description': post.excerpt,
+    'image': coverUrl,
+    'datePublished': post.date,
+    'dateModified': post.date,
+    'author': {
+      '@type': 'Person',
+      'name': post.author_name || 'Team CBTRANK',
+    },
+    'publisher': {
+      '@type': 'Organization',
+      'name': 'CBT RANK',
+      'logo': {
+        '@type': 'ImageObject',
+        'url': 'https://upload.cbtrank.com/logo.png',
+      },
+    },
+    'mainEntityOfPage': {
+      '@type': 'WebPage',
+      '@id': currentUrl,
+    },
+  };
+
+  // 2. BreadcrumbList Schema
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': [
+      {
+        '@type': 'ListItem',
+        'position': 1,
+        'name': 'Home',
+        'item': 'https://cbtrank.com',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 2,
+        'name': 'Blog',
+        'item': 'https://cbtrank.com/blog',
+      },
+      {
+        '@type': 'ListItem',
+        'position': 3,
+        'name': post.title,
+        'item': currentUrl,
+      },
+    ],
+  };
+
   return (
     <main style={{ minHeight: '80vh', padding: '12px 0 36px' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <div className="blog-main-container">
         <div className="blog-layout">
           

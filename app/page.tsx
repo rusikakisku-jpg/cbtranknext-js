@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: 'CBT RANK - Latest Answer Keys & Rank Predictor',
   description: 'Calculate your marks, shift rank, and category cutoffs instantly with CBTRank\'s Answer Key Calculator.',
   keywords: ['CBT Rank', 'Answer Key Calculator', 'RRB', 'SSC', 'CBT exam', 'rank predictor'],
+  alternates: {
+    canonical: 'https://cbtrank.com',
+  },
 };
 
 interface Exam {

@@ -33,6 +33,11 @@ export default function Navbar() {
                 Answer Key
               </Link>
             </li>
+            <li>
+              <Link href="/blog" className={isActive('/blog') ? 'active' : ''}>
+                Blog
+              </Link>
+            </li>
           </ul>
         </nav>
 
@@ -68,6 +73,13 @@ export default function Navbar() {
           onClick={() => setIsOpen(false)}
         >
           Answer Key
+        </Link>
+        <Link
+          href="/blog"
+          className={isActive('/blog') ? 'active' : ''}
+          onClick={() => setIsOpen(false)}
+        >
+          Blog
         </Link>
       </div>
     </header>

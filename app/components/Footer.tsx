@@ -10,6 +10,8 @@ export default function Footer() {
         <nav aria-label="Footer Navigation">
           <ul className="footer-links">
             <li><Link href="/">Home</Link></li>
+            <li><Link href="/answerkey">Answer Key</Link></li>
+            <li><Link href="/blog">Blog</Link></li>
             <li><Link href="/about-us">About Us</Link></li>
             <li><Link href="/contact-us">Contact Us</Link></li>
             <li><Link href="/privacy-policy">Privacy Policy</Link></li>
