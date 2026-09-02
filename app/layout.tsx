@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://cbtrank.com'),
   title: {
     default: "CBT RANK - Latest Answer Keys & Rank Predictor",
     template: "%s | CBT RANK",
@@ -25,6 +26,12 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: "CBT RANK",
     type: "website",
+    url: "https://cbtrank.com",
+    images: [{ url: "https://upload.cbtrank.com/logo.png", width: 1200, height: 630, alt: "CBT RANK" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["https://upload.cbtrank.com/logo.png"],
   },
 };
 

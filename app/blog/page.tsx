@@ -7,9 +7,22 @@ import { fetchBlogsFromCloudflareD1, BlogPost, FALLBACK_BLOG_POSTS } from '../da
 export const metadata: Metadata = {
   title: 'Latest Exam Updates & Rank Analysis Articles | CBT RANK Blog',
   description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis for SSC, RRB, and State Exams.',
+  alternates: {
+    canonical: 'https://cbtrank.com/blog',
+  },
   openGraph: {
     title: 'CBT RANK Blog | Exam Updates & Cut-Off Analysis',
     description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis.',
+    url: 'https://cbtrank.com/blog',
+    type: 'website',
+    siteName: 'CBT RANK',
+    images: [{ url: 'https://upload.cbtrank.com/logo.png', width: 1200, height: 630, alt: 'CBT RANK Blog' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CBT RANK Blog | Exam Updates & Cut-Off Analysis',
+    description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis.',
+    images: ['https://upload.cbtrank.com/logo.png'],
   },
 };
 

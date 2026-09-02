@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { fetchBlogsFromCloudflareD1 } from './data/blogs';
 
 export const runtime = 'edge';
 
@@ -11,6 +12,7 @@ interface Exam {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://cbtrank.com';
   let examUrls: MetadataRoute.Sitemap = [];
+  let blogUrls: MetadataRoute.Sitemap = [];
 
   try {
     const res = await fetch('https://api.cbtrank.com/exams', {
@@ -47,6 +49,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
     } catch (err) {}
   }
+
+  try {
+    const blogs = await fetchBlogsFromCloudflareD1();
+    if (Array.isArray(blogs) && blogs.length > 0) {
+      blogUrls = blogs
+        .filter((b) => b && b.slug)
+        .map((b) => ({
+          url: `${baseUrl}/blog/${b.slug}`,
+          lastModified: new Date(),
+          changeFrequency: 'weekly' as const,
+          priority: 0.8,
+        }));
+    }
+  } catch (err) {}
 
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -99,5 +115,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  return [...staticPages, ...examUrls];
+  return [...staticPages, ...examUrls, ...blogUrls];
 }
