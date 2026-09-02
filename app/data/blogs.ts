@@ -93,6 +93,13 @@ function formatCoverImageUrl(rawImage?: string | null): string | undefined {
   return `https://upload.cbtrank.com/${cleanPath}`;
 }
 
+function formatCleanExcerpt(rawExcerpt?: string | null, rawDescription?: string | null, title?: string): string {
+  const text = (rawExcerpt && rawExcerpt.trim()) ? rawExcerpt : (rawDescription || title || '');
+  const clean = text.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+  if (clean.length <= 160) return clean;
+  return clean.slice(0, 157).trim() + '...';
+}
+
 export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://api.cbtrank.com/blogs)
   try {
@@ -112,7 +119,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
         const blogsList: BlogPost[] = publishedBlogs.map((b: any) => ({
           slug: String(b.slug),
           title: String(b.title),
-          excerpt: String(b.excerpt || b.description || b.title),
+          excerpt: formatCleanExcerpt(b.excerpt, b.description, b.title),
           category: String(b.category || 'Exam Analysis'),
           date: String(b.created_at || 'August 2026').split(' ')[0],
           readTime: '4 min read',
@@ -182,7 +189,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
       blogsList.push({
         slug: String(b.slug),
         title: String(b.title),
-        excerpt: String(b.description || b.title),
+        excerpt: formatCleanExcerpt(null, b.description, b.title),
         category: String(b.category || 'Exam Analysis'),
         date: String(b.created_at || 'August 2026').split(' ')[0],
         readTime: '4 min read',
