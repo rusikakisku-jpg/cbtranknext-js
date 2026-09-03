@@ -1,3 +1,6 @@
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
@@ -20,18 +23,57 @@ interface Exam {
 
 const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
 
+const FALLBACK_EXAMS: Exam[] = [
+  {
+    title: "OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
+    subtitle: "Check Your Answer Key of OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
+    slug: "osssc-ri-ari-amin-icds-sfs-junior-assistant",
+    is_latest: 1
+  },
+  {
+    title: "RRB NTPC UG 2026 CBT-1",
+    subtitle: "Check Your Answer Key of RRB NTPC UG 2026 CBT-1",
+    slug: "rrb-ntpc-ug-2026-cbt-1",
+    is_latest: 1
+  },
+  {
+    title: "SSC CHSL Mains 2025",
+    subtitle: "Check Your Answer Key of SSC CHSL Mains 2025",
+    slug: "ssc-chsl-mains-2025",
+    is_latest: 1
+  },
+  {
+    title: "SSC JE Mains 2025",
+    subtitle: "Check Your Answer Key of SSC JE Mains 2025",
+    slug: "ssc-je-mains-2025",
+    is_latest: 1
+  },
+  {
+    title: "RRB NTPC CBT-I Graduate Level 2025-26",
+    subtitle: "Check Your Answer Key of RRB NTPC CBT-I Graduate Level 2025-26",
+    slug: "rrb-ntpc-cbt-i-graduate-level-2025-26",
+    is_latest: 0
+  },
+  {
+    title: "RRB Technician Grade-I 2025-26",
+    subtitle: "Check Your Answer Key of RRB Technician Grade-I 2025-26",
+    slug: "rrb-technician-grade-i-2025-26",
+    is_latest: 0
+  }
+];
+
 async function getExams(): Promise<Exam[]> {
   try {
     const res = await fetch(`${BACKEND_BASE}/exams`, {
-      next: { revalidate: 60 },
+      cache: 'no-store',
       headers: { 'Accept': 'application/json' }
     });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data) && data.length > 0) return data;
     }
   } catch (e) {}
-  return [];
+  return FALLBACK_EXAMS;
 }
 
 function ExamCard({ exam }: { exam: Exam }) {
