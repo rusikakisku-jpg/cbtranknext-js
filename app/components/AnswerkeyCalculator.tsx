@@ -231,6 +231,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
   const [toastVisible, setToastVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [btnText, setBtnText] = useState('Calculate Marks & Rank');
+  const [progressStep, setProgressStep] = useState(0); // 0=idle 1=fetching 2=parsing 3=ranking 4=saving
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [formData, setFormData] = useState({
@@ -342,6 +343,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
 
     setSubmitting(true);
     setBtnText('Processing...');
+    setProgressStep(1); // Step 1: Fetching answer key
 
     let parsedResult: ParseResult | null = null;
     let rawSmartData: any = null;
@@ -357,17 +359,20 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
 
       if (actionRes && actionRes.success && actionRes.data) {
         rawSmartData = actionRes.data;
+        setProgressStep(2); // Step 2: Parsing data
         parsedResult = normalizeSmartApiResponse(actionRes.data, urlVal);
       } else {
         showToast((actionRes && actionRes.error) || 'Failed to fetch scorecard. Please check URL.');
         setSubmitting(false);
         setBtnText('Calculate Marks & Rank');
+        setProgressStep(0);
         return;
       }
     } catch (err) {
       showToast('Network error while connecting to server. Please try again.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
+      setProgressStep(0);
       return;
     }
 
@@ -375,6 +380,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
       showToast('No data found or Invalid Answer Key URL. Please check and retry.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
+      setProgressStep(0);
       return;
     }
 
@@ -424,6 +430,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
       });
     } catch (e) {}
 
+    setProgressStep(3); // Step 3: Fetching live rank
     let liveRankObj: any = null;
     try {
       const liveRes = await fetchLiveRankAction({
@@ -440,6 +447,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
       }
     } catch (e) {}
 
+    setProgressStep(4); // Step 4: Saving & redirecting
     const overallRank = liveRankObj ? liveRankObj.overallRank : 1;
     const shiftRank = liveRankObj ? liveRankObj.shiftRank : 1;
     const categoryRank = liveRankObj ? liveRankObj.categoryRank : 1;
@@ -639,6 +647,60 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
                 disabled={submitting || !formData.consent}>
                 <span id="btn-text">{btnText}</span>
               </button>
+
+              {/* Real-time Calculation Progress Feedback */}
+              {submitting && (
+                <div style={{
+                  marginTop: '16px',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  background: '#f8fafc',
+                  border: '1.5px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
+                      {progressStep === 1 && '⏳ Connecting & Fetching Answer Key...'}
+                      {progressStep === 2 && '🔍 Parsing Response Sheet & Extracting Answers...'}
+                      {progressStep === 3 && '📊 Computing Negative Marking & Querying Live Ranks...'}
+                      {progressStep === 4 && '🚀 Finalizing Scorecard & Redirecting...'}
+                    </span>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#2563eb' }}>
+                      {progressStep === 1 && '25%'}
+                      {progressStep === 2 && '50%'}
+                      {progressStep === 3 && '75%'}
+                      {progressStep === 4 && '100%'}
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div style={{
+                    width: '100%',
+                    height: '8px',
+                    borderRadius: '999px',
+                    background: '#e2e8f0',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: progressStep === 1 ? '25%' : progressStep === 2 ? '50%' : progressStep === 3 ? '75%' : '100%',
+                      background: 'linear-gradient(90deg, #2563eb 0%, #38bdf8 100%)',
+                      borderRadius: '999px',
+                      transition: 'width 0.4s ease-in-out'
+                    }} />
+                  </div>
+
+                  {/* Micro Steps Indicator */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+                    <span style={{ color: progressStep >= 1 ? '#2563eb' : '#94a3b8' }}>1. Fetch</span>
+                    <span style={{ color: progressStep >= 2 ? '#2563eb' : '#94a3b8' }}>2. Parse</span>
+                    <span style={{ color: progressStep >= 3 ? '#2563eb' : '#94a3b8' }}>3. Calculate</span>
+                    <span style={{ color: progressStep >= 4 ? '#2563eb' : '#94a3b8' }}>4. Ready</span>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>
