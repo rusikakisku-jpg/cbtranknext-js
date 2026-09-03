@@ -3,6 +3,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
+import CookieConsent from "./components/CookieConsent";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cbtrank.com'),
@@ -27,11 +28,22 @@ export const metadata: Metadata = {
     siteName: "CBT RANK",
     type: "website",
     url: "https://cbtrank.com",
-    images: [{ url: "https://upload.cbtrank.com/logo.png", width: 1200, height: 630, alt: "CBT RANK" }],
+    title: "CBT RANK - Answer Key Calculator & Rank Predictor",
+    description: "Calculate your marks, shift rank, and category cutoffs instantly. Free tool for SSC, RRB, Railway & State exams.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "CBT RANK - Answer Key Calculator & Rank Predictor",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    images: ["https://upload.cbtrank.com/logo.png"],
+    title: "CBT RANK - Answer Key Calculator & Rank Predictor",
+    description: "Calculate your marks, shift rank, and category cutoffs instantly. Free tool for SSC, RRB, Railway & State exams.",
+    images: ["/opengraph-image"],
   },
 };
 
@@ -55,6 +67,7 @@ export default function RootLayout({
           {children}
           <Footer />
         </div>
+        <CookieConsent />
       </body>
     </html>
   );
