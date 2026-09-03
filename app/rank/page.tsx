@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { APP_FEATURE_FLAGS } from '../config/features';
 import { fetchLiveRankAction } from '../actions/calculate';
+import { cbtGet, cbtGetString, STORAGE_KEYS } from '../utils/storage';
 
 interface Section {
   name: string;
@@ -71,19 +72,19 @@ export default function RankPage() {
 
   useEffect(() => {
     try {
-      const rawResult = sessionStorage.getItem('cbtrank_result_data');
-      const rawForm = sessionStorage.getItem('cbtrank_form_data');
+      const rawResult = cbtGet<ResultData>(STORAGE_KEYS.RESULT_DATA);
+      const rawForm   = cbtGet<FormData>(STORAGE_KEYS.FORM_DATA);
 
       if (!rawResult) {
         router.push('/');
         return;
       }
 
-      const result = JSON.parse(rawResult) as ResultData;
-      const form = rawForm ? JSON.parse(rawForm) as FormData : null;
+      const result = rawResult as ResultData;
+      const form   = rawForm as FormData | null;
 
-      const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
-      const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
+      const savedRight = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
+      const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
 
       let currentRight = 1.0;
       let currentWrong = 0.25;
