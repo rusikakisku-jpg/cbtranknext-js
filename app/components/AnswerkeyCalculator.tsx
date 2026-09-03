@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { processAnswerKeyAction, logUserRankAction, fetchLiveRankAction } from '../actions/calculate';
+import { cbtSave, cbtGet, cbtRemove, cbtSaveString, cbtGetString, STORAGE_KEYS } from '../utils/storage';
 
 const DEFAULT_RRB_ZONES = [
   "Ahmedabad", "Ajmer", "Prayagraj (Allahabad)", "Bengaluru (Bangalore)", "Bhopal", 
@@ -266,10 +267,10 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
 
     // Save default exam marking scheme if provided
     if (examObj.marks_right !== undefined) {
-      sessionStorage.setItem('cbtrank_exam_marks_right', String(examObj.marks_right));
+      cbtSaveString(STORAGE_KEYS.MARKS_RIGHT, String(examObj.marks_right));
     }
     if (examObj.marks_wrong !== undefined) {
-      sessionStorage.setItem('cbtrank_exam_marks_wrong', String(examObj.marks_wrong));
+      cbtSaveString(STORAGE_KEYS.MARKS_WRONG, String(examObj.marks_wrong));
     }
 
     let locArray: string[] = [];
@@ -296,20 +297,19 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
   useEffect(() => {
     if (!examSlug) {
       // Generic /answerkey page — clear old exam marking cache and load default locations
-      sessionStorage.removeItem('cbtrank_exam_marks_right');
-      sessionStorage.removeItem('cbtrank_exam_marks_wrong');
-      sessionStorage.removeItem('cbtrank_active_exam');
+      cbtRemove(STORAGE_KEYS.MARKS_RIGHT);
+      cbtRemove(STORAGE_KEYS.MARKS_WRONG);
+      cbtRemove(STORAGE_KEYS.ACTIVE_EXAM);
       setLocations(DEFAULT_STATES);
       setLocationLabel('State / UT');
       return;
     }
 
-    // Exam-specific page — try sessionStorage cache first (0ms)
+    // Exam-specific page — try localStorage cache first (0ms)
     try {
-      const cached = sessionStorage.getItem('cbtrank_active_exam');
-      if (cached) {
-        const cachedExam = JSON.parse(cached);
-        if (cachedExam && cachedExam.slug === examSlug) {
+      const cachedExam = cbtGet<any>(STORAGE_KEYS.ACTIVE_EXAM);
+      if (cachedExam) {
+        if (cachedExam.slug === examSlug) {
           applyExamData(cachedExam, examSlug);
           return;
         }
@@ -389,8 +389,8 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
     const apiWrong = rawSmartData?.exam_info?.marking_scheme_applied?.marks_wrong;
 
-    const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
-    const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
+    const savedRight = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
+    const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
     const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
       ? parseFloat(savedRight)
       : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
@@ -449,7 +449,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     const providerType = isDigialm ? 'Digialm' : (isCbexams ? 'CBExams' : 'Official Portal');
 
     try {
-      sessionStorage.setItem('cbtrank_form_data', JSON.stringify({
+      cbtSave(STORAGE_KEYS.FORM_DATA, {
         ans_key_url: urlVal,
         category,
         horizontal_category: formData.horizontal_category,
@@ -462,14 +462,14 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
         marks_wrong: marksWrong,
         exam_slug: examSlug || 'general',
         exam_id: examPaperCode,
-      }));
-      sessionStorage.setItem('cbtrank_result_data', JSON.stringify({
+      });
+      cbtSave(STORAGE_KEYS.RESULT_DATA, {
         ...parsedResult,
         examId: examPaperCode,
         overallRank, shiftRank, categoryRank,
         liveRank: liveRankObj,
-      }));
-      sessionStorage.setItem('cbtrank_show_tg_popup', 'true');
+      });
+      cbtSaveString(STORAGE_KEYS.SHOW_TG_POPUP, 'true');
     } catch (e) {}
 
     router.push('/result');

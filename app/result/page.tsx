@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { APP_FEATURE_FLAGS } from '../config/features';
 import { getBase64ImageAction } from '../actions/calculate';
+import { cbtGet, cbtSave, cbtRemove, cbtGetString, cbtSaveString, STORAGE_KEYS } from '../utils/storage';
 
 function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
   const [mounted, setMounted] = useState(false);
@@ -200,7 +201,7 @@ export default function ResultPage() {
   function handleTelegramJoinClick() {
     try {
       localStorage.setItem('cbtrank_tg_popup_last_time', Date.now().toString());
-      sessionStorage.removeItem('cbtrank_show_tg_popup');
+      cbtRemove(STORAGE_KEYS.SHOW_TG_POPUP);
     } catch (e) {}
     setShowTelegramModal(false);
     if (pendingRedirect.current) {
@@ -211,8 +212,8 @@ export default function ResultPage() {
 
   useEffect(() => {
     try {
-      const rawResult = sessionStorage.getItem('cbtrank_result_data');
-      const rawForm = sessionStorage.getItem('cbtrank_form_data');
+      const rawResult = cbtGet<ResultData>(STORAGE_KEYS.RESULT_DATA);
+      const rawForm   = cbtGet<FormData>(STORAGE_KEYS.FORM_DATA);
 
       if (!rawResult) {
         if (ENABLE_TELEGRAM_DIALOG) {
@@ -232,11 +233,11 @@ export default function ResultPage() {
         return;
       }
 
-      const result = JSON.parse(rawResult) as ResultData;
-      const form = rawForm ? JSON.parse(rawForm) as FormData : null;
+      const result = rawResult as ResultData;
+      const form   = rawForm as FormData | null;
 
-      const savedRight = sessionStorage.getItem('cbtrank_exam_marks_right');
-      const savedWrong = sessionStorage.getItem('cbtrank_exam_marks_wrong');
+      const savedRight = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
+      const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
 
       if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
         setRightVal(parseFloat(savedRight));
@@ -267,11 +268,9 @@ export default function ResultPage() {
             if (b64 && b64.startsWith('data:image')) {
               setResultData((prev) => (prev ? { ...prev, headerImgUrl: b64 } : prev));
               try {
-                const cached = sessionStorage.getItem('cbtrank_result_data');
+                const cached = cbtGet<ResultData>(STORAGE_KEYS.RESULT_DATA);
                 if (cached) {
-                  const cObj = JSON.parse(cached);
-                  cObj.headerImgUrl = b64;
-                  sessionStorage.setItem('cbtrank_result_data', JSON.stringify(cObj));
+                  cbtSave(STORAGE_KEYS.RESULT_DATA, { ...cached, headerImgUrl: b64 });
                 }
               } catch (e) {}
             }
@@ -280,9 +279,9 @@ export default function ResultPage() {
       }
 
       if (ENABLE_TELEGRAM_DIALOG) {
-        const showFlag = sessionStorage.getItem('cbtrank_show_tg_popup');
+        const showFlag = cbtGetString(STORAGE_KEYS.SHOW_TG_POPUP);
         if (showFlag === 'true') {
-          sessionStorage.removeItem('cbtrank_show_tg_popup');
+          cbtRemove(STORAGE_KEYS.SHOW_TG_POPUP);
           setShowTelegramModal(true);
         } else {
           const lastPopupTime = localStorage.getItem('cbtrank_tg_popup_last_time');
@@ -523,12 +522,11 @@ export default function ResultPage() {
                       }
                       setRightVal(n);
                       try {
-                        sessionStorage.setItem('cbtrank_exam_marks_right', n.toString());
-                        const rawForm = sessionStorage.getItem('cbtrank_form_data');
-                        if (rawForm) {
-                          const parsedForm = JSON.parse(rawForm);
+                        cbtSaveString(STORAGE_KEYS.MARKS_RIGHT, n.toString());
+                        const parsedForm = cbtGet<FormData>(STORAGE_KEYS.FORM_DATA);
+                        if (parsedForm) {
                           parsedForm.marks_right = n;
-                          sessionStorage.setItem('cbtrank_form_data', JSON.stringify(parsedForm));
+                          cbtSave(STORAGE_KEYS.FORM_DATA, parsedForm);
                           setFormData(parsedForm);
                         }
                       } catch (err) {}
@@ -555,12 +553,11 @@ export default function ResultPage() {
                       }
                       setWrongVal(n);
                       try {
-                        sessionStorage.setItem('cbtrank_exam_marks_wrong', n.toString());
-                        const rawForm = sessionStorage.getItem('cbtrank_form_data');
-                        if (rawForm) {
-                          const parsedForm = JSON.parse(rawForm);
+                        cbtSaveString(STORAGE_KEYS.MARKS_WRONG, n.toString());
+                        const parsedForm = cbtGet<FormData>(STORAGE_KEYS.FORM_DATA);
+                        if (parsedForm) {
                           parsedForm.marks_wrong = n;
-                          sessionStorage.setItem('cbtrank_form_data', JSON.stringify(parsedForm));
+                          cbtSave(STORAGE_KEYS.FORM_DATA, parsedForm);
                           setFormData(parsedForm);
                         }
                       } catch (err) {}
