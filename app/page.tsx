@@ -293,8 +293,7 @@ export default async function HomePage() {
         <div className="mobile-cta">
           <div className="calc-compact-box">
             <div className="calc-compact-text">
-              <span className="calc-lightbulb">💡</span>
-              <span>Can&apos;t find your exam in the list below?</span>
+              <span>Can&apos;t find your exam in the list below? Use this</span>
             </div>
             <Link href="/answerkey" className="btn-cta calc-compact-btn full-width">
               <CalculatorIcon />
@@ -315,8 +314,7 @@ export default async function HomePage() {
               {/* Desktop Compact Calculator Container */}
               <div className="calc-compact-box desktop-only-calc-box">
                 <div className="calc-compact-text">
-                  <span className="calc-lightbulb">💡</span>
-                  <span>Can&apos;t find your exam in the list below?</span>
+                  <span>Can&apos;t find your exam in the list below? Use this</span>
                 </div>
                 <Link href="/answerkey" className="btn-cta calc-compact-btn" id="desktop-inline-cta">
                   <CalculatorIcon />
