@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { APP_FEATURE_FLAGS } from '../config/features';
 import { fetchLiveRankAction } from '../actions/calculate';
-import { cbtGet, cbtGetString, STORAGE_KEYS } from '../utils/storage';
+import { cbtGet, cbtGetString, cbtSave, STORAGE_KEYS } from '../utils/storage';
 
 interface Section {
   name: string;
