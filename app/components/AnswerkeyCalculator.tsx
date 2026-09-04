@@ -413,7 +413,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
 
     // Safely log candidate ranking data into user_ranks table asynchronously
     try {
-      logUserRankAction({
+      await logUserRankAction({
         user_id: userRoll,
         url: urlVal,
         exam_slug: examSlug || 'general',
