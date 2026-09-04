@@ -412,8 +412,9 @@ footer {
 }
 
 .mobile-cta .calc-compact-box {
-  margin: 0 auto;
-  max-width: 320px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 /* ============================================================
@@ -1369,6 +1370,14 @@ footer {
 }
 
 @media (max-width: 768px) {
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .exam-title {
+    font-size: 0.92rem;
+  }
+
   .nav-links {
     display: none;
   }
@@ -1440,11 +1449,15 @@ footer {
 
 @media (max-width: 480px) {
   .section-title {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
+  }
+
+  .exam-title {
+    font-size: 0.88rem;
   }
 
   .exam-card a {
-    padding: 14px 16px;
+    padding: 13px 15px;
   }
 }
 
