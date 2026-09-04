@@ -296,10 +296,17 @@ export async function fetchLiveRankAction(params: {
       };
     }
 
+    // Check if candidate already exists in the fetched database rows
+    const isExistingInDb = examCandidates.some((r: any) => {
+      if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return true;
+      if (params.url && r.url && String(r.url).trim().toLowerCase() === String(params.url).trim().toLowerCase()) return true;
+      return false;
+    });
+
     // 1. Overall Rank (Strictly within the same exam_id)
     const higherOverall = examCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
     const overallRank = higherOverall + 1;
-    const totalOverall = Math.max(overallRank, examCandidates.length);
+    const totalOverall = Math.max(overallRank, isExistingInDb ? examCandidates.length : (examCandidates.length + 1));
 
     // 2. Shift Rank (Strictly within the same exam_date and exam_time)
     const shiftCandidates = examCandidates.filter((r: any) => {
@@ -317,7 +324,7 @@ export async function fetchLiveRankAction(params: {
     if (shiftCandidates.length > 0) {
       higherShift = shiftCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
       shiftRank = higherShift + 1;
-      totalShift = Math.max(shiftRank, shiftCandidates.length);
+      totalShift = Math.max(shiftRank, isExistingInDb ? shiftCandidates.length : (shiftCandidates.length + 1));
     }
 
     // 3. Category Rank (Strictly within the same category)
@@ -329,7 +336,7 @@ export async function fetchLiveRankAction(params: {
     if (catCandidates.length > 0) {
       const higherCategory = catCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
       categoryRank = higherCategory + 1;
-      totalCategory = Math.max(categoryRank, catCandidates.length);
+      totalCategory = Math.max(categoryRank, isExistingInDb ? catCandidates.length : (catCandidates.length + 1));
     }
 
     // 4. Gender Rank (Strictly within the same gender: Male / Female)
@@ -347,7 +354,7 @@ export async function fetchLiveRankAction(params: {
     if (genderCandidates.length > 0) {
       const higherGender = genderCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
       genderRank = higherGender + 1;
-      totalGender = Math.max(genderRank, genderCandidates.length);
+      totalGender = Math.max(genderRank, isExistingInDb ? genderCandidates.length : (genderCandidates.length + 1));
     }
 
     // 5. Percentile Score

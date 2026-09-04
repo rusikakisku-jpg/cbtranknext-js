@@ -114,11 +114,16 @@ export default function RankPage() {
 
       // Compute raw marks for live database query
       let tRight = 0, tWrong = 0, tBonus = 0;
-      result.sections?.forEach(s => {
-        tRight += s.correct;
-        tWrong += s.wrong;
-        tBonus += (s.bonus || 0);
-      });
+      if (result.sections && result.sections.length > 0) {
+        result.sections.forEach(s => {
+          tRight += s.correct;
+          tWrong += s.wrong;
+          tBonus += (s.bonus || 0);
+        });
+      } else {
+        tRight = Number(result.correctCount || 0);
+        tWrong = Number(result.wrongCount || 0);
+      }
       if (tBonus === 0 && (result.bonusCount || result.rawBonusQuestions)) {
         tBonus = Number(result.bonusCount || result.rawBonusQuestions || 0);
       }
@@ -157,9 +162,13 @@ export default function RankPage() {
             cbtSave(STORAGE_KEYS.RESULT_DATA, {
               ...result,
               overallRank: res.data.overallRank,
+              totalOverall: res.data.totalOverall,
               shiftRank: res.data.shiftRank,
+              totalShift: res.data.totalShift,
               categoryRank: res.data.categoryRank,
+              totalCategory: res.data.totalCategory,
               genderRank: res.data.genderRank,
+              totalGender: res.data.totalGender,
               liveRank: res.data
             });
           } catch (e) {}
@@ -188,10 +197,13 @@ export default function RankPage() {
   const effectiveGender = rawGender ? (rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase()) : '';
 
   const overallRank = liveRank?.overallRank || resultData.overallRank || 1;
+  const totalOverall = liveRank?.totalOverall || (resultData as any).totalOverall || (overallRank <= 1 ? 1 : overallRank);
   const shiftRank = liveRank?.shiftRank || resultData.shiftRank || 1;
+  const totalShift = liveRank?.totalShift || (resultData as any).totalShift || (shiftRank <= 1 ? 1 : shiftRank);
   const categoryRank = liveRank?.categoryRank || resultData.categoryRank || 1;
+  const totalCategory = liveRank?.totalCategory || (resultData as any).totalCategory || (categoryRank <= 1 ? 1 : categoryRank);
   const genderRank = (liveRank && liveRank.genderRank) ? liveRank.genderRank : (resultData.genderRank || 1);
-  const totalGender = (liveRank && liveRank.totalGender) ? liveRank.totalGender : (resultData.genderRank || 1);
+  const totalGender = (liveRank && liveRank.totalGender) ? liveRank.totalGender : ((resultData as any).totalGender || (genderRank <= 1 ? 1 : genderRank));
 
   return (
     <main>
@@ -366,7 +378,7 @@ export default function RankPage() {
                     <div className="rank-card-value rank-val-overall">
                       {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.overallRank : overallRank}`}
                       <span className="rank-card-total">
-                        {' / '}{liveRank ? liveRank.totalOverall : (overallRank <= 1 ? 1 : overallRank)}
+                        {' / '}{liveRank ? liveRank.totalOverall : totalOverall}
                       </span>
                     </div>
                   </div>
@@ -376,7 +388,7 @@ export default function RankPage() {
                     <div className="rank-card-value rank-val-shift">
                       {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.shiftRank : shiftRank}`}
                       <span className="rank-card-total">
-                        {' / '}{liveRank ? liveRank.totalShift : (shiftRank <= 1 ? 1 : shiftRank)}
+                        {' / '}{liveRank ? liveRank.totalShift : totalShift}
                       </span>
                     </div>
                   </div>
@@ -386,7 +398,7 @@ export default function RankPage() {
                     <div className="rank-card-value rank-val-category">
                       {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.categoryRank : categoryRank}`}
                       <span className="rank-card-total">
-                        {' / '}{liveRank ? liveRank.totalCategory : (categoryRank <= 1 ? 1 : categoryRank)}
+                        {' / '}{liveRank ? liveRank.totalCategory : totalCategory}
                       </span>
                     </div>
                     {effectiveCommunity && (

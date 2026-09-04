@@ -389,7 +389,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     let domainHost = '';
     try { domainHost = new URL(urlVal).hostname; } catch (e) {}
     const userRoll = (rawSmartData?.exam_info?.user_id) || (parsedResult.rollNo) || (parsedResult.candidateName) || '';
-    const examPaperCode = (rawSmartData?.exam_info?.exam_id) || '';
+    const examPaperCode = (rawSmartData?.exam_info?.exam_id) || (parsedResult.examId) || '';
     const testExamDate = (rawSmartData?.exam_info?.exam_date) || (parsedResult.testDate) || '';
     const testExamTime = (rawSmartData?.exam_info?.exam_time) || (parsedResult.testTime) || '';
     const apiRight = rawSmartData?.exam_info?.marking_scheme_applied?.marks_right;
@@ -479,6 +479,10 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
         gender: gender || '',
         category: category || '',
         overallRank, shiftRank, categoryRank, genderRank,
+        totalOverall: liveRankObj?.totalOverall || (overallRank <= 1 ? 1 : overallRank),
+        totalShift: liveRankObj?.totalShift || (shiftRank <= 1 ? 1 : shiftRank),
+        totalCategory: liveRankObj?.totalCategory || (categoryRank <= 1 ? 1 : categoryRank),
+        totalGender: liveRankObj?.totalGender || (genderRank <= 1 ? 1 : genderRank),
         liveRank: liveRankObj,
       });
       cbtSaveString(STORAGE_KEYS.SHOW_TG_POPUP, 'true');
