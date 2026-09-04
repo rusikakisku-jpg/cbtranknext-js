@@ -1,7 +1,7 @@
 'use server';
 
 const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
-const ADMIN_KEY = process.env.ADMIN_API_KEY || '';
+const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
 const PARSER_CLUSTER = [
   'https://digialm1.cbtrank.online/api/v12/calculate?url=',
   'https://digialm2.cbtrank.online/api/v12/calculate?url='
@@ -225,14 +225,12 @@ export async function fetchLiveRankAction(params: {
     if (aggRes.ok) {
       const aggJson = await aggRes.json().catch(() => null);
       if (aggJson && aggJson.success && aggJson.data && aggJson.data.totalOverall > 0) {
-        return {
-          success: true,
-          data: {
-            ...aggJson.data,
-            genderRank: aggJson.data.genderRank || 1,
-            totalGender: aggJson.data.totalGender || 1
-          }
-        };
+        if (aggJson.data.genderRank && aggJson.data.totalGender) {
+          return {
+            success: true,
+            data: aggJson.data
+          };
+        }
       }
     }
   } catch (err) {}
@@ -256,12 +254,29 @@ export async function fetchLiveRankAction(params: {
     const rows = (json && Array.isArray(json.data)) ? json.data : [];
 
     // Filter candidates strictly by EXACT exam_id match ONLY (e.g. '1234' !== '12345')
-    const examCandidates = rows.filter((r: any) => {
+    let examCandidates = rows.filter((r: any) => {
       if (!cleanExamId) return false;
       const rowExamId = String(r.exam_id || '').trim().toLowerCase();
       const targetExamId = cleanExamId.toLowerCase();
       return rowExamId === targetExamId;
     });
+
+    // If no exact match, check with letter 'o' / digit '0' interchange (e.g. 1258O26309 vs 1258026309)
+    if (examCandidates.length === 0 && cleanExamId) {
+      const normalizedTarget = cleanExamId.toLowerCase().replace(/o/g, '0');
+      examCandidates = rows.filter((r: any) => {
+        const normalizedRow = String(r.exam_id || '').trim().toLowerCase().replace(/o/g, '0');
+        return normalizedRow === normalizedTarget;
+      });
+    }
+
+    // Fallback by exam_slug if cleanExamId not found
+    if (examCandidates.length === 0 && cleanSlug && cleanSlug !== 'general') {
+      examCandidates = rows.filter((r: any) => {
+        const rowSlug = String(r.exam_slug || '').trim().toLowerCase();
+        return rowSlug === cleanSlug.toLowerCase();
+      });
+    }
 
     // If no candidate exists yet for this exam_id, this candidate is 1st (never mix with other exams)
     if (examCandidates.length === 0) {
@@ -317,9 +332,13 @@ export async function fetchLiveRankAction(params: {
       totalCategory = Math.max(categoryRank, catCandidates.length);
     }
 
-    // 4. Gender Rank (Strictly within the same gender)
+    // 4. Gender Rank (Strictly within the same gender: Male / Female)
     const genderCandidates = cleanGender
-      ? examCandidates.filter((r: any) => (r.gender || '').trim().toLowerCase() === cleanGender)
+      ? examCandidates.filter((r: any) => {
+          const g = String(r.gender || '').trim().toLowerCase();
+          if (!g) return false;
+          return g === cleanGender || (cleanGender === 'male' && g === 'm') || (cleanGender === 'female' && g === 'f') || (cleanGender === 'm' && g === 'male') || (cleanGender === 'f' && g === 'female');
+        })
       : [];
 
     let genderRank = 1;

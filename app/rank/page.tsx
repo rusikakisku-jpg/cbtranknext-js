@@ -125,17 +125,20 @@ export default function RankPage() {
       const rawScore = ((tRight + tBonus) * currentRight) - (tWrong * currentWrong);
 
       const authCommRow = result.infoRows?.find(r => /community|caste|category/i.test(r.label));
-      const effCategory = authCommRow ? authCommRow.value : (form?.category || 'UR');
+      const effCategory = (result as any).category || authCommRow?.value || form?.category || 'UR';
       const authGenderRow = result.infoRows?.find(r => /gender|sex/i.test(r.label));
-      const effGender = authGenderRow ? authGenderRow.value : (form?.gender || '');
+      const effGender = (result as any).gender || authGenderRow?.value || form?.gender || '';
       const rNum = result.rollNo || result.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
       const ansUrl = form?.ans_key_url || '';
 
       const officialExamId = result.examId || form?.exam_id || '';
 
       if ((result as any).liveRank) {
-        setLiveRank((result as any).liveRank);
-        setLoadingRank(false);
+        const cached = (result as any).liveRank;
+        setLiveRank(cached);
+        if (cached && cached.genderRank !== undefined && cached.totalGender !== undefined) {
+          setLoadingRank(false);
+        }
       }
 
       fetchLiveRankAction({
@@ -150,6 +153,16 @@ export default function RankPage() {
       }).then(res => {
         if (res && res.success && res.data) {
           setLiveRank(res.data);
+          try {
+            cbtSave(STORAGE_KEYS.RESULT_DATA, {
+              ...result,
+              overallRank: res.data.overallRank,
+              shiftRank: res.data.shiftRank,
+              categoryRank: res.data.categoryRank,
+              genderRank: res.data.genderRank,
+              liveRank: res.data
+            });
+          } catch (e) {}
         }
         setLoadingRank(false);
       }).catch(() => {
@@ -170,14 +183,15 @@ export default function RankPage() {
   const authenticCommunityRow = resultData.infoRows?.find(r => /community|caste|category/i.test(r.label));
   const effectiveCommunity = authenticCommunityRow ? authenticCommunityRow.value : (formData?.category || 'UR');
 
+  const authGenderRow = resultData.infoRows?.find(r => /gender|sex/i.test(r.label));
+  const rawGender = (resultData as any).gender || authGenderRow?.value || formData?.gender || '';
+  const effectiveGender = rawGender ? (rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase()) : '';
+
   const overallRank = liveRank?.overallRank || resultData.overallRank || 1;
   const shiftRank = liveRank?.shiftRank || resultData.shiftRank || 1;
   const categoryRank = liveRank?.categoryRank || resultData.categoryRank || 1;
-  const genderRank = liveRank?.genderRank || resultData.genderRank || 1;
-
-  const authGenderRow = resultData.infoRows?.find(r => /gender|sex/i.test(r.label));
-  const rawGender = authGenderRow ? authGenderRow.value : (formData?.gender || '');
-  const effectiveGender = rawGender ? (rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase()) : '';
+  const genderRank = (liveRank && liveRank.genderRank) ? liveRank.genderRank : (resultData.genderRank || 1);
+  const totalGender = (liveRank && liveRank.totalGender) ? liveRank.totalGender : (resultData.genderRank || 1);
 
   return (
     <main>
@@ -375,18 +389,26 @@ export default function RankPage() {
                         {' / '}{liveRank ? liveRank.totalCategory : (categoryRank <= 1 ? 1 : categoryRank)}
                       </span>
                     </div>
+                    {effectiveCommunity && (
+                      <span className="rank-subtag rank-subtag-category">
+                        {effectiveCommunity}
+                      </span>
+                    )}
                   </div>
 
                   <div className="rank-metric-card card-gender">
-                    <span className="rank-card-label">
-                      🚻 Gender Rank{effectiveGender ? ` (${effectiveGender})` : ''}
-                    </span>
+                    <span className="rank-card-label">🚻 Gender Rank</span>
                     <div className="rank-card-value rank-val-gender">
-                      {loadingRank && !liveRank ? '...' : `#${liveRank && liveRank.genderRank ? liveRank.genderRank : genderRank}`}
+                      {loadingRank && (!liveRank || !liveRank.genderRank) ? '...' : `#${liveRank && liveRank.genderRank ? liveRank.genderRank : genderRank}`}
                       <span className="rank-card-total">
-                        {' / '}{liveRank && liveRank.totalGender ? liveRank.totalGender : (genderRank <= 1 ? 1 : genderRank)}
+                        {' / '}{liveRank && liveRank.totalGender ? liveRank.totalGender : totalGender}
                       </span>
                     </div>
+                    {effectiveGender && (
+                      <span className="rank-subtag rank-subtag-gender">
+                        {effectiveGender}
+                      </span>
+                    )}
                   </div>
                 </div>
 
