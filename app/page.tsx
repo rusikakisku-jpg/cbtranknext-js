@@ -289,18 +289,29 @@ export default async function HomePage() {
   return (
     <main>
       <div className="home-main">
-        {/* Mobile Top CTA */}
-        <div className="mobile-cta">
-          <Link href="/answerkey" className="btn-cta full-width">
-            <CalculatorIcon />
-            Answerkey Calculator
-          </Link>
-          <Link href="/answerkey" className="calc-cta-hint-banner mobile">
-            <span className="hint-badge-icon">💡</span>
-            <span className="hint-badge-text">
-              Can&apos;t find your exam in the list below? Use this calculator
-            </span>
-          </Link>
+        {/* Universal Answerkey Calculator Card Container */}
+        <div className="universal-calculator-card">
+          <div className="universal-calc-info">
+            <div className="universal-calc-badge">
+              <span className="badge-dot"></span>
+              <span>Universal Calculator</span>
+            </div>
+            <h2 className="universal-calc-title">
+              Can&apos;t find your exam in the list below?
+            </h2>
+            <p className="universal-calc-desc">
+              Use this Answerkey Calculator to calculate your marks, negative marking, and rank directly for any official response sheet.
+            </p>
+          </div>
+          <div className="universal-calc-action">
+            <Link href="/answerkey" className="btn-cta universal-calc-btn" id="desktop-inline-cta">
+              <CalculatorIcon />
+              <span>Answerkey Calculator</span>
+              <svg className="arrow-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
 
         <div className="content-grid">
@@ -310,18 +321,6 @@ export default async function HomePage() {
               <div>
                 <h1 className="section-title">Latest Answer Keys</h1>
                 <p className="section-subtitle">Select your exam to check marks &amp; rank</p>
-              </div>
-              <div className="desktop-calc-cta-container">
-                <Link href="/answerkey" className="btn-cta" id="desktop-inline-cta">
-                  <CalculatorIcon />
-                  Answerkey Calculator
-                </Link>
-                <Link href="/answerkey" className="calc-cta-hint-banner desktop">
-                  <span className="hint-badge-icon">💡</span>
-                  <span className="hint-badge-text">
-                    Can&apos;t find your exam in the list below? Use this calculator
-                  </span>
-                </Link>
               </div>
             </div>
 
