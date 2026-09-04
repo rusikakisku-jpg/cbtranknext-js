@@ -583,11 +583,11 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
                 <div className="ak-form-group">
                   <label htmlFor="gender">Gender <span className="star">*</span></label>
                   <select id="gender" className="ak-form-select" required
-                    value={formData.gender}
+                    value={formData.gender ? (formData.gender.charAt(0).toUpperCase() + formData.gender.slice(1).toLowerCase()) : ''}
                     onChange={e => setFormData(prev => ({ ...prev, gender: e.target.value }))}>
                     <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                   </select>
                 </div>
 
