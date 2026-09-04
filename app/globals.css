@@ -2323,9 +2323,10 @@ footer {
     padding: 4px 6px !important;
   }
 
-  /* 3. Performance Table — Solid Blue Header (Section | Question | R | W | Marks) */
+  /* 3. Performance Table — Solid Blue Header (Section | Q | R | W | [B] | Marks) */
   .table-responsive {
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     border: 2px solid #2563eb !important;
     border-radius: 12px !important;
     margin-top: 12px !important;
@@ -2390,64 +2391,167 @@ footer {
 
   /* Column Width Percentages for Perfect 100% Fit */
   .sec-table th:nth-child(1),
-  .sec-table td:nth-child(1) {
+  .sec-table td:nth-child(1),
+  .sec-table th.th-sec-name,
+  .sec-table td.td-sec-name {
     text-align: left !important;
     padding-left: 8px !important;
     padding-right: 4px !important;
-    width: 39% !important;
+    width: 38% !important;
     white-space: normal !important;
     word-break: break-word !important;
     overflow-wrap: anywhere !important;
     line-height: 1.35 !important;
   }
 
+  /* Question / Total Column */
   .sec-table th:nth-child(2),
-  .sec-table td:nth-child(2) {
-    width: 20% !important;
+  .sec-table td:nth-child(2),
+  .sec-table th.th-total,
+  .sec-table td.td-total {
+    width: 12% !important;
+    padding: 9px 2px !important;
   }
 
-  .sec-table th:nth-child(5),
-  .sec-table td:nth-child(5) {
-    width: 11% !important;
-  }
-
-  .sec-table th:nth-child(6),
-  .sec-table td:nth-child(6) {
-    width: 11% !important;
-  }
-
-  .sec-table th:nth-child(7),
-  .sec-table td:nth-child(7) {
-    width: 19% !important;
-    font-size: 0.70rem !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
-  }
-
-  /* Hide Attempted (col 3) & Unattempted (col 4) on mobile to match 5-col screenshot */
+  /* Hide Attempted (col 3) & Unattempted (col 4) on mobile so all active columns fit cleanly */
   .sec-table th:nth-child(3),
   .sec-table td:nth-child(3),
   .sec-table th:nth-child(4),
-  .sec-table td:nth-child(4) {
+  .sec-table td:nth-child(4),
+  .sec-table th.th-att,
+  .sec-table td.td-att,
+  .sec-table th.th-unatt,
+  .sec-table td.td-unatt {
     display: none !important;
   }
 
-  /* Column Headers text for mobile */
-  .sec-table th:nth-child(2) { font-size: 0 !important; }
-  .sec-table th:nth-child(2)::after { content: "QUESTION"; font-size: 0.70rem !important; color: #fff; letter-spacing: 0; }
+  /* Right (+1) Column */
+  .sec-table th:nth-child(5),
+  .sec-table td:nth-child(5),
+  .sec-table th.th-right,
+  .sec-table td.td-right {
+    width: 14% !important;
+    padding: 9px 2px !important;
+  }
 
-  .sec-table th:nth-child(5) { font-size: 0 !important; }
-  .sec-table th:nth-child(5)::after { content: "R"; font-size: 0.78rem !important; color: #fff; }
+  /* Wrong (-0.25) Column */
+  .sec-table th:nth-child(6),
+  .sec-table td:nth-child(6),
+  .sec-table th.th-wrong,
+  .sec-table td.td-wrong {
+    width: 14% !important;
+    padding: 9px 2px !important;
+  }
 
-  .sec-table th:nth-child(6) { font-size: 0 !important; }
-  .sec-table th:nth-child(6)::after { content: "W"; font-size: 0.78rem !important; color: #fff; }
+  /* Bonus Column (B) when present */
+  .sec-table th.th-bonus,
+  .sec-table td.td-bonus {
+    width: 11% !important;
+    padding: 9px 2px !important;
+  }
+
+  /* Marks Column */
+  .sec-table th:last-child,
+  .sec-table td:last-child,
+  .sec-table th.th-marks,
+  .sec-table td.td-marks {
+    width: 22% !important;
+    font-size: 0.76rem !important;
+    padding-left: 2px !important;
+    padding-right: 5px !important;
+  }
+
+  /* When Bonus column exists in table, adjust widths so all 6 columns fit 100% */
+  .sec-table:has(.th-bonus) th:first-child,
+  .sec-table:has(.th-bonus) td:first-child,
+  .sec-table:has(.th-bonus) th.th-sec-name,
+  .sec-table:has(.th-bonus) td.td-sec-name {
+    width: 33% !important;
+  }
+
+  .sec-table:has(.th-bonus) th.th-total,
+  .sec-table:has(.th-bonus) td.td-total {
+    width: 11% !important;
+  }
+
+  .sec-table:has(.th-bonus) th.th-right,
+  .sec-table:has(.th-bonus) td.td-right {
+    width: 13% !important;
+  }
+
+  .sec-table:has(.th-bonus) th.th-wrong,
+  .sec-table:has(.th-bonus) td.td-wrong {
+    width: 13% !important;
+  }
+
+  .sec-table:has(.th-bonus) th.th-bonus,
+  .sec-table:has(.th-bonus) td.td-bonus {
+    width: 12% !important;
+    display: table-cell !important;
+  }
+
+  .sec-table:has(.th-bonus) th.th-marks,
+  .sec-table:has(.th-bonus) td.td-marks,
+  .sec-table:has(.th-bonus) th:last-child,
+  .sec-table:has(.th-bonus) td:last-child {
+    width: 18% !important;
+  }
+
+  /* Column Headers text for mobile: Question -> Q, Right -> R, Wrong -> W, Bonus -> B */
+  .sec-table th:nth-child(2),
+  .sec-table th.th-total { 
+    font-size: 0 !important; 
+  }
+  .sec-table th:nth-child(2)::after,
+  .sec-table th.th-total::after { 
+    content: "Q"; 
+    font-size: 0.78rem !important; 
+    color: #fff; 
+    font-weight: 800; 
+    letter-spacing: 0; 
+  }
+
+  .sec-table th:nth-child(5),
+  .sec-table th.th-right { 
+    font-size: 0 !important; 
+  }
+  .sec-table th:nth-child(5)::after,
+  .sec-table th.th-right::after { 
+    content: "R"; 
+    font-size: 0.78rem !important; 
+    color: #fff; 
+    font-weight: 800; 
+  }
+
+  .sec-table th:nth-child(6),
+  .sec-table th.th-wrong { 
+    font-size: 0 !important; 
+  }
+  .sec-table th:nth-child(6)::after,
+  .sec-table th.th-wrong::after { 
+    content: "W"; 
+    font-size: 0.78rem !important; 
+    color: #fff; 
+    font-weight: 800; 
+  }
+
+  .sec-table th.th-bonus { 
+    font-size: 0 !important; 
+  }
+  .sec-table th.th-bonus::after { 
+    content: "B"; 
+    font-size: 0.78rem !important; 
+    color: #fff; 
+    font-weight: 800; 
+  }
 
   .sec-table tbody td {
     font-weight: 800 !important;
     color: #0f172a !important;
   }
 
-  .sec-table tbody td:nth-child(1) {
+  .sec-table tbody td:nth-child(1),
+  .sec-table tbody td.td-sec-name {
     font-weight: 600 !important;
     color: #1e293b !important;
     white-space: normal !important;
