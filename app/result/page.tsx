@@ -633,39 +633,17 @@ export default function ResultPage() {
           </div>
 
           {/* Action Buttons under Subject Breakdown (Hidden on Print / Hidden on Downloaded Image) */}
-          <div className="no-print" style={{
-            position: 'relative',
-            zIndex: 1,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '14px',
-            marginTop: '24px'
-          }}>
+          <div className="result-action-buttons no-print">
             {/* Button 1: Review Answerkey */}
             {APP_FEATURE_FLAGS.SHOW_REVIEW_ANSWERKEY && (
               <Link
                 href="/review-answerkey"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                  color: '#ffffff',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  fontWeight: 800,
-                  fontSize: '0.92rem',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
-                  transition: 'all 0.2s ease',
-                  textAlign: 'center'
-                }}
+                className="btn-result-action btn-review-ak"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                Review Answerkey
+                <span>Review Answerkey</span>
               </Link>
             )}
 
@@ -675,23 +653,7 @@ export default function ResultPage() {
                 type="button"
                 disabled={isGeneratingImg}
                 onClick={handleDownloadImageScorecard}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  background: isGeneratingImg ? '#94a3b8' : '#ffffff',
-                  color: '#0f172a',
-                  border: '1.5px solid #cbd5e1',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  fontWeight: 800,
-                  fontSize: '0.92rem',
-                  cursor: isGeneratingImg ? 'wait' : 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                  transition: 'all 0.2s ease',
-                  textAlign: 'center'
-                }}
+                className={`btn-result-action btn-download-sc ${isGeneratingImg ? 'loading' : ''}`}
               >
                 {isGeneratingImg ? (
                   <span>Generating Scorecard...</span>
@@ -700,7 +662,7 @@ export default function ResultPage() {
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    Download Scorecard
+                    <span>Download Scorecard</span>
                   </>
                 )}
               </button>
@@ -710,27 +672,12 @@ export default function ResultPage() {
             {APP_FEATURE_FLAGS.SHOW_VIEW_RANK && (
               <Link
                 href="/rank"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  color: '#ffffff',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  fontWeight: 800,
-                  fontSize: '0.92rem',
-                  textDecoration: 'none',
-                  boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
-                  transition: 'all 0.2s ease',
-                  textAlign: 'center'
-                }}
+                className="btn-result-action btn-view-rank"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                 </svg>
-                View Your Rank
+                <span>View Your Rank</span>
               </Link>
             )}
           </div>
