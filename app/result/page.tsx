@@ -578,10 +578,10 @@ export default function ResultPage() {
               <table className="sec-table">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', minWidth: '110px' }}>Section</th>
-                    <th style={{ textAlign: 'center' }}>Total</th>
-                    <th style={{ textAlign: 'center' }}>Attempted</th>
-                    <th style={{ textAlign: 'center' }}>Unattempted</th>
+                    <th className="th-sec-name" style={{ textAlign: 'left', minWidth: '110px' }}>Section</th>
+                    <th className="th-total" style={{ textAlign: 'center' }}>Total</th>
+                    <th className="th-att" style={{ textAlign: 'center' }}>Attempted</th>
+                    <th className="th-unatt" style={{ textAlign: 'center' }}>Unattempted</th>
                     <th className="th-right" style={{ textAlign: 'center', color: '#16a34a' }}>Right (+{rightVal})</th>
                     <th className="th-wrong" style={{ textAlign: 'center', color: '#dc2626' }}>Wrong (-{wrongVal})</th>
                     {hasBonus && (
@@ -597,8 +597,8 @@ export default function ResultPage() {
                     return (
                       <tr key={idx}>
                         <td className="td-sec-name" style={{ textAlign: 'left', whiteSpace: 'normal', wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.35 }}>{sec.name}</td>
-                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{sec.total}</td>
-                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 800 }}>{secAttempted}</td>
+                        <td className="td-total" style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{sec.total}</td>
+                        <td className="td-att" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 800 }}>{secAttempted}</td>
                         <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#d97706' }}>{sec.unattempted}</td>
                         <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#16a34a', fontWeight: 800 }}>{sec.correct}</td>
                         <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', color: '#dc2626', fontWeight: 800 }}>{sec.wrong}</td>
@@ -614,9 +614,9 @@ export default function ResultPage() {
                 </tbody>
                 <tfoot>
                   <tr className="tfoot-row">
-                    <td style={{ textAlign: 'left', fontWeight: 900, whiteSpace: 'normal' }}>Total</td>
-                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalQuestions}</td>
-                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalAttempted}</td>
+                    <td className="td-sec-name" style={{ textAlign: 'left', fontWeight: 900, whiteSpace: 'normal' }}>Total</td>
+                    <td className="td-total" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalQuestions}</td>
+                    <td className="td-att" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900 }}>{totalAttempted}</td>
                     <td className="td-unatt" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#d97706' }}>{totalUnattempted}</td>
                     <td className="td-right" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#16a34a' }}>{totalRight}</td>
                     <td className="td-wrong" style={{ textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 900, color: '#dc2626' }}>{totalWrong}</td>
