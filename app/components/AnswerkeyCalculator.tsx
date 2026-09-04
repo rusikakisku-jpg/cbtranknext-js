@@ -476,6 +476,8 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
       cbtSave(STORAGE_KEYS.RESULT_DATA, {
         ...parsedResult,
         examId: examPaperCode,
+        gender: gender || '',
+        category: category || '',
         overallRank, shiftRank, categoryRank, genderRank,
         liveRank: liveRankObj,
       });
