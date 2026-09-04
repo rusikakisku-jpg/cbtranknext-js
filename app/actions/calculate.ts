@@ -198,6 +198,7 @@ export async function fetchLiveRankAction(params: {
   examDate?: string;
   examTime?: string;
   category?: string;
+  gender?: string;
   totalMarks: number;
   userId?: string;
   url?: string;
@@ -206,12 +207,13 @@ export async function fetchLiveRankAction(params: {
   const cleanExamId = (params.examId || '').trim();
   const cleanSlug = (params.examSlug || '').trim();
   const cleanCategory = (params.category || '').trim().toLowerCase();
+  const cleanGender = (params.gender || '').trim().toLowerCase();
   const cleanDate = (params.examDate || '').trim();
   const cleanTime = (params.examTime || '').trim();
 
   // 1. ⚡ ULTRA-FAST DIRECT SQL COUNT (Reduces DB Row Reads by 99%)
   try {
-    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}`;
+    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&gender=${encodeURIComponent(cleanGender)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}`;
     const aggRes = await fetch(liveQueryUrl, {
       method: 'GET',
       headers: {
@@ -223,7 +225,14 @@ export async function fetchLiveRankAction(params: {
     if (aggRes.ok) {
       const aggJson = await aggRes.json().catch(() => null);
       if (aggJson && aggJson.success && aggJson.data && aggJson.data.totalOverall > 0) {
-        return { success: true, data: aggJson.data };
+        return {
+          success: true,
+          data: {
+            ...aggJson.data,
+            genderRank: aggJson.data.genderRank || 1,
+            totalGender: aggJson.data.totalGender || 1
+          }
+        };
       }
     }
   } catch (err) {}
@@ -265,6 +274,8 @@ export async function fetchLiveRankAction(params: {
           totalShift: 1,
           categoryRank: 1,
           totalCategory: 1,
+          genderRank: 1,
+          totalGender: 1,
           percentile: 100.0
         }
       };
@@ -306,7 +317,21 @@ export async function fetchLiveRankAction(params: {
       totalCategory = Math.max(categoryRank, catCandidates.length);
     }
 
-    // 4. Percentile Score
+    // 4. Gender Rank (Strictly within the same gender)
+    const genderCandidates = cleanGender
+      ? examCandidates.filter((r: any) => (r.gender || '').trim().toLowerCase() === cleanGender)
+      : [];
+
+    let genderRank = 1;
+    let totalGender = 1;
+
+    if (genderCandidates.length > 0) {
+      const higherGender = genderCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+      genderRank = higherGender + 1;
+      totalGender = Math.max(genderRank, genderCandidates.length);
+    }
+
+    // 5. Percentile Score
     let percentile = 100.0;
     if (totalShift > 1) {
       percentile = Math.min(99.9, Math.max(1.0, Number((((totalShift - higherShift) / totalShift) * 100).toFixed(2))));
@@ -321,6 +346,8 @@ export async function fetchLiveRankAction(params: {
         totalShift,
         categoryRank,
         totalCategory,
+        genderRank,
+        totalGender,
         percentile
       }
     };

@@ -36,6 +36,7 @@ interface ResultData {
   overallRank: number;
   shiftRank: number;
   categoryRank: number;
+  genderRank?: number;
 }
 
 interface FormData {
@@ -66,6 +67,8 @@ export default function RankPage() {
     totalShift: number;
     categoryRank: number;
     totalCategory: number;
+    genderRank?: number;
+    totalGender?: number;
     percentile: number;
   } | null>(null);
   const [loadingRank, setLoadingRank] = useState(true);
@@ -123,6 +126,8 @@ export default function RankPage() {
 
       const authCommRow = result.infoRows?.find(r => /community|caste|category/i.test(r.label));
       const effCategory = authCommRow ? authCommRow.value : (form?.category || 'UR');
+      const authGenderRow = result.infoRows?.find(r => /gender|sex/i.test(r.label));
+      const effGender = authGenderRow ? authGenderRow.value : (form?.gender || '');
       const rNum = result.rollNo || result.infoRows?.find(r => /roll|registration|id/i.test(r.label))?.value || '';
       const ansUrl = form?.ans_key_url || '';
 
@@ -138,6 +143,7 @@ export default function RankPage() {
         examDate: result.testDate || '',
         examTime: result.testTime || '',
         category: effCategory,
+        gender: effGender,
         totalMarks: rawScore,
         userId: rNum,
         url: ansUrl
@@ -167,6 +173,11 @@ export default function RankPage() {
   const overallRank = liveRank?.overallRank || resultData.overallRank || 1;
   const shiftRank = liveRank?.shiftRank || resultData.shiftRank || 1;
   const categoryRank = liveRank?.categoryRank || resultData.categoryRank || 1;
+  const genderRank = liveRank?.genderRank || resultData.genderRank || 1;
+
+  const authGenderRow = resultData.infoRows?.find(r => /gender|sex/i.test(r.label));
+  const rawGender = authGenderRow ? authGenderRow.value : (formData?.gender || '');
+  const effectiveGender = rawGender ? (rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase()) : '';
 
   return (
     <main>
@@ -233,6 +244,7 @@ export default function RankPage() {
                   {resultData.testDate && <div><strong>Date:</strong> {resultData.testDate}</div>}
                   {resultData.testTime && <div><strong>Time:</strong> {resultData.testTime}</div>}
                   {effectiveCommunity && <div><strong>Category:</strong> {effectiveCommunity}</div>}
+                  {effectiveGender && <div><strong>Gender:</strong> {effectiveGender}</div>}
                   {formData?.state && <div><strong>State:</strong> {formData.state}</div>}
                 </div>
               </div>
@@ -333,58 +345,46 @@ export default function RankPage() {
                   Live rank breakdown calculated among participating candidates for this exam.
                 </p>
 
-                {/* 3 Metric Live Rank Cards */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                  gap: '10px',
-                  maxWidth: '580px',
-                  margin: '0 auto 16px'
-                }}>
-                  <div style={{
-                    background: '#ffffff',
-                    border: '1.5px solid #bfdbfe',
-                    borderRadius: '12px',
-                    padding: '12px 10px',
-                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.08)'
-                  }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>🥇 Overall Rank</span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#2563eb', marginTop: '4px' }}>
+                {/* 4 Metric Live Rank Cards */}
+                <div className="live-rank-grid">
+                  <div className="rank-metric-card card-overall">
+                    <span className="rank-card-label">🥇 Overall Rank</span>
+                    <div className="rank-card-value rank-val-overall">
                       {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.overallRank : overallRank}`}
-                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
+                      <span className="rank-card-total">
                         {' / '}{liveRank ? liveRank.totalOverall : (overallRank <= 1 ? 1 : overallRank)}
                       </span>
                     </div>
                   </div>
 
-                  <div style={{
-                    background: '#ffffff',
-                    border: '1.5px solid #bbf7d0',
-                    borderRadius: '12px',
-                    padding: '12px 10px',
-                    boxShadow: '0 2px 8px rgba(22, 163, 74, 0.08)'
-                  }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>⏱️ Shift Rank</span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#059669', marginTop: '4px' }}>
+                  <div className="rank-metric-card card-shift">
+                    <span className="rank-card-label">⏱️ Shift Rank</span>
+                    <div className="rank-card-value rank-val-shift">
                       {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.shiftRank : shiftRank}`}
-                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
+                      <span className="rank-card-total">
                         {' / '}{liveRank ? liveRank.totalShift : (shiftRank <= 1 ? 1 : shiftRank)}
                       </span>
                     </div>
                   </div>
 
-                  <div style={{
-                    background: '#ffffff',
-                    border: '1.5px solid #fed7aa',
-                    borderRadius: '12px',
-                    padding: '12px 10px',
-                    boxShadow: '0 2px 8px rgba(217, 119, 6, 0.08)'
-                  }}>
-                    <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>👥 Category Rank</span>
-                    <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#d97706', marginTop: '4px' }}>
+                  <div className="rank-metric-card card-category">
+                    <span className="rank-card-label">👥 Category Rank</span>
+                    <div className="rank-card-value rank-val-category">
                       {loadingRank && !liveRank ? '...' : `#${liveRank ? liveRank.categoryRank : categoryRank}`}
-                      <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
+                      <span className="rank-card-total">
                         {' / '}{liveRank ? liveRank.totalCategory : (categoryRank <= 1 ? 1 : categoryRank)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="rank-metric-card card-gender">
+                    <span className="rank-card-label">
+                      🚻 Gender Rank{effectiveGender ? ` (${effectiveGender})` : ''}
+                    </span>
+                    <div className="rank-card-value rank-val-gender">
+                      {loadingRank && !liveRank ? '...' : `#${liveRank && liveRank.genderRank ? liveRank.genderRank : genderRank}`}
+                      <span className="rank-card-total">
+                        {' / '}{liveRank && liveRank.totalGender ? liveRank.totalGender : (genderRank <= 1 ? 1 : genderRank)}
                       </span>
                     </div>
                   </div>
@@ -606,6 +606,12 @@ export default function RankPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
                     <span style={{ color: '#64748b', fontWeight: 600 }}>State:</span>
                     <strong style={{ color: '#0f172a' }}>{formData.state}</strong>
+                  </div>
+                )}
+                {effectiveGender && !resultData.infoRows?.some(r => /gender|sex/i.test(r.label)) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem' }}>
+                    <span style={{ color: '#64748b', fontWeight: 600 }}>Gender:</span>
+                    <strong style={{ color: '#0f172a' }}>{effectiveGender}</strong>
                   </div>
                 )}
               </div>

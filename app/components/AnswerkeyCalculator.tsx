@@ -438,6 +438,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
         examDate: testExamDate,
         examTime: testExamTime,
         category: category || 'UR',
+        gender: gender || '',
         totalMarks: rawScoreVal,
         userId: userRoll,
         url: urlVal
@@ -451,6 +452,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     const overallRank = liveRankObj ? liveRankObj.overallRank : 1;
     const shiftRank = liveRankObj ? liveRankObj.shiftRank : 1;
     const categoryRank = liveRankObj ? liveRankObj.categoryRank : 1;
+    const genderRank = liveRankObj ? (liveRankObj.genderRank || 1) : 1;
 
     const isDigialm = isDigialmHost(urlVal);
     const isCbexams = isCbexamsHost(urlVal);
@@ -474,7 +476,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
       cbtSave(STORAGE_KEYS.RESULT_DATA, {
         ...parsedResult,
         examId: examPaperCode,
-        overallRank, shiftRank, categoryRank,
+        overallRank, shiftRank, categoryRank, genderRank,
         liveRank: liveRankObj,
       });
       cbtSaveString(STORAGE_KEYS.SHOW_TG_POPUP, 'true');

@@ -3962,5 +3962,139 @@ footer {
   }
 }
 
+/* ==========================================================================
+   4-METRIC LIVE RANK CARDS RESPONSIVE DESIGN SYSTEM (/rank)
+   ========================================================================== */
+.live-rank-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  max-width: 680px !important;
+  margin: 0 auto 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
 
+.rank-metric-card {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  padding: 12px 10px !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  min-height: 72px !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
 
+.rank-metric-card:hover {
+  transform: translateY(-1px);
+}
+
+.card-overall {
+  border: 1.5px solid #bfdbfe !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08) !important;
+}
+
+.card-shift {
+  border: 1.5px solid #bbf7d0 !important;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08) !important;
+}
+
+.card-category {
+  border: 1.5px solid #fed7aa !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08) !important;
+}
+
+.card-gender {
+  border: 1.5px solid #e9d5ff !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08) !important;
+}
+
+.rank-card-label {
+  font-size: 0.68rem !important;
+  color: #64748b !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+  line-height: 1.2 !important;
+}
+
+.rank-card-value {
+  font-size: 1.15rem !important;
+  font-weight: 900 !important;
+  margin-top: 4px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+}
+
+.rank-val-overall {
+  color: #2563eb !important;
+}
+
+.rank-val-shift {
+  color: #059669 !important;
+}
+
+.rank-val-category {
+  color: #d97706 !important;
+}
+
+.rank-val-gender {
+  color: #7c3aed !important;
+}
+
+.rank-card-total {
+  font-size: 0.72rem !important;
+  color: #64748b !important;
+  font-weight: 700 !important;
+}
+
+/* Tablet & Mobile Screens (max-width: 640px) - Balanced 2x2 Grid */
+@media (max-width: 640px) {
+  .live-rank-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    max-width: 100% !important;
+    margin: 0 auto 14px !important;
+  }
+  .rank-metric-card {
+    padding: 10px 8px !important;
+    min-height: 66px !important;
+  }
+  .rank-card-label {
+    font-size: 0.65rem !important;
+  }
+  .rank-card-value {
+    font-size: 1.05rem !important;
+  }
+  .rank-card-total {
+    font-size: 0.68rem !important;
+  }
+}
+
+/* Extra Small Phones (max-width: 360px) */
+@media (max-width: 360px) {
+  .live-rank-grid {
+    gap: 6px !important;
+  }
+  .rank-metric-card {
+    padding: 8px 6px !important;
+    border-radius: 10px !important;
+    min-height: 60px !important;
+  }
+  .rank-card-label {
+    font-size: 0.60rem !important;
+  }
+  .rank-card-value {
+    font-size: 0.95rem !important;
+  }
+  .rank-card-total {
+    font-size: 0.64rem !important;
+  }
+}
