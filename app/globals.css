@@ -1552,6 +1552,15 @@ footer {
   font-weight: 700;
 }
 
+.sec-table th:first-child,
+.sec-table td:first-child,
+.sec-table td.td-sec-name {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.35 !important;
+}
+
 .sec-table tfoot {
   background: #f8fafc;
   font-weight: 900;
@@ -1855,6 +1864,15 @@ footer {
     white-space: nowrap;
   }
 
+  .sec-table th:first-child,
+  .sec-table td:first-child,
+  .sec-table td.td-sec-name {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
+  }
+
   .sec-table th {
     font-size: 0.66rem;
   }
@@ -2050,6 +2068,15 @@ footer {
     white-space: nowrap;
   }
 
+  .sec-table th:first-child,
+  .sec-table td:first-child,
+  .sec-table td.td-sec-name {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
+  }
+
   .sec-table th {
     font-size: 0.66rem;
   }
@@ -2114,6 +2141,15 @@ footer {
   .sec-table td {
     padding: 8px 8px;
     font-size: 0.74rem;
+  }
+
+  .sec-table th:first-child,
+  .sec-table td:first-child,
+  .sec-table td.td-sec-name {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
   }
 
   .sec-table th {
@@ -2359,6 +2395,10 @@ footer {
     padding-left: 8px !important;
     padding-right: 4px !important;
     width: 39% !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
   }
 
   .sec-table th:nth-child(2),
@@ -2410,6 +2450,10 @@ footer {
   .sec-table tbody td:nth-child(1) {
     font-weight: 600 !important;
     color: #1e293b !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.35 !important;
   }
 
   .sec-table tfoot td {
