@@ -390,7 +390,11 @@ export default function ResultPage() {
   if (resultData?.infoRows && resultData.infoRows.length > 0) {
     resultData.infoRows.forEach(row => {
       if (row.label && row.value && String(row.value).trim() !== '') {
-        displayRows.push({ label: row.label, value: String(row.value) });
+        let val = String(row.value);
+        if (/^(gender|sex)$/i.test(row.label.trim())) {
+          val = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+        }
+        displayRows.push({ label: row.label, value: val });
         existingKeySet.add(row.label.toLowerCase().trim());
       }
     });
@@ -412,7 +416,9 @@ export default function ResultPage() {
     displayRows.push({ label: 'Horizontal Reservation', value: formHz });
   }
   if (formData?.gender && !Array.from(existingKeySet).some(k => k.includes('gender') || k.includes('sex'))) {
-    displayRows.push({ label: 'Gender', value: formData.gender });
+    const rawGender = String(formData.gender).trim();
+    const formattedGender = rawGender ? (rawGender.charAt(0).toUpperCase() + rawGender.slice(1).toLowerCase()) : '';
+    displayRows.push({ label: 'Gender', value: formattedGender });
   }
   if (formData?.state && !Array.from(existingKeySet).some(k => k.includes('state') || k.includes('zone') || k.includes('region'))) {
     displayRows.push({ label: formData.location_label || 'State / Zone', value: formData.state });
