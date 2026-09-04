@@ -295,6 +295,12 @@ export default async function HomePage() {
             <CalculatorIcon />
             Answerkey Calculator
           </Link>
+          <Link href="/answerkey" className="calc-cta-hint-banner mobile">
+            <span className="hint-badge-icon">💡</span>
+            <span className="hint-badge-text">
+              Can&apos;t find your exam in the list below? Use this calculator
+            </span>
+          </Link>
         </div>
 
         <div className="content-grid">
@@ -305,10 +311,18 @@ export default async function HomePage() {
                 <h1 className="section-title">Latest Answer Keys</h1>
                 <p className="section-subtitle">Select your exam to check marks &amp; rank</p>
               </div>
-              <Link href="/answerkey" className="btn-cta" id="desktop-inline-cta">
-                <CalculatorIcon />
-                Answerkey Calculator
-              </Link>
+              <div className="desktop-calc-cta-container">
+                <Link href="/answerkey" className="btn-cta" id="desktop-inline-cta">
+                  <CalculatorIcon />
+                  Answerkey Calculator
+                </Link>
+                <Link href="/answerkey" className="calc-cta-hint-banner desktop">
+                  <span className="hint-badge-icon">💡</span>
+                  <span className="hint-badge-text">
+                    Can&apos;t find your exam in the list below? Use this calculator
+                  </span>
+                </Link>
+              </div>
             </div>
 
             <div className="exam-list" id="exam-list">
