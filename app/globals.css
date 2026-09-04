@@ -370,7 +370,7 @@ footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 295px;
+  max-width: 330px;
   width: 100%;
   box-sizing: border-box;
   transition: all 0.2s ease;
@@ -389,6 +389,7 @@ footer {
   margin-bottom: 8px;
   text-align: center;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .calc-compact-btn {
@@ -597,6 +598,14 @@ footer {
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-top: 4px;
+}
+
+.exam-card-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: 12px;
 }
 
 .exam-arrow {
@@ -1456,8 +1465,30 @@ footer {
     font-size: 0.88rem;
   }
 
+  .calc-compact-text {
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
   .exam-card a {
     padding: 13px 15px;
+  }
+}
+
+@media (max-width: 380px) {
+  .calc-compact-text {
+    font-size: 0.66rem;
+    white-space: nowrap;
+  }
+
+  .exam-card a {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+
+  .exam-card-right {
+    gap: 6px;
+    margin-left: 6px;
   }
 }
 
