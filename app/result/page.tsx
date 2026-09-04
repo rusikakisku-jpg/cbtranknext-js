@@ -169,6 +169,7 @@ interface ResultData {
   overallRank: number;
   shiftRank: number;
   categoryRank: number;
+  genderRank?: number;
 }
 
 interface FormData {
