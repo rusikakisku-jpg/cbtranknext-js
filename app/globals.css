@@ -3822,5 +3822,145 @@ footer {
   margin-bottom: 18px;
 }
 
+/* ============================================================
+   RESULT PAGE ACTION BUTTONS (Review, Download, Rank)
+   Fully responsive across Desktop, Laptop, Tablet, & Mobile
+   ============================================================ */
+.result-action-buttons {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.btn-result-action {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 13px 18px !important;
+  border-radius: 14px !important;
+  font-weight: 800 !important;
+  font-size: 0.90rem !important;
+  text-decoration: none !important;
+  text-align: center !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  min-height: 48px !important;
+  width: 100% !important;
+  line-height: 1.2 !important;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.btn-result-action:active {
+  transform: scale(0.98);
+}
+
+.btn-result-action svg {
+  flex-shrink: 0;
+}
+
+/* Button 1: Review Answerkey */
+.btn-review-ak {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid transparent !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
+}
+
+.btn-review-ak:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45) !important;
+}
+
+/* Button 2: Download Scorecard */
+.btn-download-sc {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+  font-family: inherit !important;
+}
+
+.btn-download-sc:hover:not(:disabled) {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.btn-download-sc.loading,
+.btn-download-sc:disabled {
+  background: #94a3b8 !important;
+  color: #ffffff !important;
+  border-color: #94a3b8 !important;
+  cursor: wait !important;
+}
+
+/* Button 3: View Your Rank */
+.btn-view-rank {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid transparent !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35) !important;
+}
+
+.btn-view-rank:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%) !important;
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45) !important;
+}
+
+/* Tablet screens (max-width: 900px) */
+@media (max-width: 900px) {
+  .result-action-buttons {
+    gap: 10px !important;
+    margin-top: 20px !important;
+  }
+  .btn-result-action {
+    padding: 12px 12px !important;
+    font-size: 0.84rem !important;
+    min-height: 46px !important;
+  }
+}
+
+/* Mobile screens (max-width: 640px) */
+@media (max-width: 640px) {
+  .result-action-buttons {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 18px !important;
+  }
+  .btn-result-action {
+    padding: 13px 16px !important;
+    font-size: 0.90rem !important;
+    border-radius: 12px !important;
+    min-height: 48px !important;
+    width: 100% !important;
+  }
+}
+
+/* Extra small phones (max-width: 360px) */
+@media (max-width: 360px) {
+  .result-action-buttons {
+    gap: 8px !important;
+    margin-top: 14px !important;
+  }
+  .btn-result-action {
+    padding: 11px 12px !important;
+    font-size: 0.82rem !important;
+    min-height: 44px !important;
+    gap: 6px !important;
+  }
+  .btn-result-action svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
 
 
