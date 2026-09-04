@@ -289,27 +289,16 @@ export default async function HomePage() {
   return (
     <main>
       <div className="home-main">
-        {/* Universal Answerkey Calculator Card Container */}
-        <div className="universal-calculator-card">
-          <div className="universal-calc-info">
-            <div className="universal-calc-badge">
-              <span className="badge-dot"></span>
-              <span>Universal Calculator</span>
+        {/* Mobile Compact Calculator Container */}
+        <div className="mobile-cta">
+          <div className="calc-compact-box">
+            <div className="calc-compact-text">
+              <span className="calc-lightbulb">💡</span>
+              <span>Can&apos;t find your exam in the list below?</span>
             </div>
-            <h2 className="universal-calc-title">
-              Can&apos;t find your exam in the list below?
-            </h2>
-            <p className="universal-calc-desc">
-              Use this Answerkey Calculator to calculate your marks, negative marking, and rank directly for any official response sheet.
-            </p>
-          </div>
-          <div className="universal-calc-action">
-            <Link href="/answerkey" className="btn-cta universal-calc-btn" id="desktop-inline-cta">
+            <Link href="/answerkey" className="btn-cta calc-compact-btn full-width">
               <CalculatorIcon />
               <span>Answerkey Calculator</span>
-              <svg className="arrow-icon" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
             </Link>
           </div>
         </div>
@@ -321,6 +310,18 @@ export default async function HomePage() {
               <div>
                 <h1 className="section-title">Latest Answer Keys</h1>
                 <p className="section-subtitle">Select your exam to check marks &amp; rank</p>
+              </div>
+
+              {/* Desktop Compact Calculator Container */}
+              <div className="calc-compact-box desktop-only-calc-box">
+                <div className="calc-compact-text">
+                  <span className="calc-lightbulb">💡</span>
+                  <span>Can&apos;t find your exam in the list below?</span>
+                </div>
+                <Link href="/answerkey" className="btn-cta calc-compact-btn" id="desktop-inline-cta">
+                  <CalculatorIcon />
+                  <span>Answerkey Calculator</span>
+                </Link>
               </div>
             </div>
 
