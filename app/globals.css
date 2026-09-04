@@ -359,6 +359,72 @@ footer {
 }
 
 /* ============================================================
+   ANSWERKEY CALCULATOR CTA HINT BANNER
+============================================================ */
+.desktop-calc-cta-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.calc-cta-hint-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 9px;
+  padding: 5px 12px;
+  color: #1e40af;
+  text-decoration: none;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.calc-cta-hint-banner:hover {
+  background: #e0f2fe;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.12);
+  text-decoration: none;
+}
+
+.calc-cta-hint-banner .hint-badge-icon {
+  font-size: 0.86rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.calc-cta-hint-banner .hint-badge-text {
+  letter-spacing: -0.01em;
+}
+
+.calc-cta-hint-banner.desktop {
+  font-size: 0.74rem;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* Mobile CTA hint styling */
+.mobile-cta .calc-cta-hint-banner {
+  display: flex;
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border-radius: 11px;
+  font-size: 0.8rem;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ============================================================
    STATIC CONTENT PAGE STYLES (About, Privacy, Terms, etc.)
 ============================================================ */
 .static-main {
@@ -1299,8 +1365,9 @@ footer {
     display: none !important;
   }
 
+  .desktop-calc-cta-container,
   .section-header .btn-cta {
-    display: none;
+    display: none !important;
   }
 
   .mobile-cta {
