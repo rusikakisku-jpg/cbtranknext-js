@@ -204,7 +204,13 @@ export async function fetchLiveRankAction(params: {
   url?: string;
 }) {
   const normMarks = Number(params.totalMarks) || 0;
-  const cleanExamId = (params.examId || '').trim();
+  let cleanExamId = (params.examId || '').trim();
+  if (!cleanExamId && params.url) {
+    const match = params.url.match(/AssessmentQPHTMLMode\d*\/([^\/]+)/i) || params.url.match(/\/([0-9]+[A-Za-z0-9]+)\/[0-9]+[A-Za-z0-9]+S\d+/i);
+    if (match && match[1]) {
+      cleanExamId = match[1].trim();
+    }
+  }
   const cleanSlug = (params.examSlug || '').trim();
   const cleanCategory = (params.category || '').trim().toLowerCase();
   const cleanGender = (params.gender || '').trim().toLowerCase();
@@ -297,16 +303,19 @@ export async function fetchLiveRankAction(params: {
     }
 
     // Check if candidate already exists in the fetched database rows
-    const isExistingInDb = examCandidates.some((r: any) => {
+    const isExistingInOverall = examCandidates.some((r: any) => {
       if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return true;
       if (params.url && r.url && String(r.url).trim().toLowerCase() === String(params.url).trim().toLowerCase()) return true;
       return false;
     });
 
     // 1. Overall Rank (Strictly within the same exam_id)
-    const higherOverall = examCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    const higherOverall = examCandidates.filter((r: any) => {
+      if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return false;
+      return (Number(r.total_marks) || 0) > (normMarks + 0.0001);
+    }).length;
     const overallRank = higherOverall + 1;
-    const totalOverall = Math.max(overallRank, isExistingInDb ? examCandidates.length : (examCandidates.length + 1));
+    const totalOverall = Math.max(overallRank, isExistingInOverall ? examCandidates.length : (examCandidates.length + 1));
 
     // 2. Shift Rank (Strictly within the same exam_date and exam_time)
     const shiftCandidates = examCandidates.filter((r: any) => {
@@ -317,26 +326,44 @@ export async function fetchLiveRankAction(params: {
       return false;
     });
 
+    const isExistingInShift = shiftCandidates.some((r: any) => {
+      if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return true;
+      if (params.url && r.url && String(r.url).trim().toLowerCase() === String(params.url).trim().toLowerCase()) return true;
+      return false;
+    });
+
     let shiftRank = 1;
     let totalShift = 1;
     let higherShift = 0;
 
-    if (shiftCandidates.length > 0) {
-      higherShift = shiftCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    if (shiftCandidates.length > 0 || (cleanDate && cleanTime)) {
+      higherShift = shiftCandidates.filter((r: any) => {
+        if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return false;
+        return (Number(r.total_marks) || 0) > (normMarks + 0.0001);
+      }).length;
       shiftRank = higherShift + 1;
-      totalShift = Math.max(shiftRank, isExistingInDb ? shiftCandidates.length : (shiftCandidates.length + 1));
+      totalShift = Math.max(shiftRank, isExistingInShift ? shiftCandidates.length : (shiftCandidates.length + 1));
     }
 
     // 3. Category Rank (Strictly within the same category)
     const catCandidates = examCandidates.filter((r: any) => (r.category || '').trim().toLowerCase() === cleanCategory);
 
+    const isExistingInCat = catCandidates.some((r: any) => {
+      if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return true;
+      if (params.url && r.url && String(r.url).trim().toLowerCase() === String(params.url).trim().toLowerCase()) return true;
+      return false;
+    });
+
     let categoryRank = 1;
     let totalCategory = 1;
 
-    if (catCandidates.length > 0) {
-      const higherCategory = catCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    if (catCandidates.length > 0 || cleanCategory) {
+      const higherCategory = catCandidates.filter((r: any) => {
+        if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return false;
+        return (Number(r.total_marks) || 0) > (normMarks + 0.0001);
+      }).length;
       categoryRank = higherCategory + 1;
-      totalCategory = Math.max(categoryRank, isExistingInDb ? catCandidates.length : (catCandidates.length + 1));
+      totalCategory = Math.max(categoryRank, isExistingInCat ? catCandidates.length : (catCandidates.length + 1));
     }
 
     // 4. Gender Rank (Strictly within the same gender: Male / Female)
@@ -348,13 +375,22 @@ export async function fetchLiveRankAction(params: {
         })
       : [];
 
+    const isExistingInGender = genderCandidates.some((r: any) => {
+      if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return true;
+      if (params.url && r.url && String(r.url).trim().toLowerCase() === String(params.url).trim().toLowerCase()) return true;
+      return false;
+    });
+
     let genderRank = 1;
     let totalGender = 1;
 
-    if (genderCandidates.length > 0) {
-      const higherGender = genderCandidates.filter((r: any) => (Number(r.total_marks) || 0) > normMarks).length;
+    if (genderCandidates.length > 0 || cleanGender) {
+      const higherGender = genderCandidates.filter((r: any) => {
+        if (params.userId && r.user_id && String(r.user_id).trim().toLowerCase() === String(params.userId).trim().toLowerCase()) return false;
+        return (Number(r.total_marks) || 0) > (normMarks + 0.0001);
+      }).length;
       genderRank = higherGender + 1;
-      totalGender = Math.max(genderRank, isExistingInDb ? genderCandidates.length : (genderCandidates.length + 1));
+      totalGender = Math.max(genderRank, isExistingInGender ? genderCandidates.length : (genderCandidates.length + 1));
     }
 
     // 5. Percentile Score
