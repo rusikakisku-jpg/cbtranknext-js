@@ -435,6 +435,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
     try {
       const liveRes = await fetchLiveRankAction({
         examId: examPaperCode,
+        examSlug: examSlug || '',
         examDate: testExamDate,
         examTime: testExamTime,
         category: category || 'UR',

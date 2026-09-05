@@ -148,6 +148,7 @@ export default function RankPage() {
 
       fetchLiveRankAction({
         examId: officialExamId,
+        examSlug: (result as any).exam_slug || (result as any).slug || form?.exam_slug || '',
         examDate: result.testDate || '',
         examTime: result.testTime || '',
         category: effCategory,
