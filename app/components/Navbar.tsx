@@ -17,7 +17,13 @@ export default function Navbar() {
     <header className="navbar" id="navbar">
       <div className="navbar-inner">
         <Link href="/" className="nav-logo" aria-label="CBT RANK Home">
-          <img src="https://upload.cbtrank.com/logo.png" alt="CBT RANK Logo" className="logo-img" />
+          <img
+            src="https://upload.cbtrank.com/logo.png"
+            alt="CBT RANK Logo"
+            className="logo-img"
+            width={42}
+            height={42}
+          />
           <span className="logo-text">CBT RANK</span>
         </Link>
 

@@ -7,6 +7,9 @@ import CookieConsent from "./components/CookieConsent";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cbtrank.com'),
+  alternates: {
+    canonical: 'https://cbtrank.com',
+  },
   title: {
     default: "CBT RANK - Latest Answer Keys & Rank Predictor",
     template: "%s | CBT RANK",
@@ -59,6 +62,38 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.cbtrank.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'CBT RANK',
+              url: 'https://cbtrank.com',
+              description: 'Calculate your marks, shift rank, and category cutoffs instantly with CBTRank Answer Key Calculator.',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://cbtrank.com/blog?q={search_term_string}',
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'CBT RANK',
+              url: 'https://cbtrank.com',
+              logo: 'https://upload.cbtrank.com/logo.png',
+              sameAs: [
+                'https://t.me/cbtrank',
+              ],
+            }),
+          }}
+        />
       </head>
       <body>
         <GoogleAnalytics />

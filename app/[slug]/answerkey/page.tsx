@@ -3,6 +3,7 @@ export const runtime = 'edge';
 import type { Metadata } from 'next';
 import AnswerkeyCalculator from '../../components/AnswerkeyCalculator';
 import ExamFaqSection from '../../components/ExamFaqSection';
+import RelatedExamsSection from '../../components/RelatedExamsSection';
 
 // Next.js 15: params is a Promise
 interface PageProps {
@@ -28,9 +29,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const formattedTitle = formatExamTitle(slug);
   const canonicalUrl = `https://cbtrank.com/${slug}/answerkey`;
 
+  // Format title to fit within Google's snippet width (55-60 chars max before '| CBT RANK')
+  let displayTitle = formattedTitle;
+  if (displayTitle.length > 32) {
+    displayTitle = displayTitle.slice(0, 30).trim() + '...';
+  }
+  const metaTitle = `${displayTitle} Answer Key & Rank Calculator`;
+
   return {
-    title: `${formattedTitle} Answer Key Calculator & Rank Predictor`,
-    description: `Calculate your ${formattedTitle} marks, shift rank, and category rank instantly with official negative marking on CBTRank's Answer Key Calculator.`,
+    title: metaTitle,
+    description: `Calculate your ${displayTitle} marks, shift rank, and category rank instantly with official negative marking on CBTRank's Answer Key Calculator.`,
     keywords: [
       `${formattedTitle} answer key`,
       `${formattedTitle} rank predictor`,
@@ -152,6 +160,7 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
 
       <AnswerkeyCalculator examSlug={slug} initialTitle={`${formattedTitle} Answer Key Calculator`} />
       <ExamFaqSection formattedTitle={formattedTitle} faqs={faqs} />
+      <RelatedExamsSection currentSlug={slug} />
     </>
   );
 }
