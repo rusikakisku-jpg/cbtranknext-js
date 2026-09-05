@@ -22,7 +22,7 @@ export default function RelatedExamsSection({
   isSidebar = false,
   showUniversalCta,
 }: RelatedExamsSectionProps) {
-  const filteredExams = POPULAR_EXAMS.filter((e) => e.slug !== currentSlug).slice(0, 6);
+  const filteredExams = POPULAR_EXAMS.filter((e) => e.slug !== currentSlug).slice(0, isSidebar ? 7 : 6);
   const shouldShowCta = showUniversalCta ?? (Boolean(currentSlug) && !isSidebar);
 
   return (
@@ -81,6 +81,7 @@ export default function RelatedExamsSection({
             <Link
               key={exam.slug}
               href={`/${exam.slug}/answerkey`}
+              title={exam.title}
               className="related-exam-link-item"
               style={{
                 display: 'block',
