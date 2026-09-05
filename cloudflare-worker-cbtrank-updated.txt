@@ -619,8 +619,15 @@ export default {
         whereClause = `WHERE exam_slug = '${qExamSlug}'`;
       }
 
-      const sql = `SELECT * FROM user_ranks ${whereClause} ORDER BY total_marks DESC, id DESC LIMIT ${limit}`;
-      const results = await queryD1(env, sql);
+      let sql = `SELECT * FROM user_ranks ${whereClause} ORDER BY total_marks DESC LIMIT ${limit}`;
+      let results = await queryD1(env, sql);
+      if (!results || (Array.isArray(results) && results.length === 0)) {
+        try {
+          const fallbackSql = `SELECT * FROM user_ranks ${whereClause} ORDER BY user_id DESC LIMIT ${limit}`;
+          const fallbackRes = await queryD1(env, fallbackSql);
+          if (fallbackRes && fallbackRes.length > 0) results = fallbackRes;
+        } catch (e) {}
+      }
 
       return new Response(JSON.stringify({ 
         success: true, 
