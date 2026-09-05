@@ -38,18 +38,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const rawTitle = exam.title || formatExamTitle(slug);
-  const cleanTitle = rawTitle.replace(/\s+Answer\s+Key$/i, '');
+  const examTitle = rawTitle.replace(/\s+Answer\s+Key$/i, '');
   const canonicalUrl = `https://cbtrank.com/${slug}/answerkey`;
-  const metaTitle = `${cleanTitle} Answer Key & Rank Calculator`;
+  const metaTitle = `${examTitle} Answer Key & Rank Calculator`;
 
   return {
     title: metaTitle,
-    description: `Calculate your ${cleanTitle} marks, shift rank, and category rank instantly with official negative marking on CBTRank's Answer Key Calculator.`,
+    description: `Calculate your ${examTitle} marks, shift rank, and category rank instantly with official negative marking on CBTRank's Answer Key Calculator.`,
     keywords: [
-      `${cleanTitle} answer key`,
-      `${cleanTitle} rank predictor`,
-      `${cleanTitle} score calculator`,
-      `${cleanTitle} response sheet`,
+      `${examTitle} answer key`,
+      `${examTitle} rank predictor`,
+      `${examTitle} score calculator`,
+      `${examTitle} response sheet`,
       'cbt rank calculator'
     ],
     alternates: {
