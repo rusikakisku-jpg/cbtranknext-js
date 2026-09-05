@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'CBT RANK Privacy Policy - How we collect, use, and protect your data.',
+  alternates: {
+    canonical: 'https://cbtrank.com/privacy-policy',
+  },
 };
 
 export default function PrivacyPolicyPage() {

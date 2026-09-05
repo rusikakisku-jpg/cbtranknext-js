@@ -1,5 +1,5 @@
 export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -14,238 +14,11 @@ export const metadata: Metadata = {
   },
 };
 
-interface Exam {
-  id?: number;
-  slug: string;
-  title: string;
-  subtitle?: string;
-  is_latest?: number | string;
-  set_on_top?: number | string;
-  is_visible?: number | boolean;
-}
+import { Exam, ALL_EXAMS_FALLBACK } from './data/exams';
 
 // Hardcoded reliable endpoints with fallback
 const PRIMARY_API = 'https://api.cbtrank.com/exams';
 const SECONDARY_API = 'https://cbtrank.rusikakisku.workers.dev/exams';
-
-const ALL_EXAMS_FALLBACK: Exam[] = [
-  {
-    "id": 47,
-    "slug": "ossc-physical-measurement-and-physical-efficiencytest-2025",
-    "title": "OSSC Physical Measurement and Physical EfficiencyTest - 2025",
-    "subtitle": "Check Your Answer Key of OSSC Physical Measurement and Physical EfficiencyTest - 2025",
-    "is_latest": 1,
-    "set_on_top": 1
-  },
-  {
-    "id": 46,
-    "slug": "rrb-group-d-2026-answer-key",
-    "title": "RRB Group D 2026 Answer Key",
-    "subtitle": "Check Your Answer Key of RRB Group D 2026 Answer Key",
-    "is_latest": 1,
-    "set_on_top": 0
-  },
-  {
-    "id": 45,
-    "slug": "osssc-ri-ari-amin-icds-sfs-junior-assistant",
-    "title": "OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
-    "subtitle": "Check Your Answer Key of OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
-    "is_latest": 1,
-    "set_on_top": 0
-  },
-  {
-    "id": 44,
-    "slug": "rrb-ntpc-ug-2026-cbt-1",
-    "title": "RRB NTPC UG 2026 CBT-1",
-    "subtitle": "Check Your Answer Key of RRB NTPC UG 2026 CBT-1",
-    "is_latest": 1,
-    "set_on_top": 0
-  },
-  {
-    "id": 43,
-    "slug": "ssc-chsl-mains-2025",
-    "title": "SSC CHSL Mains 2025",
-    "subtitle": "Check Your Answer Key of SSC CHSL Mains 2025",
-    "is_latest": 1,
-    "set_on_top": 0
-  },
-  {
-    "id": 42,
-    "slug": "ssc-je-mains-2025",
-    "title": "SSC JE Mains 2025",
-    "subtitle": "Check Your Answer Key of SSC JE Mains 2025",
-    "is_latest": 1,
-    "set_on_top": 0
-  },
-  {
-    "id": 41,
-    "slug": "rrb-ntpc-cbt-i-graduate-level-2025-26",
-    "title": "RRB NTPC CBT-I Graduate Level 2025-26",
-    "subtitle": "Check Your Answer Key of RRB NTPC CBT-I Graduate Level 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 40,
-    "slug": "rrb-technician-grade-i-2025-26",
-    "title": "RRB Technician Grade-I 2025-26",
-    "subtitle": "Check Your Answer Key of RRB Technician Grade-I 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 39,
-    "slug": "rrb-paramedical-exam-2025-26",
-    "title": "RRB Paramedical Exam 2025-26",
-    "subtitle": "Check Your Answer Key of RRB Paramedical Exam 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 38,
-    "slug": "rrb-technician-grade-3-2025-26",
-    "title": "RRB Technician Grade-3 2025-26",
-    "subtitle": "Check Your Answer Key of RRB Technician Grade-3 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 37,
-    "slug": "rrb-alp-cbt-1-2025-26-2",
-    "title": "RRB ALP CBT-1 2025-26",
-    "subtitle": "Check Your Answer Key of RRB ALP CBT-1 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 36,
-    "slug": "rrb-section-controller-cbt-i-2026",
-    "title": "RRB Section Controller CBT-I 2026",
-    "subtitle": "Check Your Answer Key of RRB Section Controller CBT-I 2026",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 35,
-    "slug": "ssc-mts-2025-26",
-    "title": "SSC MTS 2025-26",
-    "subtitle": "Check Your Answer Key of SSC MTS 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 34,
-    "slug": "rrb-group-d-2024-25-2",
-    "title": "RRB Group-D 2024-25",
-    "subtitle": "Check Your Answer Key of RRB Group-D 2024-25",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 33,
-    "slug": "rrb-alp-cbt-1-2025-26",
-    "title": "RRB ALP CBT-1 2025-26",
-    "subtitle": "Check Your Answer Key of RRB ALP CBT-1 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 32,
-    "slug": "rrb-je-cbt-1-2025-26",
-    "title": "RRB JE CBT-1 2025-26",
-    "subtitle": "Check Your Answer Key of RRB JE CBT-1 2025-26",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 31,
-    "slug": "rrb-section-controller-cbt-1",
-    "title": "RRB Section Controller CBT-1",
-    "subtitle": "Check Your Answer Key of RRB Section Controller CBT-1",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 30,
-    "slug": "rrb-group-d-2024-25",
-    "title": "RRB Group-D 2024-25",
-    "subtitle": "Check Your Answer Key of RRB Group-D 2024-25",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 29,
-    "slug": "ssc-delhi-police-awo-tpo-2025",
-    "title": "SSC Delhi Police AWO/TPO 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police AWO/TPO 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 28,
-    "slug": "ssc-delhi-police-head-constable-2025",
-    "title": "SSC Delhi Police Head Constable 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police Head Constable 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 27,
-    "slug": "ssc-cgl-mains-2025",
-    "title": "SSC CGL Mains 2025",
-    "subtitle": "Check Your Answer Key of SSC CGL Mains 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 26,
-    "slug": "ssc-delhi-police-constable-2025",
-    "title": "SSC Delhi Police Constable 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police Constable 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 25,
-    "slug": "ssc-delhi-police-driver-2025",
-    "title": "SSC Delhi Police Driver 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police Driver 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 23,
-    "slug": "rrb-ntpc-ug-cbt-ii-2024-25",
-    "title": "RRB NTPC UG CBT-II  2024-25",
-    "subtitle": "Check Your Answer Key of RRB NTPC UG CBT-II  2024-25",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 22,
-    "slug": "rrb-ntpc-2025-cbt-2",
-    "title": "RRB NTPC 2025 CBT 2",
-    "subtitle": "Check Your Answer Key of RRB NTPC 2025 CBT 2.",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 21,
-    "slug": "rrb-ministerial-isolated-categories-2025",
-    "title": "RRB Ministerial & Isolated Categories 2025",
-    "subtitle": "Check Your Answer Key of RRB Ministerial & Isolated Categories 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  },
-  {
-    "id": 20,
-    "slug": "rrb-ntpc-ug-under-graduate-2025",
-    "title": "RRB NTPC UG (Under Graduate) 2025",
-    "subtitle": "Check Your Answer Key of RRB NTPC UG (Under Graduate) 2025",
-    "is_latest": 0,
-    "set_on_top": 0
-  }
-];
 
 async function fetchEndpoint(url: string): Promise<Exam[] | null> {
   const controller = new AbortController();
@@ -253,15 +26,12 @@ async function fetchEndpoint(url: string): Promise<Exam[] | null> {
 
   try {
     const res = await fetch(url, {
-      cache: 'no-store',
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 CBTRank/1.0',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
       },
       signal: controller.signal,
-      next: { revalidate: 0 }
+      next: { revalidate: 60 }
     });
 
     if (res.ok) {

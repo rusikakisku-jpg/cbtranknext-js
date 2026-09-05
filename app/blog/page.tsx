@@ -4,36 +4,53 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { fetchBlogsFromCloudflareD1, BlogPost, FALLBACK_BLOG_POSTS } from '../data/blogs';
 
-export const metadata: Metadata = {
-  title: 'Latest Exam Updates & Rank Analysis Articles | CBT RANK Blog',
-  description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis for SSC, RRB, and State Exams.',
-  alternates: {
-    canonical: 'https://cbtrank.com/blog',
-  },
-  openGraph: {
-    title: 'CBT RANK Blog | Exam Updates & Cut-Off Analysis',
-    description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis.',
-    url: 'https://cbtrank.com/blog',
-    type: 'website',
-    siteName: 'CBT RANK',
-    images: [{ url: 'https://upload.cbtrank.com/logo.png', width: 1200, height: 630, alt: 'CBT RANK Blog' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'CBT RANK Blog | Exam Updates & Cut-Off Analysis',
-    description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis.',
-    images: ['https://upload.cbtrank.com/logo.png'],
-  },
-};
-
-const POSTS_PER_PAGE = 5;
-
 interface BlogPageProps {
   searchParams?: Promise<{
     q?: string;
     page?: string;
   }>;
 }
+
+export async function generateMetadata({ searchParams }: BlogPageProps): Promise<Metadata> {
+  const resolvedParams = searchParams ? await Promise.resolve(searchParams) : {};
+  const query = String(resolvedParams?.q || '').trim();
+  const page = Math.max(1, parseInt(String(resolvedParams?.page || '1'), 10));
+
+  let title = 'Latest Exam Updates & Rank Analysis Articles | CBT RANK Blog';
+  let canonicalUrl = 'https://cbtrank.com/blog';
+
+  if (query) {
+    title = `Articles matching "${query}" | CBT RANK Blog`;
+    canonicalUrl = `https://cbtrank.com/blog?q=${encodeURIComponent(query)}`;
+  } else if (page > 1) {
+    title = `Latest Exam Updates & Rank Analysis - Page ${page} | CBT RANK Blog`;
+    canonicalUrl = `https://cbtrank.com/blog?page=${page}`;
+  }
+
+  return {
+    title,
+    description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis for SSC, RRB, and State Exams.',
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis.',
+      url: canonicalUrl,
+      type: 'website',
+      siteName: 'CBT RANK',
+      images: [{ url: 'https://upload.cbtrank.com/logo.png', width: 1200, height: 630, alt: 'CBT RANK Blog' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: 'Read detailed guides, normalization formulas, answer key verification steps, and category cut-off analysis.',
+      images: ['https://upload.cbtrank.com/logo.png'],
+    },
+  };
+}
+
+const POSTS_PER_PAGE = 5;
 
 function cleanExcerpt(text?: string): string {
   if (!text) return '';
@@ -108,13 +125,13 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
           {/* Main Content Area */}
           <div className="content-area">
             <div className="section-head">
-              <h2 className="section-title">
+              <h1 className="section-title">
                 {query
                   ? `Search Results for "${query}"`
                   : currentPage > 1
                   ? `Latest Posts (Page ${currentPage})`
-                  : 'Latest Posts'}
-              </h2>
+                  : 'Latest Exam Updates & Rank Analysis'}
+              </h1>
             </div>
 
             <div id="blog-entries">

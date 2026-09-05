@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Terms and Conditions',
   description: 'CBT RANK Terms and Conditions - Rules and guidelines for using our automated exam rank calculator.',
+  alternates: {
+    canonical: 'https://cbtrank.com/terms-and-conditions',
+  },
 };
 
 export default function TermsPage() {

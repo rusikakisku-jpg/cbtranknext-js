@@ -7,9 +7,6 @@ import CookieConsent from "./components/CookieConsent";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cbtrank.com'),
-  alternates: {
-    canonical: 'https://cbtrank.com',
-  },
   title: {
     default: "CBT RANK - Latest Answer Keys & Rank Predictor",
     template: "%s | CBT RANK",
@@ -60,6 +57,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
         <link rel="preconnect" href="https://api.cbtrank.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <script
