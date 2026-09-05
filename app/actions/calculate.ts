@@ -219,7 +219,7 @@ export async function fetchLiveRankAction(params: {
 
   // 1. ⚡ ULTRA-FAST DIRECT SQL COUNT (Reduces DB Row Reads by 99%)
   try {
-    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&gender=${encodeURIComponent(cleanGender)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}`;
+    const liveQueryUrl = `${BACKEND_BASE}/live_rank?exam_id=${encodeURIComponent(cleanExamId)}&exam_slug=${encodeURIComponent(cleanSlug)}&total_marks=${normMarks}&category=${encodeURIComponent(cleanCategory)}&gender=${encodeURIComponent(cleanGender)}&exam_date=${encodeURIComponent(cleanDate)}&exam_time=${encodeURIComponent(cleanTime)}&user_id=${encodeURIComponent(params.userId || '')}&url=${encodeURIComponent(params.url || '')}`;
     const aggRes = await fetch(liveQueryUrl, {
       method: 'GET',
       headers: {
@@ -231,19 +231,18 @@ export async function fetchLiveRankAction(params: {
     if (aggRes.ok) {
       const aggJson = await aggRes.json().catch(() => null);
       if (aggJson && aggJson.success && aggJson.data && aggJson.data.totalOverall > 0) {
-        if (aggJson.data.genderRank && aggJson.data.totalGender) {
-          return {
-            success: true,
-            data: aggJson.data
-          };
-        }
+        return {
+          success: true,
+          data: aggJson.data
+        };
       }
     }
   } catch (err) {}
 
   // 2. Seamless Fallback (Full Dump)
   try {
-    const res = await fetch(`${BACKEND_BASE}/user_ranks?limit=1000`, {
+    const filterQuery = cleanExamId ? `&exam_id=${encodeURIComponent(cleanExamId)}` : (cleanSlug && cleanSlug !== 'general' ? `&exam_slug=${encodeURIComponent(cleanSlug)}` : '');
+    const res = await fetch(`${BACKEND_BASE}/user_ranks?limit=5000${filterQuery}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
