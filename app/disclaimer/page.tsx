@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Disclaimer',
   description: 'CBT RANK Disclaimer - Independent educational utility platform. Not affiliated with any government body.',
+  alternates: {
+    canonical: 'https://cbtrank.com/disclaimer',
+  },
 };
 
 export default function DisclaimerPage() {

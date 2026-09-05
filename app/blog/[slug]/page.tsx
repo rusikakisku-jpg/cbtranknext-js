@@ -9,6 +9,12 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+function toIsoDate(dateStr?: string): string {
+  if (!dateStr) return new Date('2025-01-01').toISOString();
+  const parsed = Date.parse(dateStr);
+  return !isNaN(parsed) ? new Date(parsed).toISOString() : new Date('2025-01-01').toISOString();
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const allPosts = await fetchBlogsFromCloudflareD1();
@@ -37,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url: canonicalUrl,
       type: 'article',
       siteName: 'CBT RANK',
-      publishedTime: post.date,
+      publishedTime: toIsoDate(post.date),
       authors: [post.author_name || 'Team CBTRANK'],
       images: [
         {
@@ -94,8 +100,8 @@ export default async function BlogPostPage({ params }: PageProps) {
     'headline': post.title,
     'description': post.excerpt,
     'image': coverUrl,
-    'datePublished': post.date,
-    'dateModified': post.date,
+    'datePublished': toIsoDate(post.date),
+    'dateModified': toIsoDate(post.date),
     'author': {
       '@type': 'Person',
       'name': post.author_name || 'Team CBTRANK',

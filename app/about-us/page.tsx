@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'About Us',
   description: 'Learn about CBT RANK, an automated educational utility platform designed to help government exam aspirants evaluate performance and rank standing.',
+  alternates: {
+    canonical: 'https://cbtrank.com/about-us',
+  },
 };
 
 export default function AboutPage() {
