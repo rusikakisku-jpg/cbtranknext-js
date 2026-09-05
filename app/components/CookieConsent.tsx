@@ -104,105 +104,274 @@ export default function CookieConsent() {
 
   return (
     <>
-      {/* ── BANNER ─────────────────────────────────────────────── */}
+      {/* ── BANNER (Full-width professional bottom bar) ─────────────── */}
       {!showModal && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Cookie consent"
-          style={{
-            position: 'fixed',
-            bottom: '16px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 99999,
-            width: 'min(680px, calc(100vw - 24px))',
-            background: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '16px',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.14)',
-            padding: '20px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
-            fontFamily: "'Inter','Segoe UI',Arial,sans-serif",
-          }}
+          className="cbtrank-cookie-bar"
         >
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-            <span style={{ fontSize: '22px', flexShrink: 0 }}>🍪</span>
-            <div>
-              <p style={{ fontWeight: 700, fontSize: '0.97rem', color: '#0f172a', marginBottom: '4px' }}>
-                We use cookies
-              </p>
-              <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.55 }}>
-                We use cookies and similar tracking technologies to analyse traffic and improve
-                your experience. Under India's{' '}
-                <strong>DPDP Act 2023</strong> and <strong>GDPR</strong>, we need your
-                consent before using non-essential cookies.{' '}
-                <a
-                  href="/privacy-policy"
-                  style={{ color: '#0044cc', textDecoration: 'underline' }}
-                >
-                  Privacy Policy
-                </a>
-              </p>
-            </div>
-          </div>
+          {/* Subtle top accent gradient */}
+          <div className="cbtrank-cookie-accent" />
 
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              onClick={handleAcceptAll}
-              style={{
-                background: '#0044cc',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '9px 22px',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              Accept All
-            </button>
-            <button
-              onClick={handleRejectAll}
-              style={{
-                background: '#f1f5f9',
-                color: '#334155',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '9px 22px',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              Reject All
-            </button>
-            <button
-              onClick={() => setShowModal(true)}
-              style={{
-                background: 'transparent',
-                color: '#0044cc',
-                border: '1px solid #0044cc',
-                borderRadius: '8px',
-                padding: '9px 22px',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                flexShrink: 0,
-              }}
-            >
-              Manage Preferences
-            </button>
+          <div className="cbtrank-cookie-inner">
+            {/* Left: Icon & Description */}
+            <div className="cbtrank-cookie-content">
+              <div className="cbtrank-cookie-icon-wrapper" aria-hidden="true">
+                <span>🍪</span>
+              </div>
+              <div className="cbtrank-cookie-text">
+                <div className="cbtrank-cookie-title-row">
+                  <span className="cbtrank-cookie-title">We Value Your Privacy &amp; Cookies</span>
+                  <span className="cbtrank-cookie-badge">DPDP &amp; GDPR Compliant</span>
+                </div>
+                <p className="cbtrank-cookie-desc">
+                  We use essential cookies for site functionality and optional analytics to improve your experience under India&apos;s{' '}
+                  <strong>DPDP Act 2023</strong> and <strong>GDPR</strong>. You can customize your preferences anytime.{' '}
+                  <a href="/privacy-policy" className="cbtrank-cookie-link">
+                    Privacy Policy
+                  </a>
+                </p>
+              </div>
+            </div>
+
+            {/* Right: Action Buttons */}
+            <div className="cbtrank-cookie-actions">
+              <button
+                type="button"
+                onClick={handleAcceptAll}
+                className="cbtrank-cookie-btn cbtrank-cookie-btn-primary"
+              >
+                Accept All
+              </button>
+              <button
+                type="button"
+                onClick={handleRejectAll}
+                className="cbtrank-cookie-btn cbtrank-cookie-btn-secondary"
+              >
+                Reject All
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                className="cbtrank-cookie-btn cbtrank-cookie-btn-outline"
+              >
+                Manage Preferences
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .cbtrank-cookie-bar {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: 100%;
+          z-index: 99999;
+          background: rgba(255, 255, 255, 0.98);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border-top: 1px solid #e2e8f0;
+          box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.08);
+          font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          animation: cbtrankSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cbtrankSlideUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        .cbtrank-cookie-accent {
+          height: 3px;
+          width: 100%;
+          background: linear-gradient(90deg, #0044cc 0%, #2563eb 50%, #38bdf8 100%);
+        }
+
+        .cbtrank-cookie-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 14px 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+        }
+
+        .cbtrank-cookie-content {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          min-width: 0;
+          flex: 1;
+        }
+
+        .cbtrank-cookie-icon-wrapper {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: #eff6ff;
+          border: 1px solid #dbeafe;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+
+        .cbtrank-cookie-text {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 0;
+        }
+
+        .cbtrank-cookie-title-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .cbtrank-cookie-title {
+          font-weight: 700;
+          font-size: 0.94rem;
+          color: #0f172a;
+          line-height: 1.3;
+        }
+
+        .cbtrank-cookie-badge {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: #0044cc;
+          background: #eff6ff;
+          border: 1px solid #bfdbfe;
+          border-radius: 9999px;
+          padding: 1px 8px;
+          letter-spacing: 0.02em;
+          display: inline-block;
+        }
+
+        .cbtrank-cookie-desc {
+          font-size: 0.81rem;
+          color: #475569;
+          line-height: 1.45;
+          margin: 0;
+        }
+
+        .cbtrank-cookie-link {
+          color: #0044cc;
+          font-weight: 600;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+          transition: color 0.15s;
+        }
+
+        .cbtrank-cookie-link:hover {
+          color: #003399;
+        }
+
+        .cbtrank-cookie-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+
+        .cbtrank-cookie-btn {
+          border-radius: 8px;
+          padding: 8px 18px;
+          font-size: 0.84rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          white-space: nowrap;
+          text-align: center;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-family: inherit;
+        }
+
+        .cbtrank-cookie-btn-primary {
+          background: #0044cc;
+          color: #ffffff;
+          border: 1px solid #0044cc;
+          box-shadow: 0 1px 3px rgba(0, 68, 204, 0.25);
+        }
+
+        .cbtrank-cookie-btn-primary:hover {
+          background: #0037a3;
+          border-color: #0037a3;
+          box-shadow: 0 3px 8px rgba(0, 68, 204, 0.35);
+          transform: translateY(-1px);
+        }
+
+        .cbtrank-cookie-btn-secondary {
+          background: #f8fafc;
+          color: #334155;
+          border: 1px solid #cbd5e1;
+        }
+
+        .cbtrank-cookie-btn-secondary:hover {
+          background: #f1f5f9;
+          border-color: #94a3b8;
+          color: #0f172a;
+        }
+
+        .cbtrank-cookie-btn-outline {
+          background: #ffffff;
+          color: #0044cc;
+          border: 1px solid #bfdbfe;
+        }
+
+        .cbtrank-cookie-btn-outline:hover {
+          background: #eff6ff;
+          border-color: #93c5fd;
+          color: #0037a3;
+        }
+
+        @media (max-width: 900px) {
+          .cbtrank-cookie-inner {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+            padding: 14px 16px;
+          }
+
+          .cbtrank-cookie-content {
+            align-items: flex-start;
+          }
+
+          .cbtrank-cookie-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+          }
+
+          .cbtrank-cookie-btn-primary {
+            grid-column: span 2;
+            padding: 10px 18px;
+          }
+
+          .cbtrank-cookie-btn-secondary,
+          .cbtrank-cookie-btn-outline {
+            padding: 9px 12px;
+            font-size: 0.8rem;
+          }
+        }
+      `}</style>
 
       {/* ── MANAGE MODAL ───────────────────────────────────────── */}
       {showModal && (
