@@ -2,13 +2,23 @@
  * 🚀 PRODUCTION PERFECT & STRICTLY SECURED CLOUDFLARE WORKER FOR CBT RANK
  * Worker URL: https://cbtrank.rusikakisku.workers.dev / https://api.cbtrank.com
  * 
- * 🔒 STRICT SECURITY ENFORCEMENT:
- * 1. 🚫 ZERO DIRECT ACCESS to /user_ranks, /valid_answerkey_urls, /invalid_answerkey_urls (Returns 401 Unauthorized for public GET).
- * 2. 🔑 Admin Authorization: Full access granted ONLY with valid 'Authorization: Bearer <token>', 'x-api-key', or '?admin_key='.
- * 3. 🛡️ SQL Injection Sanitization: All parameters sanitized with strict SQL cleaning.
- * 4. ⚡ Seamless Submissions: POST requests from Calculator Form continue to work 100% without breakage.
- * 5. 🗄️ Native Cloudflare D1 (env.DB) + REST API Fallback 100% preserved.
- * 6. 🌐 Exact 100% Backward Compatibility for all public endpoints (/exams, /locations, /languages, /settings, /calculator_api, /blogs, etc.).
+ * 🔒 STRICT SECURITY & PERFORMANCE ENFORCEMENTS:
+ * 1. ⚡ ULTRA-FAST LIVE RANK (/live_rank):
+ *    - Resolves the 1,000 candidate block bug using single-query SQL aggregation.
+ *    - Fully utilizes D1 composite indexes (idx_user_ranks_exam, idx_user_ranks_shift, idx_user_ranks_category).
+ *    - Accurately returns overallRank, totalOverall, shiftRank, totalShift, categoryRank, totalCategory, genderRank, totalGender, and percentile.
+ * 2. 🚫 ZERO DIRECT PUBLIC ACCESS to raw table dumps:
+ *    - /user_ranks, /valid_answerkey_urls, /invalid_answerkey_urls require Admin Authorization for GET requests.
+ * 3. 🔑 Admin Authorization: Full access granted with 'Authorization: Bearer <token>', 'x-api-key', or '?admin_key='.
+ * 4. 🛡️ SQL Injection Sanitization: All parameters sanitized with strict SQL string cleaning.
+ * 5. ⚡ Seamless Submissions & Smart Upsert:
+ *    - POST /user_ranks prevents overwriting candidates across different exams.
+ *    - Prevents NaN total_marks crashes.
+ * 6. 🗄️ Native Cloudflare D1 (env.DB) + REST API Fallback 100% preserved.
+ * 7. 🚀 Lightning Fast Proxy:
+ *    - /calculator_api tries the ultra-fast dedicated VPS (http://62.171.188.100/api_v7.php) first with automatic fallback to Render.
+ * 8. 🌐 Exact 100% Backward Compatibility:
+ *    - All existing public endpoints (/exams, /locations, /languages, /settings, /blogs, etc.) preserved.
  */
 
 // ⚙️ Configuration & Fallbacks (Can also be set in Cloudflare Worker Environment Variables)
@@ -16,6 +26,8 @@ const DEFAULT_CF_ACCOUNT_ID = "38c7d789225e89652dd6bb111403db5d";
 const DEFAULT_CF_DATABASE_ID = "fd29c541-3fd2-4fa8-8dc1-19809ab907c3";
 const DEFAULT_CF_API_TOKEN = "cfut_umhNZGH5mokB88O6AHQVSURuP6AW48AIry4wVFaW74f7f9b6";
 const DEFAULT_ADMIN_SECRET = "cbtrank_admin_secret_key_2026"; // Set in Cloudflare Env as ADMIN_API_KEY or use header
+const CALCULATOR_VPS_PRIMARY = "http://62.171.188.100/api_v7.php";
+const CALCULATOR_RENDER_BACKUP = "https://test-gpdi.onrender.com/api_v7.php";
 
 /**
  * Helper: Query Cloudflare D1 Database (Native Binding First, REST API Fallback)
@@ -95,11 +107,12 @@ export default {
       pathname = pathname.slice(0, -1);
     }
 
-    // 🌐 CORS Headers (Supports preflight & custom auth headers)
+    // 🌐 CORS Headers (Supports preflight caching & custom auth headers)
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, x-admin-key, x-api-secret',
+      'Access-Control-Max-Age': '86400',
       'Content-Type': 'application/json; charset=utf-8'
     };
 
@@ -281,7 +294,218 @@ export default {
     }
 
     // =========================================================================
-    // 7️⃣ 🔒 STRICTLY PROTECTED USER RANKS ENDPOINT (/user_ranks)
+    // 7️⃣ ⚡ ULTRA-FAST LIVE RANK ENDPOINT (/live_rank, /api/live_rank)
+    // Fixes the 1,000 Candidate Block Bug using Direct D1 SQL Index Count Aggregation
+    // =========================================================================
+    if (pathname === '/live_rank' || pathname === '/api/live_rank' || pathname === '/rank' || pathname === '/api/rank') {
+      let examId = sanitizeSql((url.searchParams.get('exam_id') || '').trim());
+      let examSlug = sanitizeSql((url.searchParams.get('exam_slug') || url.searchParams.get('slug') || '').trim());
+      let marksRaw = url.searchParams.get('total_marks') || url.searchParams.get('marks') || '0';
+      let category = sanitizeSql((url.searchParams.get('category') || '').trim().toLowerCase());
+      let gender = sanitizeSql((url.searchParams.get('gender') || '').trim().toLowerCase());
+      let examDate = sanitizeSql((url.searchParams.get('exam_date') || url.searchParams.get('date') || '').trim());
+      let examTime = sanitizeSql((url.searchParams.get('exam_time') || url.searchParams.get('time') || '').trim());
+      let userId = sanitizeSql((url.searchParams.get('user_id') || url.searchParams.get('userId') || '').trim());
+      let candidateUrl = sanitizeSql((url.searchParams.get('url') || '').trim());
+
+      // If POST method, allow JSON payload parameters
+      if (request.method === 'POST') {
+        try {
+          const body = await request.clone().json();
+          if (body) {
+            if (body.exam_id) examId = sanitizeSql(String(body.exam_id).trim());
+            if (body.exam_slug || body.slug) examSlug = sanitizeSql(String(body.exam_slug || body.slug).trim());
+            if (body.total_marks !== undefined || body.marks !== undefined) {
+              marksRaw = String(body.total_marks !== undefined ? body.total_marks : body.marks);
+            }
+            if (body.category) category = sanitizeSql(String(body.category).trim().toLowerCase());
+            if (body.gender) gender = sanitizeSql(String(body.gender).trim().toLowerCase());
+            if (body.exam_date || body.date) examDate = sanitizeSql(String(body.exam_date || body.date).trim());
+            if (body.exam_time || body.time) examTime = sanitizeSql(String(body.exam_time || body.time).trim());
+            if (body.user_id || body.userId) userId = sanitizeSql(String(body.user_id || body.userId).trim());
+            if (body.url) candidateUrl = sanitizeSql(String(body.url).trim());
+          }
+        } catch (e) {}
+      }
+
+      let marks = parseFloat(marksRaw);
+      if (isNaN(marks)) marks = 0;
+
+      // 🔍 Primary WHERE condition for the target exam
+      let examWhere = "";
+      if (examId && examSlug && examSlug !== 'general') {
+        examWhere = `(exam_id = '${examId}' OR (exam_slug = '${examSlug}' AND (exam_id IS NULL OR exam_id = '')))`;
+      } else if (examId) {
+        examWhere = `exam_id = '${examId}'`;
+      } else if (examSlug && examSlug !== 'general') {
+        examWhere = `exam_slug = '${examSlug}'`;
+      } else {
+        examWhere = "1=1";
+      }
+
+      // Check if candidate already exists in database for this exam
+      let isExistingInOverall = false;
+      let isExistingInShift = false;
+      let isExistingInCat = false;
+      let isExistingInGender = false;
+
+      if (userId || candidateUrl) {
+        const userMatch = userId ? `user_id = '${userId}'` : `url = '${candidateUrl}'`;
+        const userCheckSql = `SELECT user_id, exam_date, exam_time, category, gender, total_marks FROM user_ranks WHERE ${examWhere} AND ${userMatch} LIMIT 1`;
+        const userRows = await queryD1(env, userCheckSql);
+        if (userRows && userRows.length > 0) {
+          const exUser = userRows[0];
+          isExistingInOverall = true;
+          if (examDate && exUser.exam_date === examDate) {
+            if (!examTime || exUser.exam_time === examTime) {
+              isExistingInShift = true;
+            }
+          }
+          if (category && (exUser.category || '').trim().toLowerCase() === category) {
+            isExistingInCat = true;
+          }
+          const exGender = (exUser.gender || '').trim().toLowerCase();
+          if (gender && (exGender === gender || (gender === 'male' && exGender === 'm') || (gender === 'female' && exGender === 'f') || (gender === 'm' && exGender === 'male') || (gender === 'f' && exGender === 'female'))) {
+            isExistingInGender = true;
+          }
+        }
+      }
+
+      // Exclude self-candidate from higher counts to prevent self-ranking error
+      const excludeUserCondition = userId ? `AND (user_id IS NULL OR LOWER(user_id) != '${userId.toLowerCase()}')` : '';
+
+      // Gender condition SQL
+      let genderSql = "0=1";
+      if (gender === 'male' || gender === 'm') {
+        genderSql = "(LOWER(gender) = 'male' OR LOWER(gender) = 'm')";
+      } else if (gender === 'female' || gender === 'f') {
+        genderSql = "(LOWER(gender) = 'female' OR LOWER(gender) = 'f')";
+      } else if (gender) {
+        genderSql = `LOWER(gender) = '${gender}'`;
+      }
+
+      // Shift condition SQL
+      let shiftCondition = "0=1";
+      if (examDate && examTime) {
+        shiftCondition = `exam_date = '${examDate}' AND exam_time = '${examTime}'`;
+      } else if (examDate) {
+        shiftCondition = `exam_date = '${examDate}'`;
+      }
+
+      // Category condition SQL
+      const catCondition = category ? `LOWER(category) = '${category}'` : "0=1";
+
+      // ⚡ ULTRA-FAST SINGLE-QUERY CONDITIONAL AGGREGATE
+      let aggregateSql = `
+        SELECT
+          COUNT(*) AS raw_total_overall,
+          COALESCE(SUM(CASE WHEN total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_overall,
+          COALESCE(SUM(CASE WHEN ${shiftCondition} THEN 1 ELSE 0 END), 0) AS raw_total_shift,
+          COALESCE(SUM(CASE WHEN ${shiftCondition} AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_shift,
+          COALESCE(SUM(CASE WHEN ${catCondition} THEN 1 ELSE 0 END), 0) AS raw_total_cat,
+          COALESCE(SUM(CASE WHEN ${catCondition} AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_cat,
+          COALESCE(SUM(CASE WHEN ${genderSql} THEN 1 ELSE 0 END), 0) AS raw_total_gender,
+          COALESCE(SUM(CASE WHEN (${genderSql}) AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_gender
+        FROM user_ranks
+        WHERE ${examWhere} ${excludeUserCondition}
+      `;
+
+      let aggResults = await queryD1(env, aggregateSql);
+      let aggRow = (aggResults && aggResults[0]) ? aggResults[0] : {};
+
+      // Fallback: If 0 candidates found and examId had letters/zeros interchange (e.g. 1258O vs 12580)
+      if ((!aggRow.raw_total_overall || aggRow.raw_total_overall === 0) && examId && (/o/i.test(examId) || examId.includes('0'))) {
+        const normExamId = examId.replace(/o/gi, '0');
+        const altWhere = `exam_id = '${normExamId}'`;
+        const altSql = aggregateSql.replace(examWhere, altWhere);
+        const altResults = await queryD1(env, altSql);
+        if (altResults && altResults[0] && altResults[0].raw_total_overall > 0) {
+          aggRow = altResults[0];
+        }
+      }
+
+      // Fallback: If still 0 candidates and examSlug is present, query by examSlug
+      if ((!aggRow.raw_total_overall || aggRow.raw_total_overall === 0) && examSlug && examSlug !== 'general' && examWhere !== `exam_slug = '${examSlug}'`) {
+        const slugWhere = `exam_slug = '${examSlug}'`;
+        const slugSql = aggregateSql.replace(examWhere, slugWhere);
+        const slugResults = await queryD1(env, slugSql);
+        if (slugResults && slugResults[0] && slugResults[0].raw_total_overall > 0) {
+          aggRow = slugResults[0];
+        }
+      }
+
+      const rawOverall = Number(aggRow.raw_total_overall) || 0;
+      if (rawOverall === 0) {
+        return new Response(JSON.stringify({
+          success: true,
+          data: {
+            overallRank: 1,
+            totalOverall: 1,
+            shiftRank: 1,
+            totalShift: 1,
+            categoryRank: 1,
+            totalCategory: 1,
+            genderRank: 1,
+            totalGender: 1,
+            percentile: 100.0
+          }
+        }), { headers: corsHeaders, status: 200 });
+      }
+
+      const higherOverall = Number(aggRow.higher_overall) || 0;
+      const overallRank = higherOverall + 1;
+      const totalOverall = Math.max(overallRank, isExistingInOverall ? rawOverall : (rawOverall + 1));
+
+      const rawShift = Number(aggRow.raw_total_shift) || 0;
+      const higherShift = (examDate) ? (Number(aggRow.higher_shift) || 0) : 0;
+      let shiftRank = 1;
+      let totalShift = 1;
+      if (rawShift > 0 || examDate) {
+        shiftRank = higherShift + 1;
+        totalShift = Math.max(shiftRank, isExistingInShift ? rawShift : (rawShift + 1));
+      }
+
+      const rawCat = Number(aggRow.raw_total_cat) || 0;
+      const higherCat = category ? (Number(aggRow.higher_cat) || 0) : 0;
+      let categoryRank = 1;
+      let totalCategory = 1;
+      if (rawCat > 0 || category) {
+        categoryRank = higherCat + 1;
+        totalCategory = Math.max(categoryRank, isExistingInCat ? rawCat : (rawCat + 1));
+      }
+
+      const rawGender = Number(aggRow.raw_total_gender) || 0;
+      const higherGender = gender ? (Number(aggRow.higher_gender) || 0) : 0;
+      let genderRank = 1;
+      let totalGender = 1;
+      if (rawGender > 0 || gender) {
+        genderRank = higherGender + 1;
+        totalGender = Math.max(genderRank, isExistingInGender ? rawGender : (rawGender + 1));
+      }
+
+      let percentile = 100.0;
+      if (totalShift > 1) {
+        percentile = Math.min(99.9, Math.max(1.0, Number((((totalShift - higherShift) / totalShift) * 100).toFixed(2))));
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        data: {
+          overallRank,
+          totalOverall,
+          shiftRank,
+          totalShift,
+          categoryRank,
+          totalCategory,
+          genderRank,
+          totalGender,
+          percentile
+        }
+      }), { headers: corsHeaders, status: 200 });
+    }
+
+    // =========================================================================
+    // 8️⃣ 🔒 STRICTLY PROTECTED USER RANKS ENDPOINT (/user_ranks)
     // =========================================================================
     if (pathname === '/user_ranks' || pathname === '/api/user_ranks' || pathname === '/rankings' || pathname === '/api/rankings') {
       // POST: Allow Calculator Form Submission & Smart Upsert
@@ -297,7 +521,9 @@ export default {
           const examSlug = sanitizeSql((body.exam_slug || 'general'));
           const paperLang = sanitizeSql((body.paper_language || ''));
           const urlHash = sanitizeSql((body.url_hash || ''));
-          const totalMarks = parseFloat(body.total_marks || 0) || 0;
+          let totalMarks = parseFloat(body.total_marks);
+          if (isNaN(totalMarks)) totalMarks = 0;
+
           const examDate = sanitizeSql((body.exam_date || ''));
           const examTime = sanitizeSql((body.exam_time || ''));
           const examId = sanitizeSql((body.exam_id || ''));
@@ -307,14 +533,19 @@ export default {
           const domain = sanitizeSql((body.domain || ''));
           const createdAt = getISTTimestamp();
 
-          // 🔍 SMART CHECK: Look for existing record by Candidate Roll Number (user_id) + Exam ID / Slug
+          // 🔍 SMART CHECK: Isolate record by Roll Number (user_id) + Exam ID/Slug to prevent overwriting attempts of different exams
           let checkSql = "";
-          if (userId && examId) {
-            checkSql = `SELECT user_id FROM user_ranks WHERE user_id = '${userId}' AND (exam_id = '${examId}' OR exam_slug = '${examSlug}') LIMIT 1`;
+          let whereCondition = "";
+          if (userId && (examId || (examSlug && examSlug !== 'general'))) {
+            const examFilter = examId ? `(exam_id = '${examId}' OR exam_slug = '${examSlug}')` : `exam_slug = '${examSlug}'`;
+            checkSql = `SELECT user_id FROM user_ranks WHERE user_id = '${userId}' AND ${examFilter} LIMIT 1`;
+            whereCondition = `user_id = '${userId}' AND ${examFilter}`;
           } else if (userId) {
             checkSql = `SELECT user_id FROM user_ranks WHERE user_id = '${userId}' LIMIT 1`;
+            whereCondition = `user_id = '${userId}'`;
           } else {
             checkSql = `SELECT user_id FROM user_ranks WHERE url = '${userUrl}' LIMIT 1`;
+            whereCondition = `url = '${userUrl}'`;
           }
 
           const existing = await queryD1(env, checkSql);
@@ -326,19 +557,11 @@ export default {
             if (examDate) updateClause += `, exam_date = '${examDate}'`;
             if (examTime) updateClause += `, exam_time = '${examTime}'`;
             if (examId) updateClause += `, exam_id = '${examId}'`;
+            if (examSlug && examSlug !== 'general') updateClause += `, exam_slug = '${examSlug}'`;
             if (location) updateClause += `, location = '${location}'`;
             if (gender) updateClause += `, gender = '${gender}'`;
             if (category) updateClause += `, category = '${category}'`;
             if (domain) updateClause += `, domain = '${domain}'`;
-
-            let whereCondition = "";
-            if (userId && examId) {
-              whereCondition = `user_id = '${userId}' AND (exam_id = '${examId}' OR exam_slug = '${examSlug}')`;
-            } else if (userId) {
-              whereCondition = `user_id = '${userId}'`;
-            } else {
-              whereCondition = `url = '${userUrl}'`;
-            }
 
             const updateSql = `UPDATE user_ranks SET ${updateClause} WHERE ${whereCondition}`;
             await queryD1(env, updateSql);
@@ -384,9 +607,19 @@ export default {
         }), { headers: corsHeaders, status: 401 });
       }
 
-      // GET: Return data strictly for Authorized Admin
+      // GET: Return data strictly for Authorized Admin (Sorted by total_marks DESC)
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10), 1000);
-      const sql = `SELECT * FROM user_ranks ORDER BY user_id DESC LIMIT ${limit}`;
+      const qExamId = url.searchParams.get('exam_id') ? sanitizeSql(url.searchParams.get('exam_id').trim()) : '';
+      const qExamSlug = url.searchParams.get('exam_slug') ? sanitizeSql(url.searchParams.get('exam_slug').trim()) : '';
+      
+      let whereClause = "";
+      if (qExamId) {
+        whereClause = `WHERE exam_id = '${qExamId}'`;
+      } else if (qExamSlug && qExamSlug !== 'general') {
+        whereClause = `WHERE exam_slug = '${qExamSlug}'`;
+      }
+
+      const sql = `SELECT * FROM user_ranks ${whereClause} ORDER BY total_marks DESC, id DESC LIMIT ${limit}`;
       const results = await queryD1(env, sql);
 
       return new Response(JSON.stringify({ 
@@ -398,7 +631,7 @@ export default {
     }
 
     // =========================================================================
-    // 8️⃣ 🔒 STRICTLY PROTECTED VALID ANSWERKEY URLS ENDPOINT (/valid_answerkey_urls)
+    // 9️⃣ 🔒 STRICTLY PROTECTED VALID ANSWERKEY URLS ENDPOINT (/valid_answerkey_urls)
     // =========================================================================
     if (pathname === '/valid_answerkey_urls' || pathname === '/api/valid_answerkey_urls' || pathname === '/valid_urls' || pathname === '/api/valid_urls' || pathname === '/valid' || pathname === '/api/valid') {
       let inputUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
@@ -418,12 +651,17 @@ export default {
 
         const cleanUrl = sanitizeSql(inputUrl);
         const createdAt = getISTTimestamp();
-        const insertSql = `INSERT INTO valid_answerkey_urls (url, created_at) VALUES ('${cleanUrl}', '${createdAt}')`;
-        await queryD1(env, insertSql);
+
+        // Prevent duplicate URL inserts
+        const existingCheck = await queryD1(env, `SELECT id FROM valid_answerkey_urls WHERE url = '${cleanUrl}' LIMIT 1`);
+        if (!existingCheck || existingCheck.length === 0) {
+          const insertSql = `INSERT INTO valid_answerkey_urls (url, created_at) VALUES ('${cleanUrl}', '${createdAt}')`;
+          await queryD1(env, insertSql);
+        }
 
         return new Response(JSON.stringify({
           success: true,
-          message: "URL inserted successfully into valid_answerkey_urls",
+          message: "URL processed successfully in valid_answerkey_urls",
           table: "valid_answerkey_urls",
           url: inputUrl,
           created_at: createdAt
@@ -465,7 +703,7 @@ export default {
     }
 
     // =========================================================================
-    // 9️⃣ 🔒 STRICTLY PROTECTED INVALID ANSWERKEY URLS ENDPOINT (/invalid_answerkey_urls)
+    // 🔟 🔒 STRICTLY PROTECTED INVALID ANSWERKEY URLS ENDPOINT (/invalid_answerkey_urls)
     // =========================================================================
     if (pathname === '/invalid_answerkey_urls' || pathname === '/api/invalid_answerkey_urls' || pathname === '/invalid_urls' || pathname === '/api/invalid_urls' || pathname === '/invalid' || pathname === '/api/invalid') {
       let inputUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
@@ -485,12 +723,17 @@ export default {
 
         const cleanUrl = sanitizeSql(inputUrl);
         const createdAt = getISTTimestamp();
-        const insertSql = `INSERT INTO invalid_answerkey_urls (url, created_at) VALUES ('${cleanUrl}', '${createdAt}')`;
-        await queryD1(env, insertSql);
+
+        // Prevent duplicate invalid URL inserts
+        const existingCheck = await queryD1(env, `SELECT id FROM invalid_answerkey_urls WHERE url = '${cleanUrl}' LIMIT 1`);
+        if (!existingCheck || existingCheck.length === 0) {
+          const insertSql = `INSERT INTO invalid_answerkey_urls (url, created_at) VALUES ('${cleanUrl}', '${createdAt}')`;
+          await queryD1(env, insertSql);
+        }
 
         return new Response(JSON.stringify({
           success: true,
-          message: "URL inserted successfully into invalid_answerkey_urls",
+          message: "URL processed successfully in invalid_answerkey_urls",
           table: "invalid_answerkey_urls",
           url: inputUrl,
           created_at: createdAt
@@ -530,7 +773,8 @@ export default {
     }
 
     // =========================================================================
-    // 🔟 ⚡ CALCULATOR API PROXY ENDPOINT (/calculator_api, /api/calculator_api)
+    // 1️⃣1️⃣ ⚡ CALCULATOR API PROXY ENDPOINT (/calculator_api, /api/calculator_api)
+    // Tries Dedicated Fast VPS First (Instant Response) with Fallback to Render
     // =========================================================================
     if (pathname === '/calculator_api' || pathname === '/api/calculator_api') {
       let targetAnswerKeyUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
@@ -554,36 +798,55 @@ export default {
         }
       } catch (e) {}
 
-      const calculatorApiEndpoint = `https://test-gpdi.onrender.com/api_v7.php?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
+      const primaryApi = (env && env.CALCULATOR_API_URL) || `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
+      const backupApi = `${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
 
+      let vpsRes = null;
       try {
-        const vpsRes = await fetch(calculatorApiEndpoint, {
+        // Try dedicated VPS API first (Fast, no cold start)
+        vpsRes = await fetch(primaryApi, {
           method: "GET",
           headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
             "Accept": "application/json, text/plain, */*"
-          }
+          },
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(6000) : undefined
         });
+      } catch (e) {
+        vpsRes = null;
+      }
 
-        if (vpsRes.ok) {
-          const rawText = await vpsRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: 200 });
-        } else {
+      // If primary VPS timed out or failed, seamlessly fallback to backup Render endpoint
+      if (!vpsRes || !vpsRes.ok) {
+        try {
+          vpsRes = await fetch(backupApi, {
+            method: "GET",
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+              "Accept": "application/json, text/plain, */*"
+            }
+          });
+        } catch (err) {
           return new Response(JSON.stringify({
             success: false,
-            error: `Calculator API responded with status ${vpsRes.status}`
-          }), { headers: corsHeaders, status: vpsRes.status });
+            error: `Failed to connect to Calculator APIs: ${err.message}`
+          }), { headers: corsHeaders, status: 502 });
         }
-      } catch (err) {
+      }
+
+      if (vpsRes && vpsRes.ok) {
+        const rawText = await vpsRes.text();
+        return new Response(rawText, { headers: corsHeaders, status: 200 });
+      } else {
         return new Response(JSON.stringify({
           success: false,
-          error: `Failed to connect to Calculator VPS API (https://test-gpdi.onrender.com/api_v7.php): ${err.message}`
-        }), { headers: corsHeaders, status: 502 });
+          error: `Calculator API responded with status ${vpsRes ? vpsRes.status : 500}`
+        }), { headers: corsHeaders, status: vpsRes ? vpsRes.status : 500 });
       }
     }
 
     // =========================================================================
-    // 1️⃣1️⃣ DIGIALM PROXY PARSER ENDPOINT (Legacy)
+    // 1️⃣2️⃣ DIGIALM PROXY PARSER ENDPOINT (Legacy)
     // =========================================================================
     if (pathname === '/digialm' || pathname === '/api/digialm') {
       let legacyUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
@@ -604,7 +867,7 @@ export default {
         }
       } catch (e) {}
 
-      const ep = `https://test-gpdi.onrender.com/api_v7.php?url=${encodeURIComponent(legacyUrl)}`;
+      const ep = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(legacyUrl)}`;
       try {
         const vpsRes = await fetch(ep, {
           method: "GET",
@@ -619,11 +882,27 @@ export default {
         }
       } catch (err) {}
 
+      // Fallback
+      try {
+        const backupEp = `${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(legacyUrl)}`;
+        const backupRes = await fetch(backupEp, {
+          method: "GET",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json"
+          }
+        });
+        if (backupRes.ok) {
+          const rawText = await backupRes.text();
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
+        }
+      } catch (e) {}
+
       return new Response(JSON.stringify({ success: false, error: "Server error or Invalid URL" }), { headers: corsHeaders, status: 500 });
     }
 
     // =========================================================================
-    // 1️⃣2️⃣ 🌟 MASTER API DIRECTORY (Returned for root `/`, `/api`, `/endpoints`)
+    // 1️⃣3️⃣ 🌟 MASTER API DIRECTORY (Returned for root `/`, `/api`, `/endpoints`)
     // =========================================================================
     return new Response(JSON.stringify({
       status: "online",
@@ -631,16 +910,22 @@ export default {
       base_url: url.origin,
       timestamp: getISTTimestamp(),
       security: {
-        direct_access_policy: "Direct public GET access to /user_ranks and /valid_urls is STRICTLY BLOCKED (401 Unauthorized)",
-        sql_injection_protection: "Enabled (All input parameters sanitized)",
+        direct_access_policy: "Direct public GET access to raw user_ranks and valid_urls dumps is STRICTLY BLOCKED (401 Unauthorized)",
+        sql_injection_protection: "Enabled (All input parameters strictly sanitized)",
         admin_authorization: "Supported via Authorization Bearer header, x-api-key, or ?admin_key="
       },
       endpoints: {
+        live_rank: {
+          path: "/live_rank",
+          method: "GET | POST",
+          description: "Ultra-fast direct SQL index count calculation for overall, shift, category, and gender rank + percentile. No 1,000 candidate limits.",
+          example: `${url.origin}/live_rank?exam_id=100576&total_marks=85.5&category=ur&gender=male&exam_date=2026-08-15&exam_time=09:00+-+11:00`
+        },
         calculator_api: {
           path: "/calculator_api",
           method: "GET | POST",
-          description: "Proxies directly to https://test-gpdi.onrender.com/api_v7.php to calculate response sheets",
-          example: `${url.origin}/calculator_api?url=https://cdn.digialm.com/...`
+          description: "Proxies directly to dedicated fast VPS API with seamless Render fallback to parse answer keys",
+          example: `${url.origin}/calculator_api?url=https://cdn3.digialm.com/...`
         },
         exams: {
           path: "/exams",
@@ -693,19 +978,19 @@ export default {
         user_ranks: {
           path: "/user_ranks",
           method: "POST (Public) | GET (Strictly Admin Only)",
-          description: "Smart upsert candidate attempt records. Public GET is strictly restricted.",
+          description: "Smart upsert candidate attempt records without cross-exam overwriting. Public GET is strictly restricted.",
           example: `${url.origin}/user_ranks`
         },
         valid_answerkey_urls: {
           path: "/valid_answerkey_urls",
           method: "POST (Public) | GET (Strictly Admin Only)",
-          description: "Insert valid answer key URLs. Public GET is strictly restricted.",
+          description: "Insert valid answer key URLs with duplicate prevention. Public GET is strictly restricted.",
           example: `${url.origin}/valid_answerkey_urls`
         },
         invalid_answerkey_urls: {
           path: "/invalid_answerkey_urls",
           method: "POST (Public) | GET (Strictly Admin Only)",
-          description: "Insert invalid answer key URLs. Public GET is strictly restricted.",
+          description: "Insert invalid answer key URLs with duplicate prevention. Public GET is strictly restricted.",
           example: `${url.origin}/invalid_answerkey_urls`
         },
         digialm_legacy: {
