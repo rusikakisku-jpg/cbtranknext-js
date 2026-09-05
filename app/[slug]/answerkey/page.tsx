@@ -188,6 +188,8 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
       <AnswerkeyCalculator
         examSlug={slug}
         initialTitle={`${examTitle} Answer Key Calculator`}
+        initialMarksRight={exam.marks_right}
+        initialMarksWrong={exam.marks_wrong}
         sidebar={
           <RelatedExamsSection
             currentSlug={slug}

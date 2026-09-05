@@ -214,9 +214,17 @@ interface AnswerkeyCalculatorProps {
   examSlug?: string;
   initialTitle?: string;
   sidebar?: React.ReactNode;
+  initialMarksRight?: number | string;
+  initialMarksWrong?: number | string;
 }
 
-export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '', sidebar }: AnswerkeyCalculatorProps) {
+export default function AnswerkeyCalculator({
+  examSlug = '',
+  initialTitle = '',
+  sidebar,
+  initialMarksRight,
+  initialMarksWrong,
+}: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
   const isRRB = isRRBSlug(examSlug);
@@ -308,6 +316,13 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '', 
       return;
     }
 
+    if (initialMarksRight !== undefined && initialMarksRight !== null && initialMarksRight !== '') {
+      cbtSaveString(STORAGE_KEYS.MARKS_RIGHT, String(initialMarksRight));
+    }
+    if (initialMarksWrong !== undefined && initialMarksWrong !== null && initialMarksWrong !== '') {
+      cbtSaveString(STORAGE_KEYS.MARKS_WRONG, String(initialMarksWrong));
+    }
+
     // Exam-specific page — try localStorage cache first (0ms)
     try {
       const cachedExam = cbtGet<any>(STORAGE_KEYS.ACTIVE_EXAM);
@@ -323,7 +338,7 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '', 
     setLocations(isRRBSlug(examSlug) ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
     setLocationLabel(isRRBSlug(examSlug) ? 'RRB Zones' : 'State / UT');
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examSlug]);
+  }, [examSlug, initialMarksRight, initialMarksWrong]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -401,14 +416,10 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '', 
     const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
     const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
       ? parseFloat(savedRight)
-      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : 1.0);
-    let marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : (initialMarksRight !== undefined && initialMarksRight !== null && initialMarksRight !== '' ? Number(initialMarksRight) : 1));
+    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
       ? parseFloat(savedWrong)
-      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (isRRBSlug(examSlug) ? (1 / 3) : 0.25));
-
-    if (Math.abs(marksWrong - 0.33) <= 0.01 || Math.abs(marksWrong - (1 / 3)) <= 0.01) {
-      marksWrong = 1 / 3;
-    }
+      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (initialMarksWrong !== undefined && initialMarksWrong !== null && initialMarksWrong !== '' ? Number(initialMarksWrong) : 0));
 
     const effectiveBonus = parsedResult.bonusCount || 0;
     const rawScoreVal = ((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong);
