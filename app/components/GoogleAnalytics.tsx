@@ -1,28 +1,13 @@
 'use client';
 
-/**
- * GoogleAnalytics Component
- * ─────────────────────────────────────────────────────────────────
- * Loads GA ONLY after the user has given analytics consent via
- * the CookieConsent component (cbtrank:consent event).
- *
- * If the user already consented (stored in localStorage),
- * GA loads immediately on next visit.
- */
-
 import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import { useEffect, Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
-const CONSENT_KEY = 'cbtrank_cookie_consent';
-
-function hasStoredAnalyticsConsent(): boolean {
-  try {
-    const raw = localStorage.getItem(CONSENT_KEY);
-    if (!raw) return false;
-    const parsed = JSON.parse(raw);
-    return parsed?.analytics === true && parsed?.decided === true && Date.now() < parsed?.expiry;
-  } catch {
-    return false;
+declare global {
+  interface Window {
+    dataLayer?: any[];
+    gtag?: (...args: any[]) => void;
   }
 }
 
@@ -30,23 +15,47 @@ interface GoogleAnalyticsProps {
   gaId?: string;
 }
 
+export function trackEvent(action: string, params?: Record<string, any>) {
+  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    try {
+      window.gtag('event', action, params);
+    } catch (e) {}
+  }
+}
+
+function AnalyticsRouteTracker() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (!pathname || typeof window === 'undefined' || typeof window.gtag !== 'function') return;
+    const queryString = searchParams?.toString();
+    const url = queryString ? `${pathname}?${queryString}` : pathname;
+
+    window.gtag('event', 'page_view', {
+      page_path: url,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }, [pathname, searchParams]);
+
+  return null;
+}
+
 export default function GoogleAnalytics({
   gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-RDZ060ZF0S',
 }: GoogleAnalyticsProps) {
-  const [consentGiven, setConsentGiven] = useState(false);
-
   useEffect(() => {
-    // Check if user already consented on a previous visit
-    if (hasStoredAnalyticsConsent()) {
-      setConsentGiven(true);
-      return;
-    }
-
-    // Listen for fresh consent event from CookieConsent component
+    // Listen for cookie consent updates from CookieConsent component
     function handleConsent(e: Event) {
       const detail = (e as CustomEvent<{ analytics: boolean }>).detail;
-      if (detail?.analytics === true) {
-        setConsentGiven(true);
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+        window.gtag('consent', 'update', {
+          analytics_storage: detail?.analytics ? 'granted' : 'denied',
+          ad_storage: detail?.analytics ? 'granted' : 'denied',
+          ad_user_data: detail?.analytics ? 'granted' : 'denied',
+          ad_personalization: detail?.analytics ? 'granted' : 'denied',
+        });
       }
     }
 
@@ -54,8 +63,7 @@ export default function GoogleAnalytics({
     return () => window.removeEventListener('cbtrank:consent', handleConsent);
   }, []);
 
-  // Do NOT load GA until user has consented
-  if (!gaId || !consentGiven) return null;
+  if (!gaId) return null;
 
   return (
     <>
@@ -71,12 +79,25 @@ export default function GoogleAnalytics({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
+
+            // Google Consent Mode v2
+            gtag('consent', 'default', {
+              'analytics_storage': 'granted',
+              'ad_storage': 'denied',
+              'ad_user_data': 'denied',
+              'ad_personalization': 'denied'
+            });
+
             gtag('config', '${gaId}', {
               page_path: window.location.pathname,
+              send_page_view: true
             });
           `,
         }}
       />
+      <Suspense fallback={null}>
+        <AnalyticsRouteTracker />
+      </Suspense>
     </>
   );
 }

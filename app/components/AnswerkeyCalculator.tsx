@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { processAnswerKeyAction, logUserRankAction, fetchLiveRankAction } from '../actions/calculate';
 import { cbtSave, cbtGet, cbtRemove, cbtSaveString, cbtGetString, STORAGE_KEYS } from '../utils/storage';
+import { trackEvent } from './GoogleAnalytics';
 
 const DEFAULT_RRB_ZONES = [
   "Ahmedabad", "Ajmer", "Prayagraj (Allahabad)", "Bengaluru (Bangalore)", "Bhopal", 
@@ -488,6 +489,12 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
       });
       cbtSaveString(STORAGE_KEYS.SHOW_TG_POPUP, 'true');
     } catch (e) {}
+
+    trackEvent('calculate_score', {
+      exam_slug: examSlug || 'general',
+      category: category || '',
+      gender: gender || '',
+    });
 
     router.push('/result');
   }
