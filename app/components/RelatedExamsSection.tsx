@@ -1,7 +1,9 @@
 import Link from 'next/link';
 
 interface RelatedExamsSectionProps {
-  currentSlug: string;
+  currentSlug?: string;
+  isSidebar?: boolean;
+  showUniversalCta?: boolean;
 }
 
 const POPULAR_EXAMS = [
@@ -15,26 +17,51 @@ const POPULAR_EXAMS = [
   { slug: 'ossc-physical-measurement-and-physical-efficiencytest-2025', title: 'OSSC Physical Measurement Test' },
 ];
 
-export default function RelatedExamsSection({ currentSlug }: RelatedExamsSectionProps) {
+export default function RelatedExamsSection({
+  currentSlug = '',
+  isSidebar = false,
+  showUniversalCta,
+}: RelatedExamsSectionProps) {
   const filteredExams = POPULAR_EXAMS.filter((e) => e.slug !== currentSlug).slice(0, 6);
+  const shouldShowCta = showUniversalCta ?? (Boolean(currentSlug) && !isSidebar);
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto 60px', padding: '0 16px' }}>
+    <div
+      className={isSidebar ? 'related-exams-sidebar-wrapper' : 'related-exams-default-wrapper'}
+      style={
+        isSidebar
+          ? { width: '100%', margin: 0, padding: 0 }
+          : { maxWidth: '860px', margin: '0 auto 60px', padding: '0 16px' }
+      }
+    >
       <div
+        className="related-exams-card"
         style={{
           background: '#ffffff',
           border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          padding: '24px',
-          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)',
+          borderRadius: isSidebar ? '18px' : '16px',
+          padding: isSidebar ? '20px' : '24px',
+          boxShadow: isSidebar
+            ? '0 12px 32px rgba(15, 23, 42, 0.08)'
+            : '0 4px 12px rgba(15, 23, 42, 0.03)',
+          overflow: 'hidden',
         }}
       >
+        {isSidebar && (
+          <div
+            style={{
+              height: '4px',
+              background: 'linear-gradient(90deg, #2563eb, #4f46e5, #9333ea)',
+              margin: '-20px -20px 16px -20px',
+            }}
+          />
+        )}
         <h3
           style={{
-            fontSize: '1.05rem',
+            fontSize: isSidebar ? '0.98rem' : '1.05rem',
             fontWeight: 800,
             color: '#0f172a',
-            marginBottom: '16px',
+            marginBottom: '14px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -46,17 +73,18 @@ export default function RelatedExamsSection({ currentSlug }: RelatedExamsSection
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '12px',
+            gridTemplateColumns: isSidebar ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: isSidebar ? '10px' : '12px',
           }}
         >
           {filteredExams.map((exam) => (
             <Link
               key={exam.slug}
               href={`/${exam.slug}/answerkey`}
+              className="related-exam-link-item"
               style={{
                 display: 'block',
-                padding: '12px 14px',
+                padding: isSidebar ? '11px 14px' : '12px 14px',
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',
                 borderRadius: '10px',
@@ -71,37 +99,40 @@ export default function RelatedExamsSection({ currentSlug }: RelatedExamsSection
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {exam.title}
                 </span>
-                <span style={{ color: '#0044cc', fontWeight: 800 }}>→</span>
+                <span style={{ color: '#0044cc', fontWeight: 800, flexShrink: 0 }}>→</span>
               </div>
             </Link>
           ))}
         </div>
 
-        <div
-          style={{
-            marginTop: '18px',
-            paddingTop: '14px',
-            borderTop: '1px solid #f1f5f9',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '10px',
-            fontSize: '0.82rem',
-          }}
-        >
-          <span style={{ color: '#64748b' }}>Looking for a different test or shift?</span>
-          <Link
-            href="/answerkey"
+        {shouldShowCta && (
+          <div
+            className="universal-cta-box"
             style={{
-              color: '#0044cc',
-              fontWeight: 700,
-              textDecoration: 'none',
+              marginTop: '18px',
+              paddingTop: '14px',
+              borderTop: '1px solid #f1f5f9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px',
+              fontSize: '0.82rem',
             }}
           >
-            Universal Answerkey Calculator →
-          </Link>
-        </div>
+            <span style={{ color: '#64748b' }}>Looking for a different test or shift?</span>
+            <Link
+              href="/answerkey"
+              style={{
+                color: '#0044cc',
+                fontWeight: 700,
+                textDecoration: 'none',
+              }}
+            >
+              Universal Answerkey Calculator →
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

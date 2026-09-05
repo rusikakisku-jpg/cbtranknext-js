@@ -213,9 +213,10 @@ function formatExamSlugTitle(slug: string): string {
 interface AnswerkeyCalculatorProps {
   examSlug?: string;
   initialTitle?: string;
+  sidebar?: React.ReactNode;
 }
 
-export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }: AnswerkeyCalculatorProps) {
+export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '', sidebar }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
   const isRRB = isRRBSlug(examSlug);
@@ -519,9 +520,11 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
           </div>
         </div>
 
-        {/* Calculator Card */}
-        <div className="calculator-card">
-          <div className="top-accent-bar"></div>
+        {/* Main Calculator Area (with optional Desktop Sidebar) */}
+        <div className={sidebar ? "calculator-layout-wrapper" : ""}>
+          {/* Calculator Card */}
+          <div className="calculator-card">
+            <div className="top-accent-bar"></div>
 
           <div className="banner-header">
             <div className="badge-pill">
@@ -720,6 +723,13 @@ export default function AnswerkeyCalculator({ examSlug = '', initialTitle = '' }
             </form>
           </div>
         </div>
+
+        {sidebar && (
+          <aside className="calculator-sidebar">
+            {sidebar}
+          </aside>
+        )}
+      </div>
 
         {/* Rich SEO & Informational Content Cards */}
         <div className="details-wrapper" style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '22px' }}>

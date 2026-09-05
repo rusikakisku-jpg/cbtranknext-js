@@ -92,9 +92,16 @@ export default function AnswerkeyPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <AnswerkeyCalculator />
+      <AnswerkeyCalculator
+        sidebar={
+          <RelatedExamsSection
+            currentSlug=""
+            isSidebar={true}
+            showUniversalCta={false}
+          />
+        }
+      />
       <ExamFaqSection formattedTitle="CBT Exams" faqs={UNIVERSAL_FAQS} />
-      <RelatedExamsSection currentSlug="" />
     </>
   );
 }
