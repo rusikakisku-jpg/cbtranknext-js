@@ -185,7 +185,17 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <AnswerkeyCalculator examSlug={slug} initialTitle={`${examTitle} Answer Key Calculator`} />
+      <AnswerkeyCalculator
+        examSlug={slug}
+        initialTitle={`${examTitle} Answer Key Calculator`}
+        sidebar={
+          <RelatedExamsSection
+            currentSlug={slug}
+            isSidebar={true}
+            showUniversalCta={false}
+          />
+        }
+      />
 
       {/* Dynamic Exam Overview & Marking Scheme Details */}
       <div style={{ maxWidth: '860px', margin: '24px auto 0', padding: '0 16px' }}>
@@ -236,7 +246,6 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
       </div>
 
       <ExamFaqSection formattedTitle={examTitle} faqs={faqs} />
-      <RelatedExamsSection currentSlug={slug} />
     </>
   );
 }
