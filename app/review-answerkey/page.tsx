@@ -111,14 +111,11 @@ export default function ReviewAnswerkeyPage() {
         setRightVal(1.0);
       }
 
-      let effectiveWrong = 0.25;
+      let effectiveWrong = 0;
       if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
         effectiveWrong = parseFloat(savedWrong);
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         effectiveWrong = Number(form.marks_wrong);
-      }
-      if (Math.abs(effectiveWrong - 0.33) <= 0.01 || Math.abs(effectiveWrong - (1 / 3)) <= 0.01) {
-        effectiveWrong = 1 / 3;
       }
       setWrongVal(effectiveWrong);
 

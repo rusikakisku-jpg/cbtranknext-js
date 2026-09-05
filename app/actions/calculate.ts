@@ -134,23 +134,6 @@ export async function processAnswerKeyAction(params: {
       } catch (e) {}
     }
 
-    // 🧠 AI Marking Scheme Auto-Detection & Enhancement
-    try {
-      const curRight = smartData.exam_info?.marking_scheme_applied?.marks_right;
-      const curWrong = smartData.exam_info?.marking_scheme_applied?.marks_wrong;
-      if (curRight === undefined || curRight === null || (curRight === 1.0 && curWrong === 0.25)) {
-        const fullText = ((smartData.header_banner_text || '') + ' ' + (smartData.candidate_info?.['Exam Name'] || '') + ' ' + (smartData.candidate_info?.['Subject'] || '') + ' ' + urlVal).toLowerCase();
-        if (/jep2|je.*(paper\s*2|paper-2|tier\s*2|tier-2|mains)/i.test(fullText)) {
-          if (!smartData.exam_info) smartData.exam_info = {};
-          smartData.exam_info.marking_scheme_applied = {
-            marks_right: 3.0,
-            marks_wrong: 1.0
-          };
-          smartData.exam_info.detected_exam_name = smartData.exam_info.detected_exam_name || 'SSC JE Paper-II';
-        }
-      }
-    } catch (e) {}
-
     // Await logging to D1 with secret admin key
     try {
       await fetch(`${BACKEND_BASE}/valid_answerkey_urls`, {

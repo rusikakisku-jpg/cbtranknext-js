@@ -90,7 +90,7 @@ export default function RankPage() {
       const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
 
       let currentRight = 1.0;
-      let currentWrong = 0.25;
+      let currentWrong = 0;
 
       if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
         currentRight = parseFloat(savedRight);
@@ -103,9 +103,6 @@ export default function RankPage() {
         currentWrong = parseFloat(savedWrong);
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         currentWrong = Number(form.marks_wrong);
-      }
-      if (Math.abs(currentWrong - 0.33) <= 0.01 || Math.abs(currentWrong - (1 / 3)) <= 0.01) {
-        currentWrong = 1 / 3;
       }
       setWrongVal(currentWrong);
 
