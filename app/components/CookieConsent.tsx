@@ -119,16 +119,27 @@ export default function CookieConsent() {
             {/* Left: Icon & Description */}
             <div className="cbtrank-cookie-content">
               <div className="cbtrank-cookie-icon-wrapper" aria-hidden="true">
-                <span>🍪</span>
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#0044cc"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
               </div>
               <div className="cbtrank-cookie-text">
                 <div className="cbtrank-cookie-title-row">
-                  <span className="cbtrank-cookie-title">We Value Your Privacy &amp; Cookies</span>
+                  <span className="cbtrank-cookie-title">Quick Cookie &amp; Privacy Check</span>
                   <span className="cbtrank-cookie-badge">DPDP &amp; GDPR Compliant</span>
                 </div>
                 <p className="cbtrank-cookie-desc">
-                  We use essential cookies for site functionality and optional analytics to improve your experience under India&apos;s{' '}
-                  <strong>DPDP Act 2023</strong> and <strong>GDPR</strong>. You can customize your preferences anytime.{' '}
+                  We use essential cookies to keep your rank preferences intact and optional cookies to make CBTRank lightning fast. Choose how you want to proceed.{' '}
                   <a href="/privacy-policy" className="cbtrank-cookie-link">
                     Privacy Policy
                   </a>
