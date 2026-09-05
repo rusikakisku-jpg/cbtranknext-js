@@ -37,18 +37,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const examTitle = exam.title || formatExamTitle(slug);
+  const rawTitle = exam.title || formatExamTitle(slug);
+  const cleanTitle = rawTitle.replace(/\s+Answer\s+Key$/i, '');
   const canonicalUrl = `https://cbtrank.com/${slug}/answerkey`;
-  const metaTitle = `${examTitle} Answer Key & Rank Calculator`;
+  const metaTitle = `${cleanTitle} Answer Key & Rank Calculator`;
 
   return {
     title: metaTitle,
-    description: `Calculate your ${examTitle} marks, shift rank, and category rank instantly with official negative marking on CBTRank's Answer Key Calculator.`,
+    description: `Calculate your ${cleanTitle} marks, shift rank, and category rank instantly with official negative marking on CBTRank's Answer Key Calculator.`,
     keywords: [
-      `${examTitle} answer key`,
-      `${examTitle} rank predictor`,
-      `${examTitle} score calculator`,
-      `${examTitle} response sheet`,
+      `${cleanTitle} answer key`,
+      `${cleanTitle} rank predictor`,
+      `${cleanTitle} score calculator`,
+      `${cleanTitle} response sheet`,
       'cbt rank calculator'
     ],
     alternates: {
@@ -86,7 +87,8 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
     notFound();
   }
 
-  const examTitle = exam.title || formatExamTitle(slug);
+  const rawTitle = exam.title || formatExamTitle(slug);
+  const examTitle = rawTitle.replace(/\s+Answer\s+Key$/i, '');
   const marksRight = exam.marks_right ?? 1;
   const marksWrong = exam.marks_wrong ?? 0.25;
   const locationText = Array.isArray(exam.location_id)
