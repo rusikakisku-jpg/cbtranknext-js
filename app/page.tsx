@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import HomeSeoContent from './components/HomeSeoContent';
 
 export const metadata: Metadata = {
   title: 'CBT RANK - Latest Answer Keys & Rank Predictor',
@@ -396,6 +397,9 @@ export default async function HomePage() {
                 ))
               )}
             </div>
+
+            {/* In-depth Informative SEO Section & FAQ */}
+            <HomeSeoContent />
           </section>
         </div>
       </div>
