@@ -1,0 +1,384 @@
+/**
+ * ============================================================================
+ * ⚡ CLOUDFLARE WORKER: DEDUPLICATED EXAM DATES, TIMES & LANGUAGES API
+ * ============================================================================
+ * 
+ * 🎯 PURPOSE:
+ * Given an `exam_id`, queries the `user_ranks` table in Cloudflare D1
+ * and returns:
+ *   1. Unique (exam_date, exam_time) shifts — ZERO duplicates (single single data).
+ *   2. Grouped shift times by exam_date.
+ *   3. Unique paper_language list — ZERO duplicates.
+ *   4. Clean JSON API + Interactive Browser Web UI for instant testing.
+ * 
+ * 🗄️ DATABASE TABLE: `user_ranks`
+ * 
+ * 🚀 USAGE EXAMPLES:
+ *   - GET  https://your-worker.workers.dev/?exam_id=44
+ *   - GET  https://your-worker.workers.dev/exam_shifts?exam_id=44
+ *   - POST https://your-worker.workers.dev/exam_shifts  Body: {"exam_id": 44}
+ *   - Direct Browser: Open https://your-worker.workers.dev/ for interactive UI.
+ */
+
+// ⚙️ Configuration & Fallbacks (Can also be set in Cloudflare Worker Environment Variables)
+const DEFAULT_CF_ACCOUNT_ID = "38c7d789225e89652dd6bb111403db5d";
+const DEFAULT_CF_DATABASE_ID = "fd29c541-3fd2-4fa8-8dc1-19809ab907c3";
+const DEFAULT_CF_API_TOKEN = "cfut_umhNZGH5mokB88O6AHQVSURuP6AW48AIry4wVFaW74f7f9b6";
+
+// 🌐 CORS Headers for Universal Cross-Origin Access
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+  "Access-Control-Max-Age": "86400", // 24 hours preflight cache
+};
+
+/**
+ * 🛡️ Helper: Strict SQL Injection Sanitization
+ */
+function sanitizeSql(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/'/g, "''")
+    .replace(/\\/g, "\\\\")
+    .replace(/\0/g, "")
+    .trim();
+}
+
+/**
+ * 🗄️ Helper: Query Cloudflare D1 (Native env.DB First, REST API Fallback)
+ */
+async function queryD1(env, sql) {
+  // 1. Native Cloudflare D1 Binding (Fastest & 0-overhead)
+  if (env && env.DB) {
+    try {
+      const res = await env.DB.prepare(sql).all();
+      if (res && res.results) return res.results;
+      if (res) return res;
+    } catch (e) {
+      console.error("D1 Native Query Error:", e);
+    }
+  }
+
+  // 2. Cloudflare D1 REST API Fallback
+  const accountId = (env && env.CF_ACCOUNT_ID) || DEFAULT_CF_ACCOUNT_ID;
+  const databaseId = (env && env.CF_DATABASE_ID) || DEFAULT_CF_DATABASE_ID;
+  const apiToken = (env && env.CF_API_TOKEN) || DEFAULT_CF_API_TOKEN;
+
+  try {
+    const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ sql: sql })
+    });
+    if (response.ok) {
+      const jsonRes = await response.json();
+      if (jsonRes && jsonRes.result && jsonRes.result[0]) {
+        if (jsonRes.result[0].results) return jsonRes.result[0].results;
+        return jsonRes.result[0];
+      }
+    }
+  } catch (e) {
+    console.error("D1 REST Fallback Error:", e);
+  }
+
+  return [];
+}
+
+/**
+ * 🚀 Main Cloudflare Worker Fetch Handler
+ */
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const method = request.method.toUpperCase();
+
+    // 1. Handle CORS Preflight OPTIONS Request
+    if (method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders, status: 204 });
+    }
+
+    // 2. Extract Input Parameters (GET Query or POST Body)
+    let examId = url.searchParams.get("exam_id") || url.searchParams.get("id") || url.searchParams.get("exam_slug") || url.searchParams.get("slug") || "";
+
+    if (method === "POST") {
+      try {
+        const contentType = request.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const body = await request.json().catch(() => ({}));
+          examId = body.exam_id || body.id || body.exam_slug || body.slug || examId;
+        } else if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+          const form = await request.formData().catch(() => new Map());
+          examId = form.get("exam_id") || form.get("id") || form.get("exam_slug") || form.get("slug") || examId;
+        }
+      } catch (e) {}
+    }
+
+    examId = String(examId).trim();
+
+    // 3. Render Visual Web UI if visited directly from browser without exam_id
+    const wantsJson = url.searchParams.has("json") || 
+                      url.searchParams.has("exam_id") || 
+                      method === "POST" || 
+                      (request.headers.get("accept") && request.headers.get("accept").includes("application/json"));
+
+    if (!examId && !wantsJson && method === "GET") {
+      return renderWebUi();
+    }
+
+    // 4. Validate exam_id
+    if (!examId) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Missing exam_id parameter. Please provide exam_id via ?exam_id=... or POST JSON body.",
+        example: `${url.origin}/?exam_id=44`
+      }, null, 2), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
+      });
+    }
+
+    const cleanExamId = sanitizeSql(examId);
+
+    try {
+      // 5. Query Deduplicated Exam Dates & Exam Times (SQL DISTINCT)
+      const shiftsSql = `
+        SELECT DISTINCT 
+          TRIM(exam_date) AS exam_date, 
+          TRIM(exam_time) AS exam_time 
+        FROM user_ranks 
+        WHERE (exam_id = '${cleanExamId}' OR exam_slug = '${cleanExamId}')
+          AND exam_date IS NOT NULL 
+          AND TRIM(exam_date) != '' 
+          AND LOWER(exam_date) != 'null'
+          AND exam_time IS NOT NULL 
+          AND TRIM(exam_time) != ''
+          AND LOWER(exam_time) != 'null'
+        ORDER BY exam_date ASC, exam_time ASC;
+      `;
+
+      // 6. Query Deduplicated Paper Languages (SQL DISTINCT)
+      const langsSql = `
+        SELECT DISTINCT 
+          TRIM(paper_language) AS paper_language 
+        FROM user_ranks 
+        WHERE (exam_id = '${cleanExamId}' OR exam_slug = '${cleanExamId}')
+          AND paper_language IS NOT NULL 
+          AND TRIM(paper_language) != '' 
+          AND LOWER(paper_language) != 'null'
+        ORDER BY paper_language ASC;
+      `;
+
+      // Execute both queries concurrently for maximum speed
+      const [shiftRows, langRows] = await Promise.all([
+        queryD1(env, shiftsSql),
+        queryD1(env, langsSql)
+      ]);
+
+      // 7. Double In-Memory Deduplication & Logical Grouping
+      const seenShifts = new Set();
+      const shifts = [];
+      const dateSet = new Set();
+      const groupedByDate = {};
+
+      (shiftRows || []).forEach(row => {
+        const d = (row.exam_date || "").trim();
+        const t = (row.exam_time || "").trim();
+        if (!d || !t || d.toLowerCase() === "null" || t.toLowerCase() === "null") return;
+
+        const uniqueKey = `${d}___${t}`;
+        if (!seenShifts.has(uniqueKey)) {
+          seenShifts.add(uniqueKey);
+          shifts.push({ exam_date: d, exam_time: t });
+          dateSet.add(d);
+
+          if (!groupedByDate[d]) groupedByDate[d] = [];
+          if (!groupedByDate[d].includes(t)) {
+            groupedByDate[d].push(t);
+          }
+        }
+      });
+
+      // Deduplicate Paper Languages (Case-insensitive deduplication)
+      const seenLangs = new Set();
+      const languages = [];
+      (langRows || []).forEach(row => {
+        const lang = (row.paper_language || "").trim();
+        if (!lang || lang.toLowerCase() === "null") return;
+
+        const lower = lang.toLowerCase();
+        if (!seenLangs.has(lower)) {
+          seenLangs.add(lower);
+          languages.push(lang);
+        }
+      });
+
+      // Sort dates and languages for clean presentation
+      const sortedDates = Array.from(dateSet).sort();
+      languages.sort((a, b) => a.localeCompare(b));
+
+      // 8. Prepare Structured Response
+      const responseData = {
+        success: true,
+        exam_id: examId,
+        table: "user_ranks",
+        total_shifts: shifts.length,
+        total_dates: sortedDates.length,
+        total_languages: languages.length,
+        dates: sortedDates,
+        shifts: shifts,
+        grouped_by_date: groupedByDate,
+        paper_languages: languages
+      };
+
+      return new Response(JSON.stringify(responseData, null, 2), {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "public, max-age=60, s-maxage=300" // 5 mins CDN cache for fast queries
+        }
+      });
+
+    } catch (err) {
+      console.error("Worker Execution Error:", err);
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Internal Server Error while querying user_ranks",
+        message: err.message || String(err)
+      }, null, 2), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
+      });
+    }
+  }
+};
+
+/**
+ * 🎨 Helper: Interactive Web UI for Browser Testing
+ */
+function renderWebUi() {
+  const html = `<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBT Rank - Exam Dates, Times &amp; Languages Lookup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 30px 16px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: #1e293b; border-radius: 16px; padding: 28px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    h1 { font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 8px; text-align: center; }
+    p.desc { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 24px; }
+    .form-group { display: flex; gap: 12px; margin-bottom: 24px; }
+    input[type="text"] { flex: 1; padding: 14px 18px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 16px; outline: none; transition: border 0.2s; }
+    input[type="text"]:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+    button { padding: 14px 24px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+    button:hover { background: #1d4ed8; }
+    .badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #0284c7; color: #fff; margin: 4px; }
+    .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stat-box { flex: 1; min-width: 140px; background: #0f172a; padding: 16px; border-radius: 10px; border: 1px solid #334155; text-align: center; }
+    .stat-num { font-size: 24px; font-weight: 800; color: #38bdf8; }
+    .stat-lbl { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; }
+    th { background: #0f172a; color: #38bdf8; font-weight: 700; }
+    pre { background: #0f172a; padding: 16px; border-radius: 10px; overflow-x: auto; color: #a5f3fc; font-size: 13px; margin-top: 15px; border: 1px solid #334155; }
+    #result { display: none; }
+    .loading { text-align: center; color: #38bdf8; display: none; margin: 20px 0; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>⚡ CBT Rank: Exam Dates, Shifts &amp; Languages</h1>
+      <p class="desc">Enter Exam ID to get deduplicated (single single) dates, times, and paper languages from <code>user_ranks</code> table.</p>
+      
+      <div class="form-group">
+        <input type="text" id="examIdInput" placeholder="Enter Exam ID (e.g. 44, 45, or slug)" autofocus>
+        <button onclick="fetchData()">Fetch Data</button>
+      </div>
+
+      <div class="loading" id="loader">🔄 Querying Cloudflare D1 Database...</div>
+
+      <div id="result">
+        <div class="stats">
+          <div class="stat-box"><div class="stat-num" id="statShifts">0</div><div class="stat-lbl">Unique Shifts</div></div>
+          <div class="stat-box"><div class="stat-num" id="statDates">0</div><div class="stat-lbl">Exam Dates</div></div>
+          <div class="stat-box"><div class="stat-num" id="statLangs">0</div><div class="stat-lbl">Languages</div></div>
+        </div>
+
+        <h3 style="margin: 20px 0 10px; color: #e2e8f0; font-size: 16px;">🌐 Paper Languages:</h3>
+        <div id="langList"></div>
+
+        <h3 style="margin: 24px 0 10px; color: #e2e8f0; font-size: 16px;">📅 Unique Dates &amp; Shift Times:</h3>
+        <table>
+          <thead><tr><th>#</th><th>Exam Date</th><th>Exam Time</th></tr></thead>
+          <tbody id="shiftsBody"></tbody>
+        </table>
+
+        <h3 style="margin: 24px 0 10px; color: #e2e8f0; font-size: 16px;">💻 Raw JSON Response:</h3>
+        <pre id="jsonViewer"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function fetchData() {
+      const examId = document.getElementById('examIdInput').value.trim();
+      if (!examId) { alert('Please enter Exam ID!'); return; }
+      
+      const loader = document.getElementById('loader');
+      const resultBox = document.getElementById('result');
+      loader.style.display = 'block';
+      resultBox.style.display = 'none';
+
+      try {
+        const res = await fetch('?exam_id=' + encodeURIComponent(examId) + '&json=1');
+        const data = await res.json();
+        loader.style.display = 'none';
+        resultBox.style.display = 'block';
+
+        document.getElementById('statShifts').innerText = data.total_shifts || 0;
+        document.getElementById('statDates').innerText = data.total_dates || 0;
+        document.getElementById('statLangs').innerText = data.total_languages || 0;
+
+        // Render languages
+        const langList = document.getElementById('langList');
+        langList.innerHTML = (data.paper_languages || []).map(l => '<span class="badge">' + l + '</span>').join('') || '<span style="color:#94a3b8">No languages found</span>';
+
+        // Render shifts table
+        const tbody = document.getElementById('shiftsBody');
+        if (data.shifts && data.shifts.length > 0) {
+          tbody.innerHTML = data.shifts.map((s, idx) => '<tr><td>' + (idx+1) + '</td><td><b>' + s.exam_date + '</b></td><td>' + s.exam_time + '</td></tr>').join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8">No shift records found for this exam ID</td></tr>';
+        }
+
+        // Render JSON
+        document.getElementById('jsonViewer').innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        loader.style.display = 'none';
+        alert('Fetch error: ' + err.message);
+      }
+    }
+
+    // Allow Enter key to trigger search
+    document.getElementById('examIdInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') fetchData();
+    });
+  </script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+}
