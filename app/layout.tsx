@@ -8,7 +8,7 @@ import CookieConsent from "./components/CookieConsent";
 export const metadata: Metadata = {
   metadataBase: new URL('https://cbtrank.com'),
   title: {
-    default: "CBT RANK - Latest Answer Keys & Rank Predictor",
+    default: "CBT RANK - Latest Answer Keys Calculator & Rank Predictor",
     template: "%s | CBT RANK",
   },
   description: "Calculate your marks, shift rank, and category cutoffs instantly with CBTRank's Answer Key Calculator.",
