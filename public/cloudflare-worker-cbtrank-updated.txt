@@ -294,6 +294,128 @@ export default {
     }
 
     // =========================================================================
+    // 6.5 ⚡ DEDUPLICATED EXAM SHIFTS, DATES & LANGUAGES (/exam_shifts, /api/exam_shifts)
+    // Returns unique (exam_date, exam_time) and unique paper_language from user_ranks
+    // =========================================================================
+    if (pathname === '/exam_shifts' || pathname === '/api/exam_shifts' || pathname === '/exam_dates' || pathname === '/api/exam_dates') {
+      let examId = sanitizeSql((url.searchParams.get('exam_id') || url.searchParams.get('id') || url.searchParams.get('exam_slug') || url.searchParams.get('slug') || '').trim());
+
+      if (request.method === 'POST') {
+        try {
+          const body = await request.clone().json();
+          if (body) {
+            examId = sanitizeSql(String(body.exam_id || body.id || body.exam_slug || body.slug || examId).trim());
+          }
+        } catch (e) {}
+      }
+
+      if (!examId) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: "Missing exam_id parameter. Please provide exam_id via ?exam_id=... or POST JSON body."
+        }), { headers: corsHeaders, status: 400 });
+      }
+
+      try {
+        const shiftsSql = `
+          SELECT DISTINCT 
+            TRIM(exam_date) AS exam_date, 
+            TRIM(exam_time) AS exam_time 
+          FROM user_ranks 
+          WHERE (exam_id = '${examId}' OR exam_slug = '${examId}')
+            AND exam_date IS NOT NULL 
+            AND TRIM(exam_date) != '' 
+            AND LOWER(exam_date) != 'null'
+            AND exam_time IS NOT NULL 
+            AND TRIM(exam_time) != ''
+            AND LOWER(exam_time) != 'null'
+          ORDER BY exam_date ASC, exam_time ASC;
+        `;
+
+        const langsSql = `
+          SELECT DISTINCT 
+            TRIM(paper_language) AS paper_language 
+          FROM user_ranks 
+          WHERE (exam_id = '${examId}' OR exam_slug = '${examId}')
+            AND paper_language IS NOT NULL 
+            AND TRIM(paper_language) != '' 
+            AND LOWER(paper_language) != 'null'
+          ORDER BY paper_language ASC;
+        `;
+
+        const [shiftRows, langRows] = await Promise.all([
+          queryD1(env, shiftsSql),
+          queryD1(env, langsSql)
+        ]);
+
+        const seenShifts = new Set();
+        const shifts = [];
+        const dateSet = new Set();
+        const groupedByDate = {};
+
+        (shiftRows || []).forEach(row => {
+          const d = (row.exam_date || "").trim();
+          const t = (row.exam_time || "").trim();
+          if (!d || !t || d.toLowerCase() === "null" || t.toLowerCase() === "null") return;
+
+          const uniqueKey = `${d}___${t}`;
+          if (!seenShifts.has(uniqueKey)) {
+            seenShifts.add(uniqueKey);
+            shifts.push({ exam_date: d, exam_time: t });
+            dateSet.add(d);
+
+            if (!groupedByDate[d]) groupedByDate[d] = [];
+            if (!groupedByDate[d].includes(t)) {
+              groupedByDate[d].push(t);
+            }
+          }
+        });
+
+        const seenLangs = new Set();
+        const languages = [];
+        (langRows || []).forEach(row => {
+          const lang = (row.paper_language || "").trim();
+          if (!lang || lang.toLowerCase() === "null") return;
+
+          const lower = lang.toLowerCase();
+          if (!seenLangs.has(lower)) {
+            seenLangs.add(lower);
+            languages.push(lang);
+          }
+        });
+
+        const sortedDates = Array.from(dateSet).sort();
+        languages.sort((a, b) => a.localeCompare(b));
+
+        return new Response(JSON.stringify({
+          success: true,
+          exam_id: examId,
+          table: "user_ranks",
+          total_shifts: shifts.length,
+          total_dates: sortedDates.length,
+          total_languages: languages.length,
+          dates: sortedDates,
+          shifts: shifts,
+          grouped_by_date: groupedByDate,
+          paper_languages: languages
+        }, null, 2), {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "public, max-age=60, s-maxage=300"
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: "Internal Server Error querying user_ranks",
+          message: err.message || String(err)
+        }), { headers: corsHeaders, status: 500 });
+      }
+    }
+
+    // =========================================================================
     // 7️⃣ ⚡ ULTRA-FAST LIVE RANK ENDPOINT (/live_rank, /api/live_rank)
     // Fixes the 1,000 Candidate Block Bug using Direct D1 SQL Index Count Aggregation
     // =========================================================================
