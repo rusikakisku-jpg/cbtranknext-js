@@ -317,12 +317,51 @@ export default {
       }
 
       try {
+        let matchedExamSlug = "";
+        let matchedExternalId = "";
+        let matchedExamTitle = "";
+
+        try {
+          const examLookupSql = `
+            SELECT id, slug, external_exam_id, title 
+            FROM exams 
+            WHERE id = '${examId}' 
+               OR slug = '${examId}' 
+               OR external_exam_id = '${examId}'
+               OR slug LIKE '%${examId}%'
+               OR title LIKE '%${examId}%'
+            LIMIT 1;
+          `;
+          const examRows = await queryD1(env, examLookupSql);
+          if (examRows && examRows.length > 0) {
+            matchedExamSlug = examRows[0].slug || "";
+            matchedExternalId = examRows[0].external_exam_id || "";
+            matchedExamTitle = examRows[0].title || "";
+          }
+        } catch (lookupErr) {}
+
+        const conditions = [];
+        conditions.push(`exam_id = '${examId}'`);
+        conditions.push(`exam_slug = '${examId}'`);
+        if (matchedExamSlug && matchedExamSlug !== examId) {
+          conditions.push(`exam_slug = '${matchedExamSlug}'`);
+        }
+        if (matchedExternalId) {
+          conditions.push(`exam_id = '${matchedExternalId}'`);
+          conditions.push(`url LIKE '%${matchedExternalId}%'`);
+        }
+        if (examId.includes("-")) {
+          conditions.push(`exam_slug LIKE '%${examId}%'`);
+        }
+
+        const whereMatch = `(${conditions.join(" OR ")})`;
+
         const shiftsSql = `
           SELECT DISTINCT 
             TRIM(exam_date) AS exam_date, 
             TRIM(exam_time) AS exam_time 
           FROM user_ranks 
-          WHERE (exam_id = '${examId}' OR exam_slug = '${examId}')
+          WHERE ${whereMatch}
             AND exam_date IS NOT NULL 
             AND TRIM(exam_date) != '' 
             AND LOWER(exam_date) != 'null'
@@ -336,7 +375,7 @@ export default {
           SELECT DISTINCT 
             TRIM(paper_language) AS paper_language 
           FROM user_ranks 
-          WHERE (exam_id = '${examId}' OR exam_slug = '${examId}')
+          WHERE ${whereMatch}
             AND paper_language IS NOT NULL 
             AND TRIM(paper_language) != '' 
             AND LOWER(paper_language) != 'null'
