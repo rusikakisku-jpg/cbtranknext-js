@@ -424,7 +424,7 @@ export async function getBase64ImageAction(imageUrl: string): Promise<string> {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
       },
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(2000)
     });
     if (res.ok) {
       const contentType = res.headers.get('content-type') || 'image/png';
