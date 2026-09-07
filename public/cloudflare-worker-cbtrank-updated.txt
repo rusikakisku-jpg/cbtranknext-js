@@ -317,126 +317,86 @@ export default {
       }
 
       try {
-        let matchedExamSlug = "";
-        let matchedExternalId = "";
-        let matchedExamTitle = "";
-
-        try {
-          const examLookupSql = `
-            SELECT id, slug, external_exam_id, title 
-            FROM exams 
-            WHERE id = '${examId}' 
-               OR slug = '${examId}' 
-               OR external_exam_id = '${examId}'
-               OR slug LIKE '%${examId}%'
-               OR title LIKE '%${examId}%'
-            LIMIT 1;
-          `;
-          const examRows = await queryD1(env, examLookupSql);
-          if (examRows && examRows.length > 0) {
-            matchedExamSlug = examRows[0].slug || "";
-            matchedExternalId = examRows[0].external_exam_id || "";
-            matchedExamTitle = examRows[0].title || "";
-          }
-        } catch (lookupErr) {}
-
-        const conditions = [];
-        conditions.push(`exam_id = '${examId}'`);
-        conditions.push(`exam_slug = '${examId}'`);
-        if (matchedExamSlug && matchedExamSlug !== examId) {
-          conditions.push(`exam_slug = '${matchedExamSlug}'`);
-        }
-        if (matchedExternalId) {
-          conditions.push(`exam_id = '${matchedExternalId}'`);
-          conditions.push(`url LIKE '%${matchedExternalId}%'`);
-        }
-        if (examId.includes("-")) {
-          conditions.push(`exam_slug LIKE '%${examId}%'`);
-        }
-
-        const whereMatch = `(${conditions.join(" OR ")})`;
-
-        const shiftsSql = `
+        const querySql = `
           SELECT DISTINCT 
             TRIM(exam_date) AS exam_date, 
-            TRIM(exam_time) AS exam_time 
+            TRIM(exam_time) AS exam_time, 
+            TRIM(paper_language) AS paper_language 
           FROM user_ranks 
-          WHERE ${whereMatch}
+          WHERE exam_id = '${examId}' 
             AND exam_date IS NOT NULL 
             AND TRIM(exam_date) != '' 
             AND LOWER(exam_date) != 'null'
             AND exam_time IS NOT NULL 
             AND TRIM(exam_time) != ''
             AND LOWER(exam_time) != 'null'
-          ORDER BY exam_date ASC, exam_time ASC;
+          ORDER BY exam_date ASC, exam_time ASC, paper_language ASC;
         `;
 
-        const langsSql = `
-          SELECT DISTINCT 
-            TRIM(paper_language) AS paper_language 
-          FROM user_ranks 
-          WHERE ${whereMatch}
-            AND paper_language IS NOT NULL 
-            AND TRIM(paper_language) != '' 
-            AND LOWER(paper_language) != 'null'
-          ORDER BY paper_language ASC;
-        `;
+        const rows = await queryD1(env, querySql);
 
-        const [shiftRows, langRows] = await Promise.all([
-          queryD1(env, shiftsSql),
-          queryD1(env, langsSql)
-        ]);
-
-        const seenShifts = new Set();
-        const shifts = [];
+        const shiftMap = new Map();
+        const allLanguagesSet = new Set();
         const dateSet = new Set();
-        const groupedByDate = {};
 
-        (shiftRows || []).forEach(row => {
+        (rows || []).forEach(row => {
           const d = (row.exam_date || "").trim();
           const t = (row.exam_time || "").trim();
+          const lang = (row.paper_language || "").trim();
+
           if (!d || !t || d.toLowerCase() === "null" || t.toLowerCase() === "null") return;
 
-          const uniqueKey = `${d}___${t}`;
-          if (!seenShifts.has(uniqueKey)) {
-            seenShifts.add(uniqueKey);
-            shifts.push({ exam_date: d, exam_time: t });
+          const shiftKey = `${d}___${t}`;
+          if (!shiftMap.has(shiftKey)) {
+            shiftMap.set(shiftKey, {
+              exam_date: d,
+              exam_time: t,
+              languages: []
+            });
             dateSet.add(d);
+          }
 
-            if (!groupedByDate[d]) groupedByDate[d] = [];
-            if (!groupedByDate[d].includes(t)) {
-              groupedByDate[d].push(t);
+          if (lang && lang.toLowerCase() !== "null") {
+            const shiftObj = shiftMap.get(shiftKey);
+            const lowerLang = lang.toLowerCase();
+            if (!shiftObj.languages.some(l => l.toLowerCase() === lowerLang)) {
+              shiftObj.languages.push(lang);
+            }
+            if (!Array.from(allLanguagesSet).some(l => l.toLowerCase() === lowerLang)) {
+              allLanguagesSet.add(lang);
             }
           }
         });
 
-        const seenLangs = new Set();
-        const languages = [];
-        (langRows || []).forEach(row => {
-          const lang = (row.paper_language || "").trim();
-          if (!lang || lang.toLowerCase() === "null") return;
-
-          const lower = lang.toLowerCase();
-          if (!seenLangs.has(lower)) {
-            seenLangs.add(lower);
-            languages.push(lang);
-          }
+        const shifts = Array.from(shiftMap.values()).map(s => {
+          s.languages.sort((a, b) => a.localeCompare(b));
+          return s;
         });
 
         const sortedDates = Array.from(dateSet).sort();
-        languages.sort((a, b) => a.localeCompare(b));
+        const allLanguages = Array.from(allLanguagesSet).sort((a, b) => a.localeCompare(b));
+
+        const groupedByDate = {};
+        shifts.forEach(s => {
+          if (!groupedByDate[s.exam_date]) groupedByDate[s.exam_date] = [];
+          groupedByDate[s.exam_date].push({
+            exam_time: s.exam_time,
+            languages: s.languages
+          });
+        });
 
         return new Response(JSON.stringify({
           success: true,
           exam_id: examId,
+          match_type: "STRICT_EXACT_MATCH",
           table: "user_ranks",
           total_shifts: shifts.length,
           total_dates: sortedDates.length,
-          total_languages: languages.length,
+          total_languages: allLanguages.length,
+          all_languages: allLanguages,
           dates: sortedDates,
           shifts: shifts,
-          grouped_by_date: groupedByDate,
-          paper_languages: languages
+          grouped_by_date: groupedByDate
         }, null, 2), {
           status: 200,
           headers: {
