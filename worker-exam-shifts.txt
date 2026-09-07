@@ -9,14 +9,14 @@
  *      Exam ID '1234' will NEVER match '12345'.
  *   2. 🌐 DIRECT LINK ON LANGUAGE CLICK:
  *      Shift table me kisi bhi language badge par click karne se candidate ka
- *      answer key URL directly dusre tab me open (`target="_blank"`) ho jayega.
+ *      answer key URL directly dusre tab me open (`target="_blank"`) ho jata hai.
  *   3. 📋 SERIAL-WISE CANDIDATE URL LIST:
- *      Languages ko Multiple Select (checkbox / pill) karke niche unke saare links
- *      serial-wise (#1, #2, #3...) table me open/copy buttons ke sath aate hain.
+ *      Languages ko Multiple Select (pill click) karke niche unke saare links
+ *      serial-wise (#1, #2, #3...) table me Open ↗️ aur Copy 📋 buttons ke sath aate hain.
  *   4. 🚫 ZERO RAW JSON:
- *      Raw JSON pre-box completely remove kar diya gaya hai.
- *      Ek full modern website UI portal jaisa view milta hai.
- *   5. 🚀 Clean API support when called with `?json=1` or POST.
+ *      Raw JSON completely removed. Full modern responsive website UI portal.
+ *   5. ⌨️ ENTER KEY & FORM SUBMISSION:
+ *      Form submission + Enter key on desktop and mobile keyboards works 100% reliably.
  * 
  * 🗄️ DATABASE TABLE: `user_ranks` (columns: exam_id, exam_date, exam_time, paper_language, url, user_id)
  * 
@@ -252,7 +252,7 @@ export default {
         });
       });
 
-      // 8. Prepare Clean JSON Data
+      // 8. Prepare Clean Response Data
       const responseData = {
         success: true,
         exam_id: examId,
@@ -270,7 +270,7 @@ export default {
         note: shifts.length === 0 ? (!isD1Bound ? "⚠️ env.DB binding is missing in Cloudflare Dashboard! Please add D1 Database binding named 'DB'." : `No candidate records found in user_ranks where exam_id exactly equals '${examId}'.`) : undefined
       };
 
-      // If user opened directly in browser without asking for json, show the Full Website UI populated with data!
+      // If user opened directly in browser without asking for json, show Full Website UI!
       if (!wantsJson && method === "GET") {
         return renderWebPortal(isD1Bound, responseData);
       }
@@ -329,7 +329,6 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       --card-border: #1e293b;
       --primary: #38bdf8;
       --primary-hover: #0284c7;
-      --accent: #6366f1;
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -449,10 +448,16 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       cursor: pointer;
       box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
       transition: all 0.2s;
+      white-space: nowrap;
     }
     .btn-search:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+    }
+    .btn-search:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
     /* KPI Stats Cards */
@@ -468,9 +473,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       border-radius: 14px;
       padding: 20px;
       text-align: center;
-      transition: border 0.2s;
     }
-    .kpi-card:hover { border-color: #334155; }
     .kpi-val { font-size: 30px; font-weight: 800; color: var(--primary); line-height: 1.1; }
     .kpi-lbl { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
 
@@ -578,7 +581,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 5px 11px;
+      padding: 6px 12px;
       border-radius: 12px;
       font-size: 12px;
       font-weight: 700;
@@ -586,8 +589,8 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       color: #e0f2fe;
       margin: 3px;
       cursor: pointer;
+      border: none;
       transition: all 0.2s;
-      text-decoration: none;
     }
     .shift-lang-badge:hover {
       background: #0284c7;
@@ -623,7 +626,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       transform: translateY(-1px);
     }
     .btn-copy {
-      padding: 7px 10px;
+      padding: 7px 12px;
       background: #1e293b;
       color: #94a3b8;
       border: 1px solid #334155;
@@ -658,7 +661,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 30px 20px;
       color: var(--text-muted);
     }
     .url-cell {
@@ -669,6 +672,20 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       color: #94a3b8;
       font-family: monospace;
       font-size: 12px;
+    }
+
+    .notice-banner {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     /* Footer */
@@ -707,10 +724,11 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       <h1 class="hero-title">Exam Shifts &amp; Answer Key Explorer</h1>
       <p class="hero-subtitle">Enter exact <b>exam_id</b> to explore shifts, dates, and live answer key links from <code>user_ranks</code> table.</p>
       
-      <div class="search-bar-wrap">
-        <input type="text" id="examIdInput" class="search-input" placeholder="Enter Exact Exam ID (e.g. 100576, 33128, etc.)" autofocus>
-        <button onclick="fetchData()" class="btn-search">Search Exam</button>
-      </div>
+      <!-- Native HTML Form Handles Enter Key & Button Click -->
+      <form id="searchForm" onsubmit="event.preventDefault(); fetchData(); return false;" class="search-bar-wrap">
+        <input type="text" id="examIdInput" class="search-input" placeholder="Enter Exact Exam ID (e.g. 100576, 33128, etc.)" autofocus autocomplete="off" required>
+        <button type="submit" id="searchBtn" class="btn-search">Search Exam</button>
+      </form>
     </div>
 
     <!-- Loading Indicator -->
@@ -722,6 +740,9 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
 
     <!-- Results Section (Visible after search) -->
     <div id="resultsSection" style="display: none;">
+
+      <!-- Notice Banner -->
+      <div class="notice-banner" id="matchNotice"></div>
 
       <!-- KPI Stats -->
       <div class="kpi-grid">
@@ -747,7 +768,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       <div class="content-box">
         <div class="section-header">
           <h2 class="section-title">📅 Exam Shifts &amp; Languages Breakdown (Side-by-Side)</h2>
-          <span style="font-size: 12px; color: var(--text-muted);">💡 Click on any language badge to open candidate response sheet in a new tab</span>
+          <span style="font-size: 12px; color: var(--text-muted);">💡 Click any language badge to open candidate response sheet in a new tab ↗️</span>
         </div>
 
         <div class="table-container">
@@ -769,7 +790,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
       <div class="content-box">
         <div class="section-header">
           <h2 class="section-title">🔗 Candidate Answer Key URLs (Serial-wise List)</h2>
-          <span id="urlCountBadge" style="font-size: 12px; background: #1e293b; padding: 4px 10px; border-radius: 12px; color: var(--primary); font-weight: 700;"></span>
+          <span id="urlCountBadge" style="font-size: 12px; background: #1e293b; padding: 4px 12px; border-radius: 12px; color: var(--primary); font-weight: 700;"></span>
         </div>
 
         <!-- Language Multi-Select Filter Pills -->
@@ -789,7 +810,7 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
                 <th style="width: 120px;">Language</th>
                 <th style="width: 140px;">Candidate Roll</th>
                 <th>Answer Key URL Link</th>
-                <th style="width: 160px; text-align: center;">Action</th>
+                <th style="width: 170px; text-align: center;">Action</th>
               </tr>
             </thead>
             <tbody id="candidateUrlsBody"></tbody>
@@ -817,35 +838,55 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
     }
 
     async function fetchData() {
-      const examId = document.getElementById('examIdInput').value.trim();
-      if (!examId) { alert('Please enter an Exam ID!'); return; }
+      const input = document.getElementById('examIdInput');
+      const examId = input ? input.value.trim() : '';
+      if (!examId) {
+        alert('Please enter an Exam ID!');
+        return;
+      }
 
+      const searchBtn = document.getElementById('searchBtn');
       const loader = document.getElementById('loader');
       const resultsSection = document.getElementById('resultsSection');
-      loader.style.display = 'block';
-      resultsSection.style.display = 'none';
+
+      if (searchBtn) { searchBtn.disabled = true; searchBtn.innerText = 'Searching...'; }
+      if (loader) loader.style.display = 'block';
+      if (resultsSection) resultsSection.style.display = 'none';
 
       try {
-        const res = await fetch('?exam_id=' + encodeURIComponent(examId) + '&json=1');
+        const fetchUrl = '?exam_id=' + encodeURIComponent(examId) + '&json=1';
+        const res = await fetch(fetchUrl);
         const data = await res.json();
-        loader.style.display = 'none';
+
+        if (loader) loader.style.display = 'none';
+        if (searchBtn) { searchBtn.disabled = false; searchBtn.innerText = 'Search Exam'; }
 
         if (!data.success) {
-          alert('Error: ' + (data.error || 'Failed to fetch'));
+          alert('Error: ' + (data.error || 'Failed to fetch data'));
           return;
         }
 
         currentData = data;
-        selectedLanguages.clear(); // Reset filter on new search
+        selectedLanguages.clear(); // Reset language filter on new search
         renderAll(data);
       } catch (err) {
-        loader.style.display = 'none';
+        if (loader) loader.style.display = 'none';
+        if (searchBtn) { searchBtn.disabled = false; searchBtn.innerText = 'Search Exam'; }
         alert('Fetch Error: ' + err.message);
       }
     }
 
     function renderAll(data) {
-      document.getElementById('resultsSection').style.display = 'block';
+      const resultsSection = document.getElementById('resultsSection');
+      if (resultsSection) resultsSection.style.display = 'block';
+
+      // Match Notice
+      const noticeElem = document.getElementById('matchNotice');
+      if (noticeElem) {
+        noticeElem.innerHTML = 
+          '<div><b>Searched Exam ID:</b> <code>' + escapeHtml(data.exam_id) + '</code> &nbsp;|&nbsp; <b>Match Type:</b> Strict Exact Match (=)</div>' +
+          (data.note ? '<div style="color:#f87171; font-weight:700;">' + escapeHtml(data.note) + '</div>' : '');
+      }
 
       // KPI stats
       document.getElementById('statShifts').innerText = data.total_shifts || 0;
@@ -855,78 +896,53 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
 
       // Render Section 1: Shifts Table
       const shiftsTbody = document.getElementById('shiftsBody');
-      if (data.shifts && data.shifts.length > 0) {
-        shiftsTbody.innerHTML = data.shifts.map((s, idx) => {
-          const langBadges = (s.languages && s.languages.length > 0)
-            ? s.languages.map(l => {
-                const targetUrl = (s.first_url_by_lang && s.first_url_by_lang[l]) || '';
-                return '<button class="shift-lang-badge" onclick="onLangBadgeClick(\\'' + escapeJs(l) + '\\', \\'' + escapeJs(targetUrl) + '\\')" title="Click to open link in other tab">' +
-                  l + ' <span class="icon">&#8599;</span></button>';
-              }).join('')
-            : '<span style="color:#64748b; font-size:13px;">None</span>';
+      if (shiftsTbody) {
+        if (data.shifts && data.shifts.length > 0) {
+          shiftsTbody.innerHTML = data.shifts.map((s, idx) => {
+            const langBadges = (s.languages && s.languages.length > 0)
+              ? s.languages.map(l => {
+                  const targetUrl = (s.first_url_by_lang && s.first_url_by_lang[l]) || '';
+                  return '<button type="button" class="shift-lang-badge" data-lang="' + escapeHtml(l) + '" data-url="' + escapeHtml(targetUrl) + '" title="Click to open link in other tab">' +
+                    escapeHtml(l) + ' <span class="icon">&#8599;</span></button>';
+                }).join('')
+              : '<span style="color:#64748b; font-size:13px;">None</span>';
 
-          return '<tr>' +
-            '<td><span class="serial-tag">' + (idx + 1) + '</span></td>' +
-            '<td><b style="color:#fff;">' + s.exam_date + '</b></td>' +
-            '<td>' + s.exam_time + '</td>' +
-            '<td>' + langBadges + '</td>' +
-          '</tr>';
-        }).join('');
-      } else {
-        shiftsTbody.innerHTML = '<tr><td colspan="4" class="empty-state">No shifts found for exam_id: <b>' + data.exam_id + '</b></td></tr>';
+            return '<tr>' +
+              '<td><span class="serial-tag">' + (idx + 1) + '</span></td>' +
+              '<td><b style="color:#fff;">' + escapeHtml(s.exam_date) + '</b></td>' +
+              '<td>' + escapeHtml(s.exam_time) + '</td>' +
+              '<td>' + langBadges + '</td>' +
+            '</tr>';
+          }).join('');
+        } else {
+          shiftsTbody.innerHTML = '<tr><td colspan="4" class="empty-state">No shifts found matching exact exam_id: <b>' + escapeHtml(data.exam_id) + '</b></td></tr>';
+        }
       }
 
-      // Render Language Filter Pills (Multi-Select)
+      // Render Language Filter Pills
       renderLangPills(data.all_languages || []);
 
       // Render Section 2: Serial-wise Candidate URLs Table
       renderSerialUrlsTable();
     }
 
-    // Language Badge Click in Shift Table:
-    // Opens the link in a new tab immediately AND filters the serial table below!
-    function onLangBadgeClick(lang, directUrl) {
-      if (directUrl) {
-        window.open(directUrl, '_blank');
-      }
-      // Toggle / set this language in filter
-      selectedLanguages.clear();
-      selectedLanguages.add(lang.toLowerCase());
-      updatePillsUI();
-      renderSerialUrlsTable();
-    }
-
     function renderLangPills(languages) {
       const container = document.getElementById('langPillsContainer');
+      if (!container) return;
+
       if (!languages || languages.length === 0) {
-        container.innerHTML = '<span style="color:#64748b; font-size:12px;">None</span>';
+        container.innerHTML = '<span style="color:#64748b; font-size:12px;">No languages</span>';
         return;
       }
 
-      let html = '<div class="lang-pill ' + (selectedLanguages.size === 0 ? 'active' : '') + '" onclick="selectAllLangs()">All Languages</div>';
+      let html = '<div class="lang-pill ' + (selectedLanguages.size === 0 ? 'active' : '') + '" data-lang-all="1">All Languages</div>';
       languages.forEach(l => {
         const isSelected = selectedLanguages.has(l.toLowerCase());
-        html += '<div class="lang-pill ' + (isSelected ? 'active' : '') + '" onclick="toggleLangSelection(\\'' + escapeJs(l.toLowerCase()) + '\\')">' +
-          (isSelected ? '✓ ' : '') + l +
+        html += '<div class="lang-pill ' + (isSelected ? 'active' : '') + '" data-lang-toggle="' + escapeHtml(l.toLowerCase()) + '">' +
+          (isSelected ? '✓ ' : '') + escapeHtml(l) +
         '</div>';
       });
       container.innerHTML = html;
-    }
-
-    function toggleLangSelection(langLower) {
-      if (selectedLanguages.has(langLower)) {
-        selectedLanguages.delete(langLower);
-      } else {
-        selectedLanguages.add(langLower);
-      }
-      updatePillsUI();
-      renderSerialUrlsTable();
-    }
-
-    function selectAllLangs() {
-      selectedLanguages.clear();
-      updatePillsUI();
-      renderSerialUrlsTable();
     }
 
     function updatePillsUI() {
@@ -957,14 +973,17 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
     // Render Candidate URLs Table Serial-wise (#1, #2, #3...)
     function renderSerialUrlsTable() {
       const tbody = document.getElementById('candidateUrlsBody');
+      if (!tbody) return;
+
       const allUrls = currentData?.candidate_urls || [];
 
-      // Filter by selected languages (if any selected)
+      // Filter by selected languages
       const filtered = (selectedLanguages.size === 0)
         ? allUrls
         : allUrls.filter(item => selectedLanguages.has((item.paper_language || '').toLowerCase()));
 
-      document.getElementById('urlCountBadge').innerText = filtered.length + ' Links Showing';
+      const countBadge = document.getElementById('urlCountBadge');
+      if (countBadge) countBadge.innerText = filtered.length + ' Links Showing';
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No candidate answer key URLs found for the selected filter.</td></tr>';
@@ -975,44 +994,84 @@ function renderWebPortal(isD1Bound, preloadedData = null) {
         const serialNo = idx + 1; // Serial-wise #1, #2, #3...
         return '<tr>' +
           '<td><span class="serial-tag">#' + serialNo + '</span></td>' +
-          '<td><b style="color:#fff;">' + item.exam_date + '</b></td>' +
-          '<td>' + item.exam_time + '</td>' +
-          '<td><span style="background:#1e293b; color:#38bdf8; padding:3px 8px; border-radius:6px; font-weight:700; font-size:12px;">' + (item.paper_language || 'N/A') + '</span></td>' +
-          '<td><span style="color:#94a3b8; font-family:monospace;">' + (item.user_id || 'N/A') + '</span></td>' +
+          '<td><b style="color:#fff;">' + escapeHtml(item.exam_date) + '</b></td>' +
+          '<td>' + escapeHtml(item.exam_time) + '</td>' +
+          '<td><span style="background:#1e293b; color:#38bdf8; padding:3px 8px; border-radius:6px; font-weight:700; font-size:12px;">' + escapeHtml(item.paper_language || 'N/A') + '</span></td>' +
+          '<td><span style="color:#94a3b8; font-family:monospace;">' + escapeHtml(item.user_id || 'N/A') + '</span></td>' +
           '<td><div class="url-cell" title="' + escapeHtml(item.url) + '">' + escapeHtml(item.url) + '</div></td>' +
           '<td style="text-align:center;">' +
             '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="btn-open-url">Open Link &#8599;</a>' +
-            '<button class="btn-copy" onclick="copyUrl(\\'' + escapeJs(item.url) + '\\', this)" title="Copy URL">Copy</button>' +
+            '<button type="button" class="btn-copy" data-url="' + escapeHtml(item.url) + '">Copy</button>' +
           '</td>' +
         '</tr>';
       }).join('');
     }
 
-    function copyUrl(url, btn) {
-      navigator.clipboard.writeText(url).then(() => {
-        const oldText = btn.innerText;
-        btn.innerText = 'Copied!';
-        btn.style.color = '#38bdf8';
-        setTimeout(() => {
-          btn.innerText = oldText;
-          btn.style.color = '';
-        }, 1500);
-      });
-    }
+    // Single Global Event Listener for Clicks
+    document.addEventListener('click', function(e) {
+      // 1. Click on Shift Language Badge -> Open in other tab + filter
+      const badge = e.target.closest('.shift-lang-badge');
+      if (badge) {
+        const directUrl = badge.getAttribute('data-url');
+        const lang = badge.getAttribute('data-lang');
+        if (directUrl) {
+          window.open(directUrl, '_blank');
+        }
+        if (lang) {
+          selectedLanguages.clear();
+          selectedLanguages.add(lang.toLowerCase());
+          updatePillsUI();
+          renderSerialUrlsTable();
+        }
+        return;
+      }
+
+      // 2. Click on 'All Languages' pill
+      const allPill = e.target.closest('[data-lang-all]');
+      if (allPill) {
+        selectedLanguages.clear();
+        updatePillsUI();
+        renderSerialUrlsTable();
+        return;
+      }
+
+      // 3. Click on individual Language pill (Multi-Select toggle)
+      const togglePill = e.target.closest('[data-lang-toggle]');
+      if (togglePill) {
+        const langLower = togglePill.getAttribute('data-lang-toggle');
+        if (selectedLanguages.has(langLower)) {
+          selectedLanguages.delete(langLower);
+        } else {
+          selectedLanguages.add(langLower);
+        }
+        updatePillsUI();
+        renderSerialUrlsTable();
+        return;
+      }
+
+      // 4. Click on Copy Button
+      const copyBtn = e.target.closest('.btn-copy');
+      if (copyBtn) {
+        const copyUrlVal = copyBtn.getAttribute('data-url');
+        if (copyUrlVal && navigator.clipboard) {
+          navigator.clipboard.writeText(copyUrlVal).then(() => {
+            const oldText = copyBtn.innerText;
+            copyBtn.innerText = 'Copied! ✅';
+            copyBtn.style.color = '#38bdf8';
+            setTimeout(() => {
+              copyBtn.innerText = oldText;
+              copyBtn.style.color = '';
+            }, 1500);
+          });
+        }
+        return;
+      }
+    });
 
     function escapeHtml(str) {
       if (!str) return '';
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
-
-    function escapeJs(str) {
-      if (!str) return '';
-      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-    }
-
-    document.getElementById('examIdInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') fetchData();
-    });
   </script>
 </body>
 </html>`;
