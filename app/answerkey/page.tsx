@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     canonical: 'https://cbtrank.com/answerkey',
   },
   openGraph: {
-    title: 'Universal Answer Key Calculator | CBT RANK',
+    title: 'CBT Rank Answer Key Calculator | CBT RANK',
     description: 'Calculate your marks, shift rank, and category rank instantly. Supports all major CBT exams.',
     url: 'https://cbtrank.com/answerkey',
     siteName: 'CBT RANK',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Universal Answer Key Calculator | CBT RANK',
+    title: 'CBT Rank Answer Key Calculator | CBT RANK',
     description: 'Calculate your marks, shift rank, and category rank instantly.',
   },
 };
@@ -55,7 +55,7 @@ const UNIVERSAL_FAQS = [
 const webAppSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
-  'name': 'CBT RANK Universal Answer Key Calculator',
+  'name': 'CBT RANK Latest Answer Key Calculator',
   'url': 'https://cbtrank.com/answerkey',
   'applicationCategory': 'EducationalApplication',
   'operatingSystem': 'All',
