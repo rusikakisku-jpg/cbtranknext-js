@@ -1,25 +1,26 @@
 /**
  * ============================================================================
- * ⚡ CLOUDFLARE WORKER: DEDUPLICATED EXAM DATES, TIMES & LANGUAGES API
+ * ⚡ CLOUDFLARE WORKER: STRICT EXACT-MATCH EXAM SHIFTS & LANGUAGES API
  * ============================================================================
  * 
- * 🎯 PURPOSE:
- * Given an `exam_id` (numeric ID like 44, slug like 'rrb-ntpc', or code),
- * queries the `user_ranks` table in Cloudflare D1 and returns:
- *   1. Unique (exam_date, exam_time) shifts — ZERO duplicates (single single data).
- *   2. Grouped shift times by exam_date.
- *   3. Unique paper_language list — ZERO duplicates.
- *   4. Clean JSON API + Smart Web UI with Exam Selector Dropdown & DB Diagnostics.
+ * 🎯 FEATURES:
+ *   1. 🎯 STRICT EXACT MATCH on `exam_id`:
+ *      Only matches exact exam_id (`WHERE exam_id = '...'`).
+ *      Exam ID '1234' will NEVER match '12345' or any partial ID.
+ *   2. 📅 SHIFT-WISE LANGUAGES (Side-by-Side):
+ *      Har shift (exam_date + exam_time) ke side me dikhata hai ki us particular
+ *      shift me kaun-kaun se paper_languages the (No Duplicates).
+ *   3. 🚫 ZERO DUPLICATES:
+ *      Single-single unique records for all shifts and languages.
+ *   4. 🎨 Clean Visual Web UI (Exam ID input only, no dropdown).
+ *   5. 🚀 Clean JSON API.
  * 
- * 🗄️ DATABASE TABLES USED:
- *   - `user_ranks` (stores candidate exam_date, exam_time, paper_language)
- *   - `exams` (resolves exam_id <-> slug <-> external_exam_id)
+ * 🗄️ DATABASE TABLE: `user_ranks`
  * 
- * ⚠️ IMPORTANT CLOUDFLARE REQUIREMENT:
- * You MUST bind your D1 Database in Cloudflare Worker Settings:
+ * ⚙️ CLOUDFLARE REQUIREMENT:
  * Worker Dashboard -> Settings -> Bindings -> Add D1 Database Binding:
- *   - Variable Name: DB
- *   - Database: (Select your D1 database)
+ *   Variable Name: DB
+ *   Database: (Select your D1 database)
  */
 
 // ⚙️ Configuration & Fallbacks
@@ -68,10 +69,6 @@ async function queryD1(env, sql) {
   const databaseId = (env && env.CF_DATABASE_ID) || DEFAULT_CF_DATABASE_ID;
   const apiToken = (env && env.CF_API_TOKEN) || DEFAULT_CF_API_TOKEN;
 
-  if (!env || !env.DB) {
-    console.warn("⚠️ Warning: env.DB binding not detected. Attempting REST API fallback...");
-  }
-
   try {
     const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
     const response = await fetch(apiUrl, {
@@ -88,9 +85,6 @@ async function queryD1(env, sql) {
         if (jsonRes.result[0].results) return jsonRes.result[0].results;
         return jsonRes.result[0];
       }
-    } else {
-      const errText = await response.text();
-      console.error("D1 REST Fallback Failed:", response.status, errText);
     }
   } catch (e) {
     console.error("D1 REST Fallback Error:", e);
@@ -116,71 +110,47 @@ export default {
     // 2. Check D1 Database Connection Status
     const isD1Bound = !!(env && env.DB);
 
-    // 3. Diagnostics Endpoint (/debug or /check_db)
-    if (pathname === "/debug" || pathname === "/check_db" || url.searchParams.get("action") === "debug") {
-      let d1Status = isD1Bound ? "CONNECTED (env.DB is active)" : "MISSING (env.DB not bound in Cloudflare dashboard)";
-      let tableCounts = {};
+    // 3. Quick DB Diagnostic Test Endpoint (/debug)
+    if (pathname === "/debug" || url.searchParams.get("action") === "debug") {
+      let totalRecords = 0;
       let errorMsg = null;
-
       try {
-        const userRanksCount = await queryD1(env, "SELECT COUNT(*) AS count FROM user_ranks");
-        const examsCount = await queryD1(env, "SELECT COUNT(*) AS count FROM exams");
-        const sampleExams = await queryD1(env, "SELECT id, title, slug, external_exam_id FROM exams ORDER BY id DESC LIMIT 10");
-        const activeExamsInRanks = await queryD1(env, "SELECT exam_slug, exam_id, COUNT(*) AS candidates FROM user_ranks GROUP BY exam_slug, exam_id ORDER BY candidates DESC LIMIT 15");
-
-        tableCounts = {
-          user_ranks_total: userRanksCount?.[0]?.count || 0,
-          exams_total: examsCount?.[0]?.count || 0,
-          active_exams_in_user_ranks: activeExamsInRanks || [],
-          sample_exams: sampleExams || []
-        };
+        const countRes = await queryD1(env, "SELECT COUNT(*) AS total FROM user_ranks");
+        totalRecords = countRes?.[0]?.total ?? 0;
       } catch (e) {
         errorMsg = e.message;
       }
 
       return new Response(JSON.stringify({
-        success: !errorMsg,
-        d1_binding_status: d1Status,
-        is_d1_bound: isD1Bound,
-        table_counts: tableCounts,
+        d1_database_bound: isD1Bound,
+        table: "user_ranks",
+        total_records_in_user_ranks: totalRecords,
         error: errorMsg,
-        help: !isD1Bound ? "Go to Cloudflare Dashboard -> Workers -> Your Worker -> Settings -> Bindings -> Add D1 Database Binding named 'DB'" : "D1 is properly bound."
+        status: isD1Bound ? "Ready" : "Missing env.DB binding in Cloudflare Dashboard"
       }, null, 2), {
         headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
       });
     }
 
-    // 4. Exams List Endpoint (Used by Web UI dropdown)
-    if (pathname === "/exams" || url.searchParams.get("action") === "exams") {
-      try {
-        const exams = await queryD1(env, "SELECT id, title, slug, external_exam_id FROM exams WHERE is_visible = 1 ORDER BY set_on_top DESC, id DESC");
-        return new Response(JSON.stringify(exams || []), {
-          headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
-        });
-      } catch (e) {
-        return new Response(JSON.stringify([]), { headers: corsHeaders });
-      }
-    }
-
-    // 5. Extract Input Parameters
-    let examId = url.searchParams.get("exam_id") || url.searchParams.get("id") || url.searchParams.get("exam_slug") || url.searchParams.get("slug") || "";
+    // 4. Extract Input Parameter `exam_id`
+    let examId = url.searchParams.get("exam_id") || url.searchParams.get("id") || "";
 
     if (method === "POST") {
       try {
         const contentType = request.headers.get("content-type") || "";
         if (contentType.includes("application/json")) {
           const body = await request.json().catch(() => ({}));
-          examId = body.exam_id || body.id || body.exam_slug || body.slug || examId;
+          examId = body.exam_id || body.id || examId;
         } else if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
           const form = await request.formData().catch(() => new Map());
-          examId = form.get("exam_id") || form.get("id") || form.get("exam_slug") || form.get("slug") || examId;
+          examId = form.get("exam_id") || form.get("id") || examId;
         }
       } catch (e) {}
     }
 
     examId = String(examId).trim();
 
-    // 6. Serve Web UI if visited directly in browser without exam_id
+    // 5. Render Clean Web UI if visited directly in browser without exam_id
     const wantsJson = url.searchParams.has("json") || 
                       url.searchParams.has("exam_id") || 
                       method === "POST" || 
@@ -190,12 +160,11 @@ export default {
       return renderWebUi(isD1Bound);
     }
 
-    // 7. Validate exam_id
+    // 6. Validate exam_id
     if (!examId) {
       return new Response(JSON.stringify({
         success: false,
         error: "Missing exam_id parameter. Please provide exam_id via ?exam_id=... or POST JSON body.",
-        d1_bound: isD1Bound,
         example: `${url.origin}/?exam_id=44`
       }, null, 2), {
         status: 400,
@@ -206,144 +175,96 @@ export default {
     const cleanExamId = sanitizeSql(examId);
 
     try {
-      // 8. SMART RESOLUTION: Check `exams` table to resolve numeric ID <-> Slug <-> External Exam ID
-      let matchedExamSlug = "";
-      let matchedExternalId = "";
-      let matchedExamTitle = "";
-
-      try {
-        const examLookupSql = `
-          SELECT id, slug, external_exam_id, title 
-          FROM exams 
-          WHERE id = '${cleanExamId}' 
-             OR slug = '${cleanExamId}' 
-             OR external_exam_id = '${cleanExamId}'
-             OR slug LIKE '%${cleanExamId}%'
-             OR title LIKE '%${cleanExamId}%'
-          LIMIT 1;
-        `;
-        const examRows = await queryD1(env, examLookupSql);
-        if (examRows && examRows.length > 0) {
-          matchedExamSlug = examRows[0].slug || "";
-          matchedExternalId = examRows[0].external_exam_id || "";
-          matchedExamTitle = examRows[0].title || "";
-        }
-      } catch (lookupErr) {
-        console.warn("Exam lookup fallback:", lookupErr);
-      }
-
-      // 9. Build Comprehensive WHERE Clause to Match All Candidate Records
-      const conditions = [];
-      conditions.push(`exam_id = '${cleanExamId}'`);
-      conditions.push(`exam_slug = '${cleanExamId}'`);
-      if (matchedExamSlug && matchedExamSlug !== cleanExamId) {
-        conditions.push(`exam_slug = '${matchedExamSlug}'`);
-      }
-      if (matchedExternalId) {
-        conditions.push(`exam_id = '${matchedExternalId}'`);
-        conditions.push(`url LIKE '%${matchedExternalId}%'`);
-      }
-      // Also match partial slug if search looks like a slug
-      if (cleanExamId.includes("-")) {
-        conditions.push(`exam_slug LIKE '%${cleanExamId}%'`);
-      }
-
-      const whereMatch = `(${conditions.join(" OR ")})`;
-
-      // 10. Query Deduplicated Exam Dates & Exam Times (SQL DISTINCT)
-      const shiftsSql = `
+      // 7. 🎯 STRICT EXACT MATCH QUERY ON `user_ranks`:
+      // Matches ONLY exact exam_id (1234 will NOT match 12345)
+      // Retrieves unique triplets of (exam_date, exam_time, paper_language)
+      const querySql = `
         SELECT DISTINCT 
           TRIM(exam_date) AS exam_date, 
-          TRIM(exam_time) AS exam_time 
+          TRIM(exam_time) AS exam_time, 
+          TRIM(paper_language) AS paper_language 
         FROM user_ranks 
-        WHERE ${whereMatch}
+        WHERE exam_id = '${cleanExamId}' 
           AND exam_date IS NOT NULL 
           AND TRIM(exam_date) != '' 
           AND LOWER(exam_date) != 'null'
           AND exam_time IS NOT NULL 
           AND TRIM(exam_time) != ''
           AND LOWER(exam_time) != 'null'
-        ORDER BY exam_date ASC, exam_time ASC;
+        ORDER BY exam_date ASC, exam_time ASC, paper_language ASC;
       `;
 
-      // 11. Query Deduplicated Paper Languages (SQL DISTINCT)
-      const langsSql = `
-        SELECT DISTINCT 
-          TRIM(paper_language) AS paper_language 
-        FROM user_ranks 
-        WHERE ${whereMatch}
-          AND paper_language IS NOT NULL 
-          AND TRIM(paper_language) != '' 
-          AND LOWER(paper_language) != 'null'
-        ORDER BY paper_language ASC;
-      `;
+      const rows = await queryD1(env, querySql);
 
-      // 12. Execute Both Queries in Parallel
-      const [shiftRows, langRows] = await Promise.all([
-        queryD1(env, shiftsSql),
-        queryD1(env, langsSql)
-      ]);
-
-      // 13. Double In-Memory Deduplication & Logical Grouping
-      const seenShifts = new Set();
-      const shifts = [];
+      // 8. Process Rows: Deduplicate Shifts + Collect Shift-wise Languages Side-by-Side
+      const shiftMap = new Map();
+      const allLanguagesSet = new Set();
       const dateSet = new Set();
-      const groupedByDate = {};
 
-      (shiftRows || []).forEach(row => {
+      (rows || []).forEach(row => {
         const d = (row.exam_date || "").trim();
         const t = (row.exam_time || "").trim();
+        const lang = (row.paper_language || "").trim();
+
         if (!d || !t || d.toLowerCase() === "null" || t.toLowerCase() === "null") return;
 
-        const uniqueKey = `${d}___${t}`;
-        if (!seenShifts.has(uniqueKey)) {
-          seenShifts.add(uniqueKey);
-          shifts.push({ exam_date: d, exam_time: t });
+        const shiftKey = `${d}___${t}`;
+        if (!shiftMap.has(shiftKey)) {
+          shiftMap.set(shiftKey, {
+            exam_date: d,
+            exam_time: t,
+            languages: []
+          });
           dateSet.add(d);
+        }
 
-          if (!groupedByDate[d]) groupedByDate[d] = [];
-          if (!groupedByDate[d].includes(t)) {
-            groupedByDate[d].push(t);
+        // Add language to this specific shift (deduplicated, case-insensitive check)
+        if (lang && lang.toLowerCase() !== "null") {
+          const shiftObj = shiftMap.get(shiftKey);
+          const lowerLang = lang.toLowerCase();
+          if (!shiftObj.languages.some(l => l.toLowerCase() === lowerLang)) {
+            shiftObj.languages.push(lang);
+          }
+          if (!Array.from(allLanguagesSet).some(l => l.toLowerCase() === lowerLang)) {
+            allLanguagesSet.add(lang);
           }
         }
       });
 
-      // Deduplicate Paper Languages (Case-insensitive deduplication)
-      const seenLangs = new Set();
-      const languages = [];
-      (langRows || []).forEach(row => {
-        const lang = (row.paper_language || "").trim();
-        if (!lang || lang.toLowerCase() === "null") return;
-
-        const lower = lang.toLowerCase();
-        if (!seenLangs.has(lower)) {
-          seenLangs.add(lower);
-          languages.push(lang);
-        }
+      // Sort shift-wise languages and all overall languages
+      const shifts = Array.from(shiftMap.values()).map(s => {
+        s.languages.sort((a, b) => a.localeCompare(b));
+        return s;
       });
 
       const sortedDates = Array.from(dateSet).sort();
-      languages.sort((a, b) => a.localeCompare(b));
+      const allLanguages = Array.from(allLanguagesSet).sort((a, b) => a.localeCompare(b));
 
-      // 14. Response Data
+      // 9. Logical Grouping By Date
+      const groupedByDate = {};
+      shifts.forEach(s => {
+        if (!groupedByDate[s.exam_date]) groupedByDate[s.exam_date] = [];
+        groupedByDate[s.exam_date].push({
+          exam_time: s.exam_time,
+          languages: s.languages
+        });
+      });
+
+      // 10. Structured JSON Response
       const responseData = {
         success: true,
         exam_id: examId,
-        resolved_exam: {
-          title: matchedExamTitle || null,
-          slug: matchedExamSlug || null,
-          external_id: matchedExternalId || null
-        },
-        d1_database_bound: isD1Bound,
+        match_type: "STRICT_EXACT_MATCH",
         table: "user_ranks",
         total_shifts: shifts.length,
         total_dates: sortedDates.length,
-        total_languages: languages.length,
+        total_languages: allLanguages.length,
+        all_languages: allLanguages,
         dates: sortedDates,
         shifts: shifts,
         grouped_by_date: groupedByDate,
-        paper_languages: languages,
-        note: shifts.length === 0 ? (!isD1Bound ? "⚠️ env.DB binding is missing in Cloudflare Dashboard! Please add D1 Database binding named 'DB'." : "No candidate entries found in user_ranks for this exam.") : undefined
+        d1_database_bound: isD1Bound,
+        note: shifts.length === 0 ? (!isD1Bound ? "⚠️ env.DB binding is missing in Cloudflare Dashboard! Please add D1 Database binding named 'DB'." : `No records found in user_ranks where exam_id exactly equals '${examId}'.`) : undefined
       };
 
       return new Response(JSON.stringify(responseData, null, 2), {
@@ -359,9 +280,9 @@ export default {
       console.error("Worker Execution Error:", err);
       return new Response(JSON.stringify({
         success: false,
-        error: "Internal Server Error while querying user_ranks",
-        d1_bound: isD1Bound,
-        message: err.message || String(err)
+        error: "Internal Server Error querying user_ranks",
+        message: err.message || String(err),
+        d1_bound: isD1Bound
       }, null, 2), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
@@ -371,16 +292,16 @@ export default {
 };
 
 /**
- * 🎨 Helper: Interactive Web UI for Browser Testing
+ * 🎨 Helper: Clean Interactive Web UI (Exam ID input only + Shift-wise languages side-by-side)
  */
 function renderWebUi(isD1Bound) {
   const d1Banner = isD1Bound 
-    ? `<div style="background:#065f46; color:#a7f3d0; padding:12px 16px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
-         <span>✅</span> <span>Cloudflare D1 Database (env.DB) is CONNECTED</span>
+    ? `<div style="background:#065f46; color:#a7f3d0; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:18px;">
+         ✅ Cloudflare D1 Database (env.DB) is CONNECTED
        </div>`
-    : `<div style="background:#7f1d1d; color:#fecaca; padding:14px 18px; border-radius:10px; font-size:13px; font-weight:600; margin-bottom:20px; border:1px solid #dc2626;">
-         <div style="font-size:15px; font-weight:800; margin-bottom:4px;">⚠️ D1 Database (env.DB) is NOT Bound!</div>
-         Please go to <b>Cloudflare Dashboard &rarr; Workers &rarr; Your Worker &rarr; Settings &rarr; Bindings</b> and add a <b>D1 Database Binding</b> with Variable Name: <code>DB</code>.
+    : `<div style="background:#7f1d1d; color:#fecaca; padding:12px 16px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:18px; border:1px solid #dc2626;">
+         ⚠️ <b>D1 Database (env.DB) is NOT Bound!</b><br>
+         Cloudflare Dashboard &rarr; Workers &rarr; Settings &rarr; Bindings me jakar D1 Database bind karein (Variable Name: <code>DB</code>).
        </div>`;
 
   const html = `<!DOCTYPE html>
@@ -388,134 +309,83 @@ function renderWebUi(isD1Bound) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT Rank - Exam Dates, Times &amp; Languages Lookup</title>
+  <title>CBT Rank - Exam Shifts &amp; Languages</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 30px 16px; }
-    .container { max-width: 860px; margin: 0 auto; }
-    .card { background: #1e293b; border-radius: 16px; padding: 28px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.4); margin-bottom: 20px; }
-    h1 { font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 8px; text-align: center; }
-    p.desc { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
-    .form-group { display: flex; gap: 12px; margin-bottom: 15px; }
-    input[type="text"] { flex: 1; padding: 14px 18px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 16px; outline: none; transition: border 0.2s; }
+    .container { max-width: 920px; margin: 0 auto; }
+    .card { background: #1e293b; border-radius: 16px; padding: 28px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+    h1 { font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 6px; text-align: center; }
+    p.desc { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 22px; }
+    .form-group { display: flex; gap: 12px; margin-bottom: 20px; }
+    input[type="text"] { flex: 1; padding: 14px 18px; border-radius: 10px; border: 2px solid #475569; background: #0f172a; color: #fff; font-size: 16px; outline: none; transition: border 0.2s; }
     input[type="text"]:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
-    select { padding: 12px 16px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: #38bdf8; font-size: 14px; font-weight: 600; width: 100%; margin-bottom: 18px; outline: none; }
-    button { padding: 14px 24px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+    button { padding: 14px 28px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
     button:hover { background: #1d4ed8; }
-    .btn-secondary { background: #334155; font-size: 13px; padding: 8px 16px; border-radius: 8px; }
-    .btn-secondary:hover { background: #475569; }
-    .badge { display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background: #0284c7; color: #fff; margin: 4px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 14px; font-size: 12px; font-weight: 600; background: #0369a1; color: #e0f2fe; margin: 2px; }
+    .badge-all { background: #0284c7; padding: 6px 14px; font-size: 13px; margin: 4px; border-radius: 20px; }
     .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
     .stat-box { flex: 1; min-width: 140px; background: #0f172a; padding: 16px; border-radius: 10px; border: 1px solid #334155; text-align: center; }
     .stat-num { font-size: 24px; font-weight: 800; color: #38bdf8; }
     .stat-lbl { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; }
-    th { background: #0f172a; color: #38bdf8; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 10px; overflow: hidden; }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; vertical-align: middle; }
+    th { background: #0284c7; color: #fff; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+    tr:hover { background: rgba(56, 189, 248, 0.04); }
     pre { background: #0f172a; padding: 16px; border-radius: 10px; overflow-x: auto; color: #a5f3fc; font-size: 13px; margin-top: 15px; border: 1px solid #334155; }
     #result { display: none; }
     .loading { text-align: center; color: #38bdf8; display: none; margin: 20px 0; font-weight: 600; }
-    .resolved-box { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #94a3b8; }
+    .notice-box { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #94a3b8; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="card">
-      <h1>⚡ CBT Rank: Exam Dates, Shifts &amp; Languages</h1>
-      <p class="desc">Enter Exam ID to get deduplicated (single-single) dates, times, and paper languages from <code>user_ranks</code> table.</p>
+      <h1>⚡ CBT Rank: Exact Exam Shifts &amp; Languages</h1>
+      <p class="desc">Enter <code>exam_id</code> for STRICT exact match. Returns each unique shift with its languages side-by-side.</p>
       
       ${d1Banner}
 
-      <label style="font-size:12px; color:#94a3b8; text-transform:uppercase; font-weight:700; margin-bottom:6px; display:block;">Select From Active Exams:</label>
-      <select id="examSelect" onchange="onSelectExam(this.value)">
-        <option value="">-- Choose an exam or enter ID below --</option>
-      </select>
-
       <div class="form-group">
-        <input type="text" id="examIdInput" placeholder="Enter Exam ID (e.g. 44, 45, or slug)" autofocus>
-        <button onclick="fetchData()">Fetch Data</button>
+        <input type="text" id="examIdInput" placeholder="Enter Exact Exam ID (e.g. 100576, 33128, etc.)" autofocus>
+        <button onclick="fetchData()">Search Exam</button>
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-        <span style="font-size:12px; color:#64748b;">Supports numeric ID, slug, or external exam code</span>
-        <button class="btn-secondary" onclick="checkDbDiagnostics()">🔍 Check DB Diagnostics</button>
-      </div>
-
-      <div class="loading" id="loader">🔄 Querying Cloudflare D1 Database...</div>
+      <div class="loading" id="loader">🔄 Querying user_ranks for exact exam_id...</div>
 
       <div id="result">
-        <div class="resolved-box" id="resolvedExamBox"></div>
+        <div class="notice-box" id="matchNotice"></div>
 
         <div class="stats">
           <div class="stat-box"><div class="stat-num" id="statShifts">0</div><div class="stat-lbl">Unique Shifts</div></div>
           <div class="stat-box"><div class="stat-num" id="statDates">0</div><div class="stat-lbl">Exam Dates</div></div>
-          <div class="stat-box"><div class="stat-num" id="statLangs">0</div><div class="stat-lbl">Languages</div></div>
+          <div class="stat-box"><div class="stat-num" id="statLangs">0</div><div class="stat-lbl">Total Languages</div></div>
         </div>
 
-        <h3 style="margin: 20px 0 10px; color: #e2e8f0; font-size: 16px;">🌐 Paper Languages:</h3>
-        <div id="langList"></div>
+        <h3 style="margin: 20px 0 10px; color: #e2e8f0; font-size: 16px;">🌐 Overall Languages (All Shifts):</h3>
+        <div id="allLangList"></div>
 
-        <h3 style="margin: 24px 0 10px; color: #e2e8f0; font-size: 16px;">📅 Unique Dates &amp; Shift Times:</h3>
+        <h3 style="margin: 28px 0 10px; color: #e2e8f0; font-size: 16px;">📅 Shifts &amp; Languages Breakdown (Side-by-Side):</h3>
         <table>
-          <thead><tr><th>#</th><th>Exam Date</th><th>Exam Time</th></tr></thead>
+          <thead>
+            <tr>
+              <th style="width: 50px;">#</th>
+              <th style="width: 150px;">Exam Date</th>
+              <th style="width: 220px;">Exam Time (Shift)</th>
+              <th>Languages in this Shift</th>
+            </tr>
+          </thead>
           <tbody id="shiftsBody"></tbody>
         </table>
 
-        <h3 style="margin: 24px 0 10px; color: #e2e8f0; font-size: 16px;">💻 Raw JSON Response:</h3>
+        <h3 style="margin: 28px 0 10px; color: #e2e8f0; font-size: 16px;">💻 Raw JSON API Response:</h3>
         <pre id="jsonViewer"></pre>
       </div>
     </div>
   </div>
 
   <script>
-    // Load exams list on page load
-    async function loadExamsList() {
-      try {
-        const res = await fetch('?action=exams');
-        const exams = await res.json();
-        const select = document.getElementById('examSelect');
-        if (Array.isArray(exams) && exams.length > 0) {
-          exams.forEach(e => {
-            const opt = document.createElement('option');
-            opt.value = e.id || e.slug;
-            opt.textContent = '#' + e.id + ' - ' + e.title + ' (' + (e.slug || '') + ')';
-            select.appendChild(opt);
-          });
-        }
-      } catch (e) {}
-    }
-    loadExamsList();
-
-    function onSelectExam(val) {
-      if (val) {
-        document.getElementById('examIdInput').value = val;
-        fetchData();
-      }
-    }
-
-    async function checkDbDiagnostics() {
-      const loader = document.getElementById('loader');
-      const resultBox = document.getElementById('result');
-      loader.style.display = 'block';
-      resultBox.style.display = 'none';
-
-      try {
-        const res = await fetch('?action=debug');
-        const data = await res.json();
-        loader.style.display = 'none';
-        resultBox.style.display = 'block';
-        document.getElementById('resolvedExamBox').innerHTML = '<b>🔍 D1 Diagnostics Result:</b><br>' +
-          '• D1 Binding: <b>' + data.d1_binding_status + '</b><br>' +
-          '• Total Exams in DB: <b>' + (data.table_counts?.exams_total ?? 'N/A') + '</b><br>' +
-          '• Total user_ranks in DB: <b>' + (data.table_counts?.user_ranks_total ?? 'N/A') + '</b>';
-        document.getElementById('jsonViewer').innerText = JSON.stringify(data, null, 2);
-      } catch (err) {
-        loader.style.display = 'none';
-        alert('Diagnostic error: ' + err.message);
-      }
-    }
-
     async function fetchData() {
       const examId = document.getElementById('examIdInput').value.trim();
       if (!examId) { alert('Please enter Exam ID!'); return; }
@@ -531,28 +401,36 @@ function renderWebUi(isD1Bound) {
         loader.style.display = 'none';
         resultBox.style.display = 'block';
 
-        // Render Resolved Exam Box
-        const resolved = data.resolved_exam || {};
-        document.getElementById('resolvedExamBox').innerHTML = 
-          '<b>Exam Matched:</b> ' + (resolved.title || data.exam_id) + 
-          (resolved.slug ? ' &nbsp;|&nbsp; <b>Slug:</b> ' + resolved.slug : '') + 
-          (resolved.external_id ? ' &nbsp;|&nbsp; <b>External Code:</b> ' + resolved.external_id : '') +
+        // Match notice
+        document.getElementById('matchNotice').innerHTML = 
+          '<b>Searched Exam ID:</b> <code>' + data.exam_id + '</code> &nbsp;|&nbsp; <b>Match Type:</b> Strict Exact Match (=)' +
           (data.note ? '<div style="color:#f87171; margin-top:6px; font-weight:700;">' + data.note + '</div>' : '');
 
         document.getElementById('statShifts').innerText = data.total_shifts || 0;
         document.getElementById('statDates').innerText = data.total_dates || 0;
         document.getElementById('statLangs').innerText = data.total_languages || 0;
 
-        // Render languages
-        const langList = document.getElementById('langList');
-        langList.innerHTML = (data.paper_languages || []).map(l => '<span class="badge">' + l + '</span>').join('') || '<span style="color:#94a3b8">No languages found</span>';
+        // Render all languages
+        const allLangList = document.getElementById('allLangList');
+        allLangList.innerHTML = (data.all_languages || []).map(l => '<span class="badge badge-all">' + l + '</span>').join('') || '<span style="color:#94a3b8">No languages found</span>';
 
-        // Render shifts table
+        // Render shifts table with side-by-side languages
         const tbody = document.getElementById('shiftsBody');
         if (data.shifts && data.shifts.length > 0) {
-          tbody.innerHTML = data.shifts.map((s, idx) => '<tr><td>' + (idx+1) + '</td><td><b>' + s.exam_date + '</b></td><td>' + s.exam_time + '</td></tr>').join('');
+          tbody.innerHTML = data.shifts.map((s, idx) => {
+            const shiftLangs = (s.languages && s.languages.length > 0)
+              ? s.languages.map(l => '<span class="badge">' + l + '</span>').join('')
+              : '<span style="color:#64748b; font-size:13px;">Not specified</span>';
+
+            return '<tr>' +
+              '<td>' + (idx + 1) + '</td>' +
+              '<td><b style="color:#38bdf8;">' + s.exam_date + '</b></td>' +
+              '<td>' + s.exam_time + '</td>' +
+              '<td>' + shiftLangs + '</td>' +
+            '</tr>';
+          }).join('');
         } else {
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#94a3b8">No shift records found for this exam ID</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#94a3b8;">No records found matching exact exam_id: <code>' + data.exam_id + '</code></td></tr>';
         }
 
         // Render JSON
