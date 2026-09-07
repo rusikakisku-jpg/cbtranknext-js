@@ -10,6 +10,6 @@
 export const APP_FEATURE_FLAGS = {
   // Set to true to show, false to hide
   SHOW_REVIEW_ANSWERKEY: true,
-  SHOW_VIEW_RANK: true,
+  SHOW_VIEW_RANK: false,
   SHOW_DOWNLOAD_SCORECARD: true,
 };
