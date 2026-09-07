@@ -366,13 +366,33 @@ export default function AnswerkeyCalculator({
     let rawSmartData: any = null;
 
     try {
-      const actionRes = await processAnswerKeyAction({
-        url: urlVal,
-        category,
-        gender,
-        state,
-        examSlug
-      });
+      let actionRes: any = null;
+      try {
+        const apiRes = await fetch('/api/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: urlVal,
+            category,
+            gender,
+            state,
+            examSlug
+          })
+        });
+        if (apiRes.ok) {
+          actionRes = await apiRes.json();
+        }
+      } catch (apiErr) {}
+
+      if (!actionRes) {
+        actionRes = await processAnswerKeyAction({
+          url: urlVal,
+          category,
+          gender,
+          state,
+          examSlug
+        });
+      }
 
       if (actionRes && actionRes.success && actionRes.data) {
         rawSmartData = actionRes.data;
@@ -426,7 +446,7 @@ export default function AnswerkeyCalculator({
 
     // Safely log candidate ranking data into user_ranks table asynchronously
     try {
-      await logUserRankAction({
+      const rankPayload = {
         user_id: userRoll,
         url: urlVal,
         exam_slug: examSlug || 'general',
@@ -440,13 +460,21 @@ export default function AnswerkeyCalculator({
         gender: gender || '',
         category: category || '',
         domain: domainHost
+      };
+
+      fetch('/api/log-rank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rankPayload)
+      }).catch(() => {
+        logUserRankAction(rankPayload).catch(() => {});
       });
     } catch (e) {}
 
     setProgressStep(3); // Step 3: Fetching live rank
     let liveRankObj: any = null;
     try {
-      const liveRes = await fetchLiveRankAction({
+      const livePayload = {
         examId: examPaperCode,
         examSlug: examSlug || '',
         examDate: testExamDate,
@@ -456,9 +484,27 @@ export default function AnswerkeyCalculator({
         totalMarks: rawScoreVal,
         userId: userRoll,
         url: urlVal
-      });
-      if (liveRes && liveRes.success && liveRes.data) {
-        liveRankObj = liveRes.data;
+      };
+
+      try {
+        const liveFetch = await fetch('/api/live-rank', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(livePayload)
+        });
+        if (liveFetch.ok) {
+          const liveJson = await liveFetch.json();
+          if (liveJson && liveJson.success && liveJson.data) {
+            liveRankObj = liveJson.data;
+          }
+        }
+      } catch (e) {}
+
+      if (!liveRankObj) {
+        const liveRes = await fetchLiveRankAction(livePayload);
+        if (liveRes && liveRes.success && liveRes.data) {
+          liveRankObj = liveRes.data;
+        }
       }
     } catch (e) {}
 
