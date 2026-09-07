@@ -318,10 +318,12 @@ export default {
 
       try {
         const querySql = `
-          SELECT DISTINCT 
+          SELECT 
             TRIM(exam_date) AS exam_date, 
             TRIM(exam_time) AS exam_time, 
-            TRIM(paper_language) AS paper_language 
+            TRIM(paper_language) AS paper_language,
+            TRIM(url) AS url,
+            TRIM(user_id) AS user_id
           FROM user_ranks 
           WHERE exam_id = '${examId}' 
             AND exam_date IS NOT NULL 
@@ -338,11 +340,15 @@ export default {
         const shiftMap = new Map();
         const allLanguagesSet = new Set();
         const dateSet = new Set();
+        const candidateList = [];
+        const seenCandidateUrls = new Set();
 
         (rows || []).forEach(row => {
           const d = (row.exam_date || "").trim();
           const t = (row.exam_time || "").trim();
-          const lang = (row.paper_language || "").trim();
+          const lang = (row.paper_language || "").trim() || "Unknown";
+          const candidateUrl = (row.url || "").trim();
+          const userId = (row.user_id || "").trim();
 
           if (!d || !t || d.toLowerCase() === "null" || t.toLowerCase() === "null") return;
 
@@ -351,20 +357,37 @@ export default {
             shiftMap.set(shiftKey, {
               exam_date: d,
               exam_time: t,
-              languages: []
+              languages: [],
+              first_url_by_lang: {}
             });
             dateSet.add(d);
           }
 
+          const shiftObj = shiftMap.get(shiftKey);
+
           if (lang && lang.toLowerCase() !== "null") {
-            const shiftObj = shiftMap.get(shiftKey);
             const lowerLang = lang.toLowerCase();
             if (!shiftObj.languages.some(l => l.toLowerCase() === lowerLang)) {
               shiftObj.languages.push(lang);
             }
+            if (!shiftObj.first_url_by_lang[lang] && candidateUrl) {
+              shiftObj.first_url_by_lang[lang] = candidateUrl;
+            }
             if (!Array.from(allLanguagesSet).some(l => l.toLowerCase() === lowerLang)) {
               allLanguagesSet.add(lang);
             }
+          }
+
+          if (candidateUrl && candidateUrl.toLowerCase() !== "null" && !seenCandidateUrls.has(candidateUrl)) {
+            seenCandidateUrls.add(candidateUrl);
+            candidateList.push({
+              serial_no: candidateList.length + 1,
+              exam_date: d,
+              exam_time: t,
+              paper_language: lang,
+              user_id: userId,
+              url: candidateUrl
+            });
           }
         });
 
@@ -381,7 +404,8 @@ export default {
           if (!groupedByDate[s.exam_date]) groupedByDate[s.exam_date] = [];
           groupedByDate[s.exam_date].push({
             exam_time: s.exam_time,
-            languages: s.languages
+            languages: s.languages,
+            first_url_by_lang: s.first_url_by_lang
           });
         });
 
@@ -393,10 +417,12 @@ export default {
           total_shifts: shifts.length,
           total_dates: sortedDates.length,
           total_languages: allLanguages.length,
+          total_candidate_urls: candidateList.length,
           all_languages: allLanguages,
           dates: sortedDates,
           shifts: shifts,
-          grouped_by_date: groupedByDate
+          grouped_by_date: groupedByDate,
+          candidate_urls: candidateList
         }, null, 2), {
           status: 200,
           headers: {

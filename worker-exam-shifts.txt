@@ -1,21 +1,24 @@
 /**
  * ============================================================================
- * ⚡ CLOUDFLARE WORKER: STRICT EXACT-MATCH EXAM SHIFTS & LANGUAGES API
+ * ⚡ CLOUDFLARE WORKER: CBT RANK - EXAM SHIFTS & ANSWER KEY URL EXPLORER
  * ============================================================================
  * 
  * 🎯 FEATURES:
  *   1. 🎯 STRICT EXACT MATCH on `exam_id`:
- *      Only matches exact exam_id (`WHERE exam_id = '...'`).
- *      Exam ID '1234' will NEVER match '12345' or any partial ID.
- *   2. 📅 SHIFT-WISE LANGUAGES (Side-by-Side):
- *      Har shift (exam_date + exam_time) ke side me dikhata hai ki us particular
- *      shift me kaun-kaun se paper_languages the (No Duplicates).
- *   3. 🚫 ZERO DUPLICATES:
- *      Single-single unique records for all shifts and languages.
- *   4. 🎨 Clean Visual Web UI (Exam ID input only, no dropdown).
- *   5. 🚀 Clean JSON API.
+ *      Matches ONLY exact exam_id (`WHERE exam_id = '...'`).
+ *      Exam ID '1234' will NEVER match '12345'.
+ *   2. 🌐 DIRECT LINK ON LANGUAGE CLICK:
+ *      Shift table me kisi bhi language badge par click karne se candidate ka
+ *      answer key URL directly dusre tab me open (`target="_blank"`) ho jayega.
+ *   3. 📋 SERIAL-WISE CANDIDATE URL LIST:
+ *      Languages ko Multiple Select (checkbox / pill) karke niche unke saare links
+ *      serial-wise (#1, #2, #3...) table me open/copy buttons ke sath aate hain.
+ *   4. 🚫 ZERO RAW JSON:
+ *      Raw JSON pre-box completely remove kar diya gaya hai.
+ *      Ek full modern website UI portal jaisa view milta hai.
+ *   5. 🚀 Clean API support when called with `?json=1` or POST.
  * 
- * 🗄️ DATABASE TABLE: `user_ranks`
+ * 🗄️ DATABASE TABLE: `user_ranks` (columns: exam_id, exam_date, exam_time, paper_language, url, user_id)
  * 
  * ⚙️ CLOUDFLARE REQUIREMENT:
  * Worker Dashboard -> Settings -> Bindings -> Add D1 Database Binding:
@@ -52,7 +55,7 @@ function sanitizeSql(str) {
  * 🗄️ Helper: Query Cloudflare D1 (Native env.DB First, REST API Fallback)
  */
 async function queryD1(env, sql) {
-  // 1. Native Cloudflare D1 Binding (Fastest & 0-overhead)
+  // 1. Native Cloudflare D1 Binding
   if (env && env.DB) {
     try {
       const res = await env.DB.prepare(sql).all();
@@ -110,29 +113,7 @@ export default {
     // 2. Check D1 Database Connection Status
     const isD1Bound = !!(env && env.DB);
 
-    // 3. Quick DB Diagnostic Test Endpoint (/debug)
-    if (pathname === "/debug" || url.searchParams.get("action") === "debug") {
-      let totalRecords = 0;
-      let errorMsg = null;
-      try {
-        const countRes = await queryD1(env, "SELECT COUNT(*) AS total FROM user_ranks");
-        totalRecords = countRes?.[0]?.total ?? 0;
-      } catch (e) {
-        errorMsg = e.message;
-      }
-
-      return new Response(JSON.stringify({
-        d1_database_bound: isD1Bound,
-        table: "user_ranks",
-        total_records_in_user_ranks: totalRecords,
-        error: errorMsg,
-        status: isD1Bound ? "Ready" : "Missing env.DB binding in Cloudflare Dashboard"
-      }, null, 2), {
-        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
-      });
-    }
-
-    // 4. Extract Input Parameter `exam_id`
+    // 3. Extract Input Parameter `exam_id`
     let examId = url.searchParams.get("exam_id") || url.searchParams.get("id") || "";
 
     if (method === "POST") {
@@ -150,22 +131,19 @@ export default {
 
     examId = String(examId).trim();
 
-    // 5. Render Clean Web UI if visited directly in browser without exam_id
+    // 4. Render Full Website UI if visited directly without exam_id
     const wantsJson = url.searchParams.has("json") || 
-                      url.searchParams.has("exam_id") || 
-                      method === "POST" || 
                       (request.headers.get("accept") && request.headers.get("accept").includes("application/json"));
 
     if (!examId && !wantsJson && method === "GET") {
-      return renderWebUi(isD1Bound);
+      return renderWebPortal(isD1Bound);
     }
 
-    // 6. Validate exam_id
+    // 5. Validate exam_id
     if (!examId) {
       return new Response(JSON.stringify({
         success: false,
-        error: "Missing exam_id parameter. Please provide exam_id via ?exam_id=... or POST JSON body.",
-        example: `${url.origin}/?exam_id=44`
+        error: "Missing exam_id parameter. Please provide exam_id via ?exam_id=... or POST JSON body."
       }, null, 2), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
@@ -175,14 +153,15 @@ export default {
     const cleanExamId = sanitizeSql(examId);
 
     try {
-      // 7. 🎯 STRICT EXACT MATCH QUERY ON `user_ranks`:
-      // Matches ONLY exact exam_id (1234 will NOT match 12345)
-      // Retrieves unique triplets of (exam_date, exam_time, paper_language)
+      // 6. 🎯 STRICT EXACT MATCH QUERY ON `user_ranks`
+      // Selects shift dates, times, paper_language, and answer key url column
       const querySql = `
-        SELECT DISTINCT 
+        SELECT 
           TRIM(exam_date) AS exam_date, 
           TRIM(exam_time) AS exam_time, 
-          TRIM(paper_language) AS paper_language 
+          TRIM(paper_language) AS paper_language,
+          TRIM(url) AS url,
+          TRIM(user_id) AS user_id
         FROM user_ranks 
         WHERE exam_id = '${cleanExamId}' 
           AND exam_date IS NOT NULL 
@@ -196,15 +175,19 @@ export default {
 
       const rows = await queryD1(env, querySql);
 
-      // 8. Process Rows: Deduplicate Shifts + Collect Shift-wise Languages Side-by-Side
+      // 7. Group Shifts + Collect Candidate URLs & Shift-wise Languages
       const shiftMap = new Map();
       const allLanguagesSet = new Set();
       const dateSet = new Set();
+      const candidateList = [];
+      const seenCandidateUrls = new Set();
 
       (rows || []).forEach(row => {
         const d = (row.exam_date || "").trim();
         const t = (row.exam_time || "").trim();
-        const lang = (row.paper_language || "").trim();
+        const lang = (row.paper_language || "").trim() || "Unknown";
+        const candidateUrl = (row.url || "").trim();
+        const userId = (row.user_id || "").trim();
 
         if (!d || !t || d.toLowerCase() === "null" || t.toLowerCase() === "null") return;
 
@@ -213,25 +196,43 @@ export default {
           shiftMap.set(shiftKey, {
             exam_date: d,
             exam_time: t,
-            languages: []
+            languages: [],
+            first_url_by_lang: {}
           });
           dateSet.add(d);
         }
 
-        // Add language to this specific shift (deduplicated, case-insensitive check)
+        const shiftObj = shiftMap.get(shiftKey);
+
+        // Language tracking
         if (lang && lang.toLowerCase() !== "null") {
-          const shiftObj = shiftMap.get(shiftKey);
           const lowerLang = lang.toLowerCase();
           if (!shiftObj.languages.some(l => l.toLowerCase() === lowerLang)) {
             shiftObj.languages.push(lang);
+          }
+          if (!shiftObj.first_url_by_lang[lang] && candidateUrl) {
+            shiftObj.first_url_by_lang[lang] = candidateUrl;
           }
           if (!Array.from(allLanguagesSet).some(l => l.toLowerCase() === lowerLang)) {
             allLanguagesSet.add(lang);
           }
         }
+
+        // Candidate Answer Key URL tracking
+        if (candidateUrl && candidateUrl.toLowerCase() !== "null" && !seenCandidateUrls.has(candidateUrl)) {
+          seenCandidateUrls.add(candidateUrl);
+          candidateList.push({
+            serial_no: candidateList.length + 1,
+            exam_date: d,
+            exam_time: t,
+            paper_language: lang,
+            user_id: userId,
+            url: candidateUrl
+          });
+        }
       });
 
-      // Sort shift-wise languages and all overall languages
+      // Sort shifts & languages
       const shifts = Array.from(shiftMap.values()).map(s => {
         s.languages.sort((a, b) => a.localeCompare(b));
         return s;
@@ -240,17 +241,18 @@ export default {
       const sortedDates = Array.from(dateSet).sort();
       const allLanguages = Array.from(allLanguagesSet).sort((a, b) => a.localeCompare(b));
 
-      // 9. Logical Grouping By Date
+      // Grouped by date
       const groupedByDate = {};
       shifts.forEach(s => {
         if (!groupedByDate[s.exam_date]) groupedByDate[s.exam_date] = [];
         groupedByDate[s.exam_date].push({
           exam_time: s.exam_time,
-          languages: s.languages
+          languages: s.languages,
+          first_url_by_lang: s.first_url_by_lang
         });
       });
 
-      // 10. Structured JSON Response
+      // 8. Prepare Clean JSON Data
       const responseData = {
         success: true,
         exam_id: examId,
@@ -259,13 +261,19 @@ export default {
         total_shifts: shifts.length,
         total_dates: sortedDates.length,
         total_languages: allLanguages.length,
+        total_candidate_urls: candidateList.length,
         all_languages: allLanguages,
         dates: sortedDates,
         shifts: shifts,
-        grouped_by_date: groupedByDate,
+        candidate_urls: candidateList,
         d1_database_bound: isD1Bound,
-        note: shifts.length === 0 ? (!isD1Bound ? "⚠️ env.DB binding is missing in Cloudflare Dashboard! Please add D1 Database binding named 'DB'." : `No records found in user_ranks where exam_id exactly equals '${examId}'.`) : undefined
+        note: shifts.length === 0 ? (!isD1Bound ? "⚠️ env.DB binding is missing in Cloudflare Dashboard! Please add D1 Database binding named 'DB'." : `No candidate records found in user_ranks where exam_id exactly equals '${examId}'.`) : undefined
       };
+
+      // If user opened directly in browser without asking for json, show the Full Website UI populated with data!
+      if (!wantsJson && method === "GET") {
+        return renderWebPortal(isD1Bound, responseData);
+      }
 
       return new Response(JSON.stringify(responseData, null, 2), {
         status: 200,
@@ -292,153 +300,714 @@ export default {
 };
 
 /**
- * 🎨 Helper: Clean Interactive Web UI (Exam ID input only + Shift-wise languages side-by-side)
+ * 🎨 Helper: Full Modern Web Application Portal (Zero Raw JSON)
  */
-function renderWebUi(isD1Bound) {
-  const d1Banner = isD1Bound 
-    ? `<div style="background:#065f46; color:#a7f3d0; padding:10px 14px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:18px;">
-         ✅ Cloudflare D1 Database (env.DB) is CONNECTED
-       </div>`
-    : `<div style="background:#7f1d1d; color:#fecaca; padding:12px 16px; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:18px; border:1px solid #dc2626;">
-         ⚠️ <b>D1 Database (env.DB) is NOT Bound!</b><br>
-         Cloudflare Dashboard &rarr; Workers &rarr; Settings &rarr; Bindings me jakar D1 Database bind karein (Variable Name: <code>DB</code>).
-       </div>`;
+function renderWebPortal(isD1Bound, preloadedData = null) {
+  const initialDataJson = JSON.stringify(preloadedData || null);
+
+  const d1Badge = isD1Bound
+    ? `<span style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+         <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> D1 Database Connected
+       </span>`
+    : `<span style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+         <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> D1 Database Missing (DB Binding)
+       </span>`;
 
   const html = `<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT Rank - Exam Shifts &amp; Languages</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <title>CBT RANK - Exam Shift &amp; Answer Key Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #131b2e;
+      --card-border: #1e293b;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --accent: #6366f1;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 30px 16px; }
-    .container { max-width: 920px; margin: 0 auto; }
-    .card { background: #1e293b; border-radius: 16px; padding: 28px; border: 1px solid #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-    h1 { font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 6px; text-align: center; }
-    p.desc { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 22px; }
-    .form-group { display: flex; gap: 12px; margin-bottom: 20px; }
-    input[type="text"] { flex: 1; padding: 14px 18px; border-radius: 10px; border: 2px solid #475569; background: #0f172a; color: #fff; font-size: 16px; outline: none; transition: border 0.2s; }
-    input[type="text"]:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
-    button { padding: 14px 28px; background: #2563eb; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
-    button:hover { background: #1d4ed8; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 14px; font-size: 12px; font-weight: 600; background: #0369a1; color: #e0f2fe; margin: 2px; }
-    .badge-all { background: #0284c7; padding: 6px 14px; font-size: 13px; margin: 4px; border-radius: 20px; }
-    .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .stat-box { flex: 1; min-width: 140px; background: #0f172a; padding: 16px; border-radius: 10px; border: 1px solid #334155; text-align: center; }
-    .stat-num { font-size: 24px; font-weight: 800; color: #38bdf8; }
-    .stat-lbl { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #0f172a; border-radius: 10px; overflow: hidden; }
-    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; vertical-align: middle; }
-    th { background: #0284c7; color: #fff; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
-    tr:hover { background: rgba(56, 189, 248, 0.04); }
-    pre { background: #0f172a; padding: 16px; border-radius: 10px; overflow-x: auto; color: #a5f3fc; font-size: 13px; margin-top: 15px; border: 1px solid #334155; }
-    #result { display: none; }
-    .loading { text-align: center; color: #38bdf8; display: none; margin: 20px 0; font-weight: 600; }
-    .notice-box { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #94a3b8; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Top Navbar */
+    .navbar {
+      background: rgba(19, 27, 46, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .brand-logo {
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .brand-title span { color: var(--primary); }
+
+    /* Main Container */
+    .main-wrapper {
+      flex: 1;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    /* Hero Search Card */
+    .hero-card {
+      background: linear-gradient(180deg, #162036 0%, #111827 100%);
+      border-radius: 20px;
+      padding: 32px;
+      border: 1px solid #243049;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .hero-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .search-bar-wrap {
+      display: flex;
+      gap: 12px;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+    .search-input {
+      flex: 1;
+      padding: 16px 20px;
+      background: #0b0f19;
+      border: 2px solid #2d3748;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+    }
+    .btn-search {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-search:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5);
+    }
+
+    /* KPI Stats Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: border 0.2s;
+    }
+    .kpi-card:hover { border-color: #334155; }
+    .kpi-val { font-size: 30px; font-weight: 800; color: var(--primary); line-height: 1.1; }
+    .kpi-lbl { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-top: 6px; letter-spacing: 0.5px; }
+
+    /* Section Headings */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Content Cards */
+    .content-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Language Multi-Select Filter Bar */
+    .lang-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 14px;
+      background: #0b0f19;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      align-items: center;
+    }
+    .filter-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-right: 8px;
+    }
+    .lang-pill {
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .lang-pill:hover {
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .lang-pill.active {
+      background: var(--primary-hover);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #243049;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th, td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #1e293b;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+    th {
+      background: #101827;
+      color: #93c5fd;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(56, 189, 248, 0.03); }
+
+    /* Interactive Language Badges in Shift Table */
+    .shift-lang-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 11px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #0369a1;
+      color: #e0f2fe;
+      margin: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .shift-lang-badge:hover {
+      background: #0284c7;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(3, 105, 161, 0.4);
+      color: #fff;
+    }
+    .shift-lang-badge span.icon { font-size: 11px; }
+
+    /* Serial Number Tag */
+    .serial-tag {
+      font-weight: 800;
+      color: var(--primary);
+      font-size: 13px;
+    }
+
+    /* Action Buttons */
+    .btn-open-url {
+      padding: 7px 14px;
+      background: #0284c7;
+      color: #fff;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-open-url:hover {
+      background: #0369a1;
+      transform: translateY(-1px);
+    }
+    .btn-copy {
+      padding: 7px 10px;
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 6px;
+      transition: all 0.2s;
+    }
+    .btn-copy:hover {
+      color: #fff;
+      border-color: #475569;
+    }
+
+    /* Notification & Loading */
+    .loading-state {
+      text-align: center;
+      padding: 40px;
+      display: none;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #1e293b;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+    .url-cell {
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #94a3b8;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    @media(max-width: 640px) {
+      .search-bar-wrap { flex-direction: column; }
+      .btn-search { width: 100%; }
+      .navbar { padding: 14px 16px; }
+      .main-wrapper { padding: 20px 12px; }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>⚡ CBT Rank: Exact Exam Shifts &amp; Languages</h1>
-      <p class="desc">Enter <code>exam_id</code> for STRICT exact match. Returns each unique shift with its languages side-by-side.</p>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <a href="/" class="brand">
+      <div class="brand-logo">C</div>
+      <div class="brand-title">CBT<span>RANK</span> Explorer</div>
+    </a>
+    <div>${d1Badge}</div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    <!-- Search Hero Card -->
+    <div class="hero-card">
+      <h1 class="hero-title">Exam Shifts &amp; Answer Key Explorer</h1>
+      <p class="hero-subtitle">Enter exact <b>exam_id</b> to explore shifts, dates, and live answer key links from <code>user_ranks</code> table.</p>
       
-      ${d1Banner}
-
-      <div class="form-group">
-        <input type="text" id="examIdInput" placeholder="Enter Exact Exam ID (e.g. 100576, 33128, etc.)" autofocus>
-        <button onclick="fetchData()">Search Exam</button>
-      </div>
-
-      <div class="loading" id="loader">🔄 Querying user_ranks for exact exam_id...</div>
-
-      <div id="result">
-        <div class="notice-box" id="matchNotice"></div>
-
-        <div class="stats">
-          <div class="stat-box"><div class="stat-num" id="statShifts">0</div><div class="stat-lbl">Unique Shifts</div></div>
-          <div class="stat-box"><div class="stat-num" id="statDates">0</div><div class="stat-lbl">Exam Dates</div></div>
-          <div class="stat-box"><div class="stat-num" id="statLangs">0</div><div class="stat-lbl">Total Languages</div></div>
-        </div>
-
-        <h3 style="margin: 20px 0 10px; color: #e2e8f0; font-size: 16px;">🌐 Overall Languages (All Shifts):</h3>
-        <div id="allLangList"></div>
-
-        <h3 style="margin: 28px 0 10px; color: #e2e8f0; font-size: 16px;">📅 Shifts &amp; Languages Breakdown (Side-by-Side):</h3>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 50px;">#</th>
-              <th style="width: 150px;">Exam Date</th>
-              <th style="width: 220px;">Exam Time (Shift)</th>
-              <th>Languages in this Shift</th>
-            </tr>
-          </thead>
-          <tbody id="shiftsBody"></tbody>
-        </table>
-
-        <h3 style="margin: 28px 0 10px; color: #e2e8f0; font-size: 16px;">💻 Raw JSON API Response:</h3>
-        <pre id="jsonViewer"></pre>
+      <div class="search-bar-wrap">
+        <input type="text" id="examIdInput" class="search-input" placeholder="Enter Exact Exam ID (e.g. 100576, 33128, etc.)" autofocus>
+        <button onclick="fetchData()" class="btn-search">Search Exam</button>
       </div>
     </div>
-  </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading-state" id="loader">
+      <div class="spinner"></div>
+      <div style="font-weight: 700; color: var(--primary);">Querying Cloudflare D1 Database...</div>
+      <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Fetching strict exact match records...</div>
+    </div>
+
+    <!-- Results Section (Visible after search) -->
+    <div id="resultsSection" style="display: none;">
+
+      <!-- KPI Stats -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-val" id="statShifts">0</div>
+          <div class="kpi-lbl">Total Shifts</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="statDates">0</div>
+          <div class="kpi-lbl">Exam Dates</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="statLangs">0</div>
+          <div class="kpi-lbl">Paper Languages</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-val" id="statUrls">0</div>
+          <div class="kpi-lbl">Candidate Links Found</div>
+        </div>
+      </div>
+
+      <!-- Section 1: Shifts Breakdown Table -->
+      <div class="content-box">
+        <div class="section-header">
+          <h2 class="section-title">📅 Exam Shifts &amp; Languages Breakdown (Side-by-Side)</h2>
+          <span style="font-size: 12px; color: var(--text-muted);">💡 Click on any language badge to open candidate response sheet in a new tab</span>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th style="width: 160px;">Exam Date</th>
+                <th style="width: 220px;">Exam Time (Shift)</th>
+                <th>Languages in this Shift (Click to open link ↗️)</th>
+              </tr>
+            </thead>
+            <tbody id="shiftsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Section 2: Serial-wise Candidate Answer Key URLs List -->
+      <div class="content-box">
+        <div class="section-header">
+          <h2 class="section-title">🔗 Candidate Answer Key URLs (Serial-wise List)</h2>
+          <span id="urlCountBadge" style="font-size: 12px; background: #1e293b; padding: 4px 10px; border-radius: 12px; color: var(--primary); font-weight: 700;"></span>
+        </div>
+
+        <!-- Language Multi-Select Filter Pills -->
+        <div class="lang-filter-bar">
+          <span class="filter-label">Filter Languages (Multi-Select):</span>
+          <div id="langPillsContainer" style="display: inline-flex; flex-wrap: wrap; gap: 6px;"></div>
+        </div>
+
+        <!-- Serial-wise URLs Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 60px;">S.No</th>
+                <th style="width: 140px;">Exam Date</th>
+                <th style="width: 180px;">Shift Time</th>
+                <th style="width: 120px;">Language</th>
+                <th style="width: 140px;">Candidate Roll</th>
+                <th>Answer Key URL Link</th>
+                <th style="width: 160px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="candidateUrlsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    &copy; 2026 CBT RANK System | Cloudflare D1 Native Database Explorer
+  </footer>
 
   <script>
+    let currentData = ${initialDataJson};
+    let selectedLanguages = new Set(); // Multi-select state
+
+    // Initialize with preloaded data if present
+    if (currentData && currentData.success) {
+      document.getElementById('examIdInput').value = currentData.exam_id || '';
+      renderAll(currentData);
+    }
+
     async function fetchData() {
       const examId = document.getElementById('examIdInput').value.trim();
-      if (!examId) { alert('Please enter Exam ID!'); return; }
-      
+      if (!examId) { alert('Please enter an Exam ID!'); return; }
+
       const loader = document.getElementById('loader');
-      const resultBox = document.getElementById('result');
+      const resultsSection = document.getElementById('resultsSection');
       loader.style.display = 'block';
-      resultBox.style.display = 'none';
+      resultsSection.style.display = 'none';
 
       try {
         const res = await fetch('?exam_id=' + encodeURIComponent(examId) + '&json=1');
         const data = await res.json();
         loader.style.display = 'none';
-        resultBox.style.display = 'block';
 
-        // Match notice
-        document.getElementById('matchNotice').innerHTML = 
-          '<b>Searched Exam ID:</b> <code>' + data.exam_id + '</code> &nbsp;|&nbsp; <b>Match Type:</b> Strict Exact Match (=)' +
-          (data.note ? '<div style="color:#f87171; margin-top:6px; font-weight:700;">' + data.note + '</div>' : '');
-
-        document.getElementById('statShifts').innerText = data.total_shifts || 0;
-        document.getElementById('statDates').innerText = data.total_dates || 0;
-        document.getElementById('statLangs').innerText = data.total_languages || 0;
-
-        // Render all languages
-        const allLangList = document.getElementById('allLangList');
-        allLangList.innerHTML = (data.all_languages || []).map(l => '<span class="badge badge-all">' + l + '</span>').join('') || '<span style="color:#94a3b8">No languages found</span>';
-
-        // Render shifts table with side-by-side languages
-        const tbody = document.getElementById('shiftsBody');
-        if (data.shifts && data.shifts.length > 0) {
-          tbody.innerHTML = data.shifts.map((s, idx) => {
-            const shiftLangs = (s.languages && s.languages.length > 0)
-              ? s.languages.map(l => '<span class="badge">' + l + '</span>').join('')
-              : '<span style="color:#64748b; font-size:13px;">Not specified</span>';
-
-            return '<tr>' +
-              '<td>' + (idx + 1) + '</td>' +
-              '<td><b style="color:#38bdf8;">' + s.exam_date + '</b></td>' +
-              '<td>' + s.exam_time + '</td>' +
-              '<td>' + shiftLangs + '</td>' +
-            '</tr>';
-          }).join('');
-        } else {
-          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#94a3b8;">No records found matching exact exam_id: <code>' + data.exam_id + '</code></td></tr>';
+        if (!data.success) {
+          alert('Error: ' + (data.error || 'Failed to fetch'));
+          return;
         }
 
-        // Render JSON
-        document.getElementById('jsonViewer').innerText = JSON.stringify(data, null, 2);
+        currentData = data;
+        selectedLanguages.clear(); // Reset filter on new search
+        renderAll(data);
       } catch (err) {
         loader.style.display = 'none';
-        alert('Fetch error: ' + err.message);
+        alert('Fetch Error: ' + err.message);
       }
+    }
+
+    function renderAll(data) {
+      document.getElementById('resultsSection').style.display = 'block';
+
+      // KPI stats
+      document.getElementById('statShifts').innerText = data.total_shifts || 0;
+      document.getElementById('statDates').innerText = data.total_dates || 0;
+      document.getElementById('statLangs').innerText = data.total_languages || 0;
+      document.getElementById('statUrls').innerText = (data.candidate_urls ? data.candidate_urls.length : 0);
+
+      // Render Section 1: Shifts Table
+      const shiftsTbody = document.getElementById('shiftsBody');
+      if (data.shifts && data.shifts.length > 0) {
+        shiftsTbody.innerHTML = data.shifts.map((s, idx) => {
+          const langBadges = (s.languages && s.languages.length > 0)
+            ? s.languages.map(l => {
+                const targetUrl = (s.first_url_by_lang && s.first_url_by_lang[l]) || '';
+                return '<button class="shift-lang-badge" onclick="onLangBadgeClick(\\'' + escapeJs(l) + '\\', \\'' + escapeJs(targetUrl) + '\\')" title="Click to open link in other tab">' +
+                  l + ' <span class="icon">&#8599;</span></button>';
+              }).join('')
+            : '<span style="color:#64748b; font-size:13px;">None</span>';
+
+          return '<tr>' +
+            '<td><span class="serial-tag">' + (idx + 1) + '</span></td>' +
+            '<td><b style="color:#fff;">' + s.exam_date + '</b></td>' +
+            '<td>' + s.exam_time + '</td>' +
+            '<td>' + langBadges + '</td>' +
+          '</tr>';
+        }).join('');
+      } else {
+        shiftsTbody.innerHTML = '<tr><td colspan="4" class="empty-state">No shifts found for exam_id: <b>' + data.exam_id + '</b></td></tr>';
+      }
+
+      // Render Language Filter Pills (Multi-Select)
+      renderLangPills(data.all_languages || []);
+
+      // Render Section 2: Serial-wise Candidate URLs Table
+      renderSerialUrlsTable();
+    }
+
+    // Language Badge Click in Shift Table:
+    // Opens the link in a new tab immediately AND filters the serial table below!
+    function onLangBadgeClick(lang, directUrl) {
+      if (directUrl) {
+        window.open(directUrl, '_blank');
+      }
+      // Toggle / set this language in filter
+      selectedLanguages.clear();
+      selectedLanguages.add(lang.toLowerCase());
+      updatePillsUI();
+      renderSerialUrlsTable();
+    }
+
+    function renderLangPills(languages) {
+      const container = document.getElementById('langPillsContainer');
+      if (!languages || languages.length === 0) {
+        container.innerHTML = '<span style="color:#64748b; font-size:12px;">None</span>';
+        return;
+      }
+
+      let html = '<div class="lang-pill ' + (selectedLanguages.size === 0 ? 'active' : '') + '" onclick="selectAllLangs()">All Languages</div>';
+      languages.forEach(l => {
+        const isSelected = selectedLanguages.has(l.toLowerCase());
+        html += '<div class="lang-pill ' + (isSelected ? 'active' : '') + '" onclick="toggleLangSelection(\\'' + escapeJs(l.toLowerCase()) + '\\')">' +
+          (isSelected ? '✓ ' : '') + l +
+        '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function toggleLangSelection(langLower) {
+      if (selectedLanguages.has(langLower)) {
+        selectedLanguages.delete(langLower);
+      } else {
+        selectedLanguages.add(langLower);
+      }
+      updatePillsUI();
+      renderSerialUrlsTable();
+    }
+
+    function selectAllLangs() {
+      selectedLanguages.clear();
+      updatePillsUI();
+      renderSerialUrlsTable();
+    }
+
+    function updatePillsUI() {
+      const pills = document.querySelectorAll('#langPillsContainer .lang-pill');
+      if (pills.length === 0) return;
+
+      // First pill is 'All'
+      if (selectedLanguages.size === 0) {
+        pills[0].classList.add('active');
+      } else {
+        pills[0].classList.remove('active');
+      }
+
+      const allLangs = currentData?.all_languages || [];
+      allLangs.forEach((l, idx) => {
+        const pillElem = pills[idx + 1];
+        if (!pillElem) return;
+        if (selectedLanguages.has(l.toLowerCase())) {
+          pillElem.classList.add('active');
+          pillElem.textContent = '✓ ' + l;
+        } else {
+          pillElem.classList.remove('active');
+          pillElem.textContent = l;
+        }
+      });
+    }
+
+    // Render Candidate URLs Table Serial-wise (#1, #2, #3...)
+    function renderSerialUrlsTable() {
+      const tbody = document.getElementById('candidateUrlsBody');
+      const allUrls = currentData?.candidate_urls || [];
+
+      // Filter by selected languages (if any selected)
+      const filtered = (selectedLanguages.size === 0)
+        ? allUrls
+        : allUrls.filter(item => selectedLanguages.has((item.paper_language || '').toLowerCase()));
+
+      document.getElementById('urlCountBadge').innerText = filtered.length + ' Links Showing';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No candidate answer key URLs found for the selected filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((item, idx) => {
+        const serialNo = idx + 1; // Serial-wise #1, #2, #3...
+        return '<tr>' +
+          '<td><span class="serial-tag">#' + serialNo + '</span></td>' +
+          '<td><b style="color:#fff;">' + item.exam_date + '</b></td>' +
+          '<td>' + item.exam_time + '</td>' +
+          '<td><span style="background:#1e293b; color:#38bdf8; padding:3px 8px; border-radius:6px; font-weight:700; font-size:12px;">' + (item.paper_language || 'N/A') + '</span></td>' +
+          '<td><span style="color:#94a3b8; font-family:monospace;">' + (item.user_id || 'N/A') + '</span></td>' +
+          '<td><div class="url-cell" title="' + escapeHtml(item.url) + '">' + escapeHtml(item.url) + '</div></td>' +
+          '<td style="text-align:center;">' +
+            '<a href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer" class="btn-open-url">Open Link &#8599;</a>' +
+            '<button class="btn-copy" onclick="copyUrl(\\'' + escapeJs(item.url) + '\\', this)" title="Copy URL">Copy</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function copyUrl(url, btn) {
+      navigator.clipboard.writeText(url).then(() => {
+        const oldText = btn.innerText;
+        btn.innerText = 'Copied!';
+        btn.style.color = '#38bdf8';
+        setTimeout(() => {
+          btn.innerText = oldText;
+          btn.style.color = '';
+        }, 1500);
+      });
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
     }
 
     document.getElementById('examIdInput').addEventListener('keydown', function(e) {
