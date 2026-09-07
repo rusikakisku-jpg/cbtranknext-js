@@ -6,7 +6,7 @@ import ExamFaqSection from '../components/ExamFaqSection';
 import RelatedExamsSection from '../components/RelatedExamsSection';
 
 export const metadata: Metadata = {
-  title: 'Universal Answer Key Calculator & Rank Predictor',
+  title: 'CBT Rank Answer Key Calculator & Rank Predictor',
   description: 'Calculate your marks, shift rank, and category rank instantly with CBTRank\'s official Answer Key Calculator. Works with all DigiALM and TCS iON response sheets.',
   keywords: [
     'Answer Key Calculator',
