@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import HomeSeoContent from './components/HomeSeoContent';
 
 export const metadata: Metadata = {
-  title: 'CBT RANK - Latest Answer Keys & Rank Predictor',
+  title: 'CBT RANK - Latest Answer Keys calculator ',
   description: 'Calculate your marks, shift rank, and category cutoffs instantly with CBTRank\'s Answer Key Calculator.',
   keywords: ['CBT Rank', 'Answer Key Calculator', 'RRB', 'SSC', 'CBT exam', 'rank predictor'],
   alternates: {
