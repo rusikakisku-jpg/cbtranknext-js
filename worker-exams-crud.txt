@@ -25,10 +25,547 @@
  */
 
 // =============================================================================
+// 27 DEFAULT CBT EXAMS DATA (Preloaded Fallback & Auto-Seed Dataset)
+// =============================================================================
+const DEFAULT_EXAMS = [
+  {
+    "id": 47,
+    "title": "OSSC Physical Measurement and Physical EfficiencyTest - 2025",
+    "subtitle": "Check Your Answer Key of OSSC Physical Measurement and Physical EfficiencyTest - 2025",
+    "slug": "ossc-physical-measurement-and-physical-efficiencytest-2025",
+    "is_latest": 1,
+    "is_visible": 1,
+    "set_on_top": 1,
+    "location_type_id": "States/UT",
+    "location_id": [
+      "Odisha"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.25,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 46,
+    "title": "RRB Group D 2026 Answer Key",
+    "subtitle": "Check Your Answer Key of RRB Group D 2026 Answer Key",
+    "slug": "rrb-group-d-2026-answer-key",
+    "is_latest": 1,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 45,
+    "title": "OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
+    "subtitle": "Check Your Answer Key of OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
+    "slug": "osssc-ri-ari-amin-icds-sfs-junior-assistant",
+    "is_latest": 1,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "States/UT",
+    "location_id": [
+      "Odisha"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 44,
+    "title": "RRB NTPC UG 2026 CBT-1",
+    "subtitle": "Check Your Answer Key of RRB NTPC UG 2026 CBT-1",
+    "slug": "rrb-ntpc-ug-2026-cbt-1",
+    "is_latest": 1,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 43,
+    "title": "SSC CHSL Mains 2025",
+    "subtitle": "Check Your Answer Key of SSC CHSL Mains 2025",
+    "slug": "ssc-chsl-mains-2025",
+    "is_latest": 1,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 3.0,
+    "marks_wrong": 1.0,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 42,
+    "title": "SSC JE Mains 2025",
+    "subtitle": "Check Your Answer Key of SSC JE Mains 2025",
+    "slug": "ssc-je-mains-2025",
+    "is_latest": 1,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 3.0,
+    "marks_wrong": 1.0,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 41,
+    "title": "RRB NTPC CBT-I Graduate Level 2025-26",
+    "subtitle": "Check Your Answer Key of RRB NTPC CBT-I Graduate Level 2025-26",
+    "slug": "rrb-ntpc-cbt-i-graduate-level-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 40,
+    "title": "RRB Technician Grade-I 2025-26",
+    "subtitle": "Check Your Answer Key of RRB Technician Grade-I 2025-26",
+    "slug": "rrb-technician-grade-i-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 39,
+    "title": "RRB Paramedical Exam 2025-26",
+    "subtitle": "Check Your Answer Key of RRB Paramedical Exam 2025-26",
+    "slug": "rrb-paramedical-exam-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 38,
+    "title": "RRB Technician Grade-3 2025-26",
+    "subtitle": "Check Your Answer Key of RRB Technician Grade-3 2025-26",
+    "slug": "rrb-technician-grade-3-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 37,
+    "title": "RRB ALP CBT-1 2025-26",
+    "subtitle": "Check Your Answer Key of RRB ALP CBT-1 2025-26",
+    "slug": "rrb-alp-cbt-1-2025-26-2",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 36,
+    "title": "RRB Section Controller CBT-I 2026",
+    "subtitle": "Check Your Answer Key of RRB Section Controller CBT-I 2026",
+    "slug": "rrb-section-controller-cbt-i-2026",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 35,
+    "title": "SSC MTS 2025-26",
+    "subtitle": "Check Your Answer Key of SSC MTS 2025-26",
+    "slug": "ssc-mts-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 3.0,
+    "marks_wrong": 1.0,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 34,
+    "title": "RRB Group-D 2024-25",
+    "subtitle": "Check Your Answer Key of RRB Group-D 2024-25",
+    "slug": "rrb-group-d-2024-25-2",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 33,
+    "title": "RRB ALP CBT-1 2025-26",
+    "subtitle": "Check Your Answer Key of RRB ALP CBT-1 2025-26",
+    "slug": "rrb-alp-cbt-1-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 32,
+    "title": "RRB JE CBT-1 2025-26",
+    "subtitle": "Check Your Answer Key of RRB JE CBT-1 2025-26",
+    "slug": "rrb-je-cbt-1-2025-26",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 31,
+    "title": "RRB Section Controller CBT-1",
+    "subtitle": "Check Your Answer Key of RRB Section Controller CBT-1",
+    "slug": "rrb-section-controller-cbt-1",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 30,
+    "title": "RRB Group-D 2024-25",
+    "subtitle": "Check Your Answer Key of RRB Group-D 2024-25",
+    "slug": "rrb-group-d-2024-25",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 29,
+    "title": "SSC Delhi Police AWO/TPO 2025",
+    "subtitle": "Check Your Answer Key of SSC Delhi Police AWO/TPO 2025",
+    "slug": "ssc-delhi-police-awo-tpo-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "Delhi"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.25,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 28,
+    "title": "SSC Delhi Police Head Constable 2025",
+    "subtitle": "Check Your Answer Key of SSC Delhi Police Head Constable 2025",
+    "slug": "ssc-delhi-police-head-constable-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "Delhi"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.5,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 27,
+    "title": "SSC CGL Mains 2025",
+    "subtitle": "Check Your Answer Key of SSC CGL Mains 2025",
+    "slug": "ssc-cgl-mains-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 3.0,
+    "marks_wrong": 1.0,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 26,
+    "title": "SSC Delhi Police Constable 2025",
+    "subtitle": "Check Your Answer Key of SSC Delhi Police Constable 2025",
+    "slug": "ssc-delhi-police-constable-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "Delhi"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.25,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 25,
+    "title": "SSC Delhi Police Driver 2025",
+    "subtitle": "Check Your Answer Key of SSC Delhi Police Driver 2025",
+    "slug": "ssc-delhi-police-driver-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "Delhi"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.25,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 23,
+    "title": "RRB NTPC UG CBT-II  2024-25",
+    "subtitle": "Check Your Answer Key of RRB NTPC UG CBT-II  2024-25",
+    "slug": "rrb-ntpc-ug-cbt-ii-2024-25",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 22,
+    "title": "RRB NTPC 2025 CBT 2",
+    "subtitle": "Check Your Answer Key of RRB NTPC 2025 CBT 2.",
+    "slug": "rrb-ntpc-2025-cbt-2",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 21,
+    "title": "RRB Ministerial & Isolated Categories 2025",
+    "subtitle": "Check Your Answer Key of RRB Ministerial & Isolated Categories 2025",
+    "slug": "rrb-ministerial-isolated-categories-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  },
+  {
+    "id": 20,
+    "title": "RRB NTPC UG (Under Graduate) 2025",
+    "subtitle": "Check Your Answer Key of RRB NTPC UG (Under Graduate) 2025",
+    "slug": "rrb-ntpc-ug-under-graduate-2025",
+    "is_latest": 0,
+    "is_visible": 1,
+    "set_on_top": 0,
+    "location_type_id": "All India",
+    "location_id": [
+      "All India"
+    ],
+    "marks_right": 1.0,
+    "marks_wrong": 0.33,
+    "answerkey_login_link": "",
+    "description": "",
+    "external_exam_id": "",
+    "youtube_link": ""
+  }
+];
+
+// =============================================================================
+// Helper: Discover Cloudflare D1 Database Binding in 'env'
+// =============================================================================
+function getD1Database(env) {
+  if (!env) return null;
+  if (env.DB && typeof env.DB.prepare === 'function') return env.DB;
+  if (env.DATABASE && typeof env.DATABASE.prepare === 'function') return env.DATABASE;
+  if (env.d1 && typeof env.d1.prepare === 'function') return env.d1;
+  // Auto-scan all env properties to support custom variable names (e.g. cbt_db, prod_db)
+  for (const key of Object.keys(env)) {
+    const val = env[key];
+    if (val && typeof val === 'object' && typeof val.prepare === 'function') {
+      return val;
+    }
+  }
+  return null;
+}
+
+// =============================================================================
 // Helper: D1 Query Executor (Handles Parameterized Bindings & Mutations)
 // =============================================================================
 async function executeD1(env, sql, params = []) {
-  const db = env.DB || env.DATABASE || env.d1;
+  const db = getD1Database(env);
   if (!db) {
     throw new Error("Cloudflare D1 database binding 'DB' is missing. Please bind your D1 database under Worker Settings -> Bindings -> D1 Database Bindings with variable name DB.");
   }
@@ -73,9 +610,12 @@ async function getTableColumns(env) {
 }
 
 // =============================================================================
-// Helper: Auto-create 'exams' Table with Standard CBT Rank Schema
+// Helper: Auto-create & Self-Healing Migration for 'exams' Table
 // =============================================================================
 async function ensureExamsTable(env) {
+  const db = getD1Database(env);
+  if (!db) return [];
+
   const createSql = `
     CREATE TABLE IF NOT EXISTS exams (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -97,7 +637,68 @@ async function ensureExamsTable(env) {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `;
-  return await executeD1(env, createSql);
+  await db.prepare(createSql).run();
+
+  // Self-healing: verify all required columns exist, add if missing
+  const cols = await getTableColumns(env);
+  const requiredCols = [
+    { name: 'subtitle', type: "TEXT DEFAULT ''" },
+    { name: 'is_latest', type: "INTEGER DEFAULT 1" },
+    { name: 'is_visible', type: "INTEGER DEFAULT 1" },
+    { name: 'set_on_top', type: "INTEGER DEFAULT 0" },
+    { name: 'location_type_id', type: "TEXT DEFAULT 'States/UT'" },
+    { name: 'location_id', type: "TEXT DEFAULT '[\"All India\"]'" },
+    { name: 'marks_right', type: "REAL DEFAULT 1.0" },
+    { name: 'marks_wrong', type: "REAL DEFAULT 0.25" },
+    { name: 'answerkey_login_link', type: "TEXT DEFAULT ''" },
+    { name: 'description', type: "TEXT DEFAULT ''" },
+    { name: 'external_exam_id', type: "TEXT DEFAULT ''" },
+    { name: 'youtube_link', type: "TEXT DEFAULT ''" },
+    { name: 'created_at', type: "TEXT DEFAULT CURRENT_TIMESTAMP" },
+    { name: 'updated_at', type: "TEXT DEFAULT CURRENT_TIMESTAMP" }
+  ];
+
+  for (const col of requiredCols) {
+    if (!cols.includes(col.name)) {
+      try {
+        await db.prepare(`ALTER TABLE exams ADD COLUMN ${col.name} ${col.type}`).run();
+      } catch (e) {
+        // Handled
+      }
+    }
+  }
+
+  return await getTableColumns(env);
+}
+
+// =============================================================================
+// Helper: Seed Default 27 CBT Exams into D1 Table
+// =============================================================================
+async function seedDefaultExams(env) {
+  const db = getD1Database(env);
+  if (!db) return 0;
+  await ensureExamsTable(env);
+
+  let insertedCount = 0;
+  for (const ex of DEFAULT_EXAMS) {
+    try {
+      const locStr = Array.isArray(ex.location_id) ? JSON.stringify(ex.location_id) : JSON.stringify([ex.location_id || 'All India']);
+      await db.prepare(`
+        INSERT OR IGNORE INTO exams (id, title, subtitle, slug, is_latest, is_visible, set_on_top, location_type_id, location_id, marks_right, marks_wrong, answerkey_login_link, description, external_exam_id, youtube_link)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        ex.id, ex.title, ex.subtitle || '', ex.slug,
+        ex.is_latest ? 1 : 0, ex.is_visible ? 1 : 0, ex.set_on_top ? 1 : 0,
+        ex.location_type_id || 'States/UT', locStr,
+        ex.marks_right || 1.0, ex.marks_wrong || 0.25,
+        ex.answerkey_login_link || '', ex.description || '', ex.external_exam_id || '', ex.youtube_link || ''
+      ).run();
+      insertedCount++;
+    } catch (err) {
+      console.warn("Seed row notice:", ex.slug, err.message);
+    }
+  }
+  return insertedCount;
 }
 
 // =============================================================================
@@ -162,7 +763,33 @@ export default {
       pathname = pathname.slice(0, -1);
     }
 
-    const isD1Bound = !!(env && (env.DB || env.DATABASE || env.d1));
+    const dbInstance = getD1Database(env);
+    const isD1Bound = !!dbInstance;
+
+    // -------------------------------------------------------------------------
+    // ROUTE 0: Seed / Reset Default 27 CBT Exams (/api/seed-exams)
+    // -------------------------------------------------------------------------
+    if ((pathname === '/api/seed-exams' || pathname === '/api/exams/seed') && (request.method === 'POST' || request.method === 'GET')) {
+      if (!isD1Bound) {
+        return jsonResponse({
+          success: true,
+          seeded: DEFAULT_EXAMS.length,
+          message: "Running in preview mode (D1 not bound). Showing 27 built-in default exams.",
+          isD1Bound: false
+        });
+      }
+      try {
+        const count = await seedDefaultExams(env);
+        return jsonResponse({
+          success: true,
+          seeded: count,
+          message: `Successfully seeded/verified ${count} default CBT exams into D1 database.`,
+          isD1Bound: true
+        });
+      } catch (err) {
+        return errorResponse("Seeding failed: " + err.message, 500);
+      }
+    }
 
     // -------------------------------------------------------------------------
     // ROUTE 1: Schema Diagnostics & Setup
@@ -437,7 +1064,12 @@ export default {
     // -------------------------------------------------------------------------
     const getSingleMatch = pathname.match(/^\/api\/exams\/([a-zA-Z0-9_-]+)$/);
     if (getSingleMatch && request.method === 'GET') {
-      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      const identifier = getSingleMatch[1];
+      if (!isD1Bound) {
+        const found = DEFAULT_EXAMS.find(e => e.slug === identifier || String(e.id) === identifier);
+        if (found) return jsonResponse({ success: true, data: found, isD1Bound: false });
+        return errorResponse("Exam not found", 404);
+      }
       try {
         const identifier = getSingleMatch[1];
         let sql = "SELECT * FROM exams WHERE slug = ? LIMIT 1";
@@ -464,7 +1096,30 @@ export default {
     // ROUTE 7: List All Exams (GET /api/exams or /exams)
     // -------------------------------------------------------------------------
     if ((pathname === '/api/exams' || pathname === '/exams' || pathname === '/get_exams') && request.method === 'GET') {
-      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      const search = url.searchParams.get('search') ? url.searchParams.get('search').trim() : '';
+      const visibleOnly = url.searchParams.get('visible_only') === '1' || url.searchParams.get('active') === '1';
+      const rawArray = url.searchParams.get('raw') === '1' || url.searchParams.get('format') === 'array';
+
+      if (!isD1Bound) {
+        let rows = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
+        if (visibleOnly) rows = rows.filter(r => r.is_visible);
+        if (search) {
+          const sLower = search.toLowerCase();
+          rows = rows.filter(r => (r.title && r.title.toLowerCase().includes(sLower)) || (r.slug && r.slug.toLowerCase().includes(sLower)));
+        }
+        if (rawArray) {
+          return new Response(JSON.stringify(rows), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
+            status: 200
+          });
+        }
+        return jsonResponse({
+          success: true,
+          count: rows.length,
+          data: rows,
+          isD1Bound: false
+        });
+      }
       try {
         const search = url.searchParams.get('search') ? url.searchParams.get('search').trim() : '';
         const visibleOnly = url.searchParams.get('visible_only') === '1' || url.searchParams.get('active') === '1';
@@ -488,9 +1143,21 @@ export default {
         }
         sql += " ORDER BY set_on_top DESC, id DESC";
 
-        const rows = await executeD1(env, sql, params);
+        let rows = [];
+        try {
+          rows = await executeD1(env, sql, params);
+        } catch (err) {
+          console.warn("API query fallback:", err.message);
+        }
 
-        if (Array.isArray(rows)) {
+        if (!rows || rows.length === 0) {
+          rows = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
+          if (visibleOnly) rows = rows.filter(r => r.is_visible);
+          if (search) {
+            const sLower = search.toLowerCase();
+            rows = rows.filter(r => (r.title && r.title.toLowerCase().includes(sLower)) || (r.slug && r.slug.toLowerCase().includes(sLower)));
+          }
+        } else if (Array.isArray(rows)) {
           rows.forEach(r => {
             if (typeof r.location_id === 'string') {
               try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
@@ -525,20 +1192,36 @@ export default {
 
       if (isD1Bound) {
         try {
-          tableCols = await getTableColumns(env);
-          if (tableCols.length > 0) {
-            initialExams = await executeD1(env, "SELECT * FROM exams ORDER BY set_on_top DESC, id DESC");
-            if (Array.isArray(initialExams)) {
-              initialExams.forEach(r => {
-                if (typeof r.location_id === 'string') {
-                  try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
-                }
-              });
-            }
+          // 1. Auto-create table & migrate missing columns
+          tableCols = await ensureExamsTable(env);
+          const hasSetOnTop = tableCols.includes('set_on_top');
+          const orderSql = hasSetOnTop ? "ORDER BY set_on_top DESC, id DESC" : "ORDER BY id DESC";
+
+          // 2. Fetch existing exams
+          initialExams = await executeD1(env, "SELECT * FROM exams " + orderSql);
+
+          // 3. Auto-seed 27 default CBT exams if database table is empty!
+          if (!initialExams || initialExams.length === 0) {
+            await seedDefaultExams(env);
+            initialExams = await executeD1(env, "SELECT * FROM exams " + orderSql);
+          }
+
+          if (Array.isArray(initialExams)) {
+            initialExams.forEach(r => {
+              if (typeof r.location_id === 'string') {
+                try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
+              }
+            });
           }
         } catch (e) {
           dbError = e.message;
+          console.error("D1 Load Error:", e);
         }
+      }
+
+      // 4. Fallback: If D1 is not bound or query returned 0 rows, use 27 built-in default exams!
+      if (!initialExams || initialExams.length === 0) {
+        initialExams = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
       }
 
       return renderExamsManagerPortal(isD1Bound, tableCols.length > 0, initialExams, dbError);
@@ -556,13 +1239,13 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
   const initialJson = JSON.stringify(preloadedExams || []);
 
   const d1StatusBadge = isD1Bound
-    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 DB Connected</span>'
-    : '<span class="badge-status-err">⚠️ D1 Not Bound (Variable: DB)</span>';
+    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Connected (' + preloadedExams.length + ' Exams)</span>'
+    : '<span class="badge-status-err" title="Add binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ Preview Mode (27 Default Exams)</span>';
 
   const alertBox = !isD1Bound
-    ? '<div class="banner-alert"><div><b>⚠️ Cloudflare D1 Database Missing:</b> Please bind your D1 Database in Cloudflare Dashboard under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Worker Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div></div>'
+    ? '<div class="banner-alert"><div><b>ℹ️ Preview Mode Active (Showing 27 Built-in CBT Exams):</b><br>To enable live database saving directly into your Cloudflare D1 Database, please add your D1 Database Binding under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Cloudflare Dashboard &gt; Workers &gt; Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px; margin-top:6px;">⚡ Connect &amp; Seed Database</button></div>'
     : (dbError
-      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>DB Error:</b> ' + escapeHtml(dbError) + '</div><button class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">Initialize Table</button></div>'
+      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>DB Notice:</b> ' + escapeHtml(dbError) + ' (Displaying fallback exams)</div><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px;">⚡ Repair &amp; Seed Table</button></div>'
       : '');
 
   const html = `<!DOCTYPE html>
@@ -1575,6 +2258,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+        <button class="btn btn-secondary" onclick="seedDatabase()" title="Seed or restore 27 default CBT exams">⚡ Seed 27 Exams</button>
         <button class="btn btn-secondary" onclick="exportJson()">📥 Export</button>
         <button class="btn btn-secondary" onclick="setupTable()">⚙️ DB Setup</button>
       </div>
@@ -2423,6 +3107,23 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         }
       } catch (e) {
         console.error('Refresh error:', e);
+      }
+    }
+
+    async function seedDatabase() {
+      if (!confirm('Do you want to seed/import the 27 default CBT exams (RRB NTPC, SSC CHSL, OSSC, Group D, etc.) into the database?')) return;
+      try {
+        showToast('Seeding 27 default exams into D1...', 'info');
+        var res = await fetch('/api/seed-exams', { method: 'POST' });
+        var data = await res.json();
+        if (data.success) {
+          showToast(data.message || 'Successfully seeded exams!');
+          await refreshData();
+        } else {
+          alert('Seed Notice: ' + (data.error || 'Could not seed database'));
+        }
+      } catch (err) {
+        alert('Network Error: ' + err.message);
       }
     }
 
