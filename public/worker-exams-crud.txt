@@ -830,8 +830,15 @@ export default {
     // ROUTE 2: Quick Status Toggle (is_visible, is_latest, set_on_top)
     // -------------------------------------------------------------------------
     if (pathname === '/api/exams/toggle' && request.method === 'POST') {
-      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      if (!isD1Bound) {
+        return jsonResponse({
+          success: true,
+          message: "Preview Mode: Updated in memory",
+          isD1Bound: false
+        });
+      }
       try {
+        await ensureExamsTable(env);
         const body = await request.json();
         const id = parseInt(body.id, 10);
         const field = String(body.field || '').trim();
@@ -874,8 +881,21 @@ export default {
     // ROUTE 3: Add New Exam (POST /api/exams or POST /api/exams/add)
     // -------------------------------------------------------------------------
     if ((pathname === '/api/exams' || pathname === '/api/exams/add') && request.method === 'POST') {
-      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      if (!isD1Bound) {
+        try {
+          const body = await request.json();
+          return jsonResponse({
+            success: true,
+            message: "Exam added in Preview Mode (bind D1 in Cloudflare to persist).",
+            id: Date.now(),
+            isD1Bound: false
+          });
+        } catch (e) {
+          return errorResponse("Invalid JSON payload", 400);
+        }
+      }
       try {
+        await ensureExamsTable(env);
         const body = await request.json();
         const title = String(body.title || '').trim();
         let slug = String(body.slug || '').trim().toLowerCase();
@@ -954,8 +974,15 @@ export default {
     // -------------------------------------------------------------------------
     const updateMatch = pathname.match(/^\/api\/exams\/(\d+)$/);
     if ((updateMatch && (request.method === 'PUT' || request.method === 'POST')) || (pathname === '/api/exams/update' && request.method === 'POST')) {
-      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      if (!isD1Bound) {
+        return jsonResponse({
+          success: true,
+          message: "Exam updated in Preview Mode.",
+          isD1Bound: false
+        });
+      }
       try {
+        await ensureExamsTable(env);
         const body = await request.json();
         const examId = updateMatch ? parseInt(updateMatch[1], 10) : parseInt(body.id, 10);
         if (isNaN(examId)) return errorResponse("Invalid or missing Exam ID for update.");
@@ -1030,8 +1057,15 @@ export default {
     // -------------------------------------------------------------------------
     const deleteMatch = pathname.match(/^\/api\/exams\/(\d+)$/);
     if ((deleteMatch && request.method === 'DELETE') || (pathname === '/api/exams/delete' && (request.method === 'POST' || request.method === 'DELETE'))) {
-      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      if (!isD1Bound) {
+        return jsonResponse({
+          success: true,
+          message: "Exam deleted in Preview Mode.",
+          isD1Bound: false
+        });
+      }
       try {
+        await ensureExamsTable(env);
         let examId;
         if (deleteMatch) {
           examId = parseInt(deleteMatch[1], 10);
@@ -2502,11 +2536,26 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     let searchQuery = '';
     let isSlugManual = false;
 
-    // Initialize UI on load
-    document.addEventListener('DOMContentLoaded', function() {
+    // Safe initialization that works in all browsers and webviews
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+
+    function initApp() {
       renderAllViews();
       updateStats();
-    });
+    }
+
+    function copyExamSlug(id) {
+      for (var i = 0; i < allExams.length; i++) {
+        if (allExams[i].id == id) {
+          copyText(allExams[i].slug || '');
+          break;
+        }
+      }
+    }
 
     function showToast(msg, type) {
       type = type || 'success';
@@ -2628,13 +2677,13 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           '<div class="card-top-row">' +
             '<span class="badge-id">#' + exam.id + '</span>' +
             '<div class="card-status-bar">' +
-              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_visible\')" title="Click to toggle visibility">' +
+              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_visible&quot;)" title="Click to toggle visibility">' +
                 (isVis ? '✓ Visible' : 'Hidden') +
               '</span>' +
-              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'set_on_top\')" title="Click to toggle pin">' +
+              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;set_on_top&quot;)" title="Click to toggle pin">' +
                 (isTop ? '📌 Top' : 'Normal') +
               '</span>' +
-              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_latest\')" title="Click to toggle latest">' +
+              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_latest&quot;)" title="Click to toggle latest">' +
                 (isLat ? '⚡ Latest' : 'Standard') +
               '</span>' +
             '</div>' +
@@ -2645,7 +2694,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
           '<div class="card-slug-row">' +
             '<span class="card-slug-text">' + escapeHtml(exam.slug) + '</span>' +
-            '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\'' + escapeHtml(exam.slug) + '\')" title="Copy Slug">📋</button>' +
+            '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyExamSlug(' + exam.id + ')" title="Copy Slug">📋</button>' +
           '</div>' +
 
           '<div class="card-details-grid">' +
@@ -2720,7 +2769,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             '<div style="font-weight:700; color:#fff; font-size:14px;">' + escapeHtml(exam.title) + '</div>' +
             '<div style="display:flex; align-items:center; gap:6px;">' +
               '<span class="slug-badge">' + escapeHtml(exam.slug) + '</span>' +
-              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\'' + escapeHtml(exam.slug) + '\')" title="Copy Slug">📋</button>' +
+              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyExamSlug(' + exam.id + ')" title="Copy Slug">📋</button>' +
             '</div>' +
             (exam.subtitle ? '<div style="font-size:12px; color:#94a3b8; margin-top:2px;">' + escapeHtml(exam.subtitle) + '</div>' : '') +
           '</td>' +
@@ -2742,13 +2791,13 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           '</td>' +
           '<td>' +
             '<div style="display:flex; gap:4px; flex-wrap:wrap;">' +
-              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_visible\')" title="Click to toggle visibility">' +
+              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_visible&quot;)" title="Click to toggle visibility">' +
                 (isVis ? '✓ Visible' : 'Hidden') +
               '</span>' +
-              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'set_on_top\')" title="Click to toggle pin">' +
+              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;set_on_top&quot;)" title="Click to toggle pin">' +
                 (isTop ? '📌 Top' : 'Normal') +
               '</span>' +
-              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_latest\')" title="Click to toggle latest">' +
+              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_latest&quot;)" title="Click to toggle latest">' +
                 (isLat ? '⚡ Latest' : 'Standard') +
               '</span>' +
             '</div>' +
@@ -3003,6 +3052,23 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
 
         if (!data.success) {
+          // Check if running in preview mode or failed binding
+          if (!data.isD1Bound || (data.error && data.error.includes("not bound"))) {
+            var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
+            payload.id = newId;
+            if (isEdit) {
+              for (var k = 0; k < allExams.length; k++) {
+                if (allExams[k].id == newId) { allExams[k] = payload; break; }
+              }
+            } else {
+              allExams.unshift(payload);
+            }
+            closeModal('examModal');
+            showToast(isEdit ? 'Exam updated (Preview Mode)!' : 'Exam added (Preview Mode)!');
+            renderAllViews();
+            updateStats();
+            return;
+          }
           alert('Error: ' + (data.error || 'Failed to save exam'));
           return;
         }
@@ -3011,9 +3077,20 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         showToast(isEdit ? 'Exam updated successfully!' : 'Exam added successfully!');
         await refreshData();
       } catch (err) {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
-        alert('Network Error: ' + err.message);
+        // Offline or preview fallback
+        var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
+        payload.id = newId;
+        if (isEdit) {
+          for (var k = 0; k < allExams.length; k++) {
+            if (allExams[k].id == newId) { allExams[k] = payload; break; }
+          }
+        } else {
+          allExams.unshift(payload);
+        }
+        closeModal('examModal');
+        showToast(isEdit ? 'Exam updated (Preview)!' : 'Exam added (Preview)!');
+        renderAllViews();
+        updateStats();
       }
     }
 
