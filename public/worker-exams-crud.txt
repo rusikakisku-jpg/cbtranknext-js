@@ -922,7 +922,7 @@ export default {
 
         const existing = await executeD1(env, "SELECT id FROM exams WHERE slug = ? LIMIT 1", [slug]);
         if (existing && existing.length > 0) {
-          return errorResponse(`An exam with slug '${slug}' already exists (ID: #${existing[0].id}). Please choose a unique slug.`);
+          return errorResponse(`An exam with slug '${slug}' already exists (ID: #${existing[0].id}). Please choose a unique slug.`, 400, { isD1Bound: true });
         }
 
         const subtitle = String(body.subtitle || '').trim();
@@ -940,15 +940,29 @@ export default {
 
         const availableCols = await getTableColumns(env);
         const nowIso = new Date().toISOString();
+
+        // 1. Determine next unique ID safely to prevent 'NOT NULL constraint failed: exams.id'
+        let nextId = 1;
+        try {
+          const maxRes = await executeD1(env, "SELECT COALESCE(MAX(id), 0) AS max_id FROM exams");
+          if (maxRes && maxRes.length > 0 && maxRes[0].max_id !== undefined && maxRes[0].max_id !== null) {
+            nextId = parseInt(maxRes[0].max_id, 10) + 1;
+            if (isNaN(nextId) || nextId < 1) nextId = 1;
+          }
+        } catch (e) {
+          nextId = Date.now();
+        }
+
         const dataMap = {
           title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
           location_type_id: locTypeId, location_id: locId, marks_right: marksRight, marks_wrong: marksWrong,
           answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
         };
 
-        let colsToInsert = [];
-        let placeholders = [];
-        let valuesToInsert = [];
+        // Explicitly include id as first column to satisfy NOT NULL constraints across all D1 schema variants
+        let colsToInsert = ['id'];
+        let placeholders = ['?'];
+        let valuesToInsert = [nextId];
 
         Object.keys(dataMap).forEach(col => {
           if (availableCols.length === 0 || availableCols.includes(col)) {
@@ -972,8 +986,16 @@ export default {
         const insertSql = `INSERT INTO exams (${colsToInsert.join(', ')}) VALUES (${placeholders.join(', ')})`;
         const result = await executeD1(env, insertSql, valuesToInsert);
 
+        // Sync autoincrement sequence if sqlite_sequence exists
+        try {
+          const dbInstance = getD1Database(env);
+          if (dbInstance) {
+            await dbInstance.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('exams', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'exams'), 0), ?))").bind(nextId).run();
+          }
+        } catch (e) {}
+
         // Retrieve real assigned ID directly from D1 to guarantee persistence
-        let newId = result?.meta?.last_row_id || result?.lastRowId || null;
+        let newId = nextId;
         try {
           const insertedRow = await executeD1(env, "SELECT id FROM exams WHERE slug = ? LIMIT 1", [slug]);
           if (insertedRow && insertedRow.length > 0) {
