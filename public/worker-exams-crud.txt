@@ -654,8 +654,8 @@ async function ensureExamsTable(env) {
     { name: 'description', type: "TEXT DEFAULT ''" },
     { name: 'external_exam_id', type: "TEXT DEFAULT ''" },
     { name: 'youtube_link', type: "TEXT DEFAULT ''" },
-    { name: 'created_at', type: "TEXT DEFAULT CURRENT_TIMESTAMP" },
-    { name: 'updated_at', type: "TEXT DEFAULT CURRENT_TIMESTAMP" }
+    { name: 'created_at', type: "TEXT DEFAULT ''" },
+    { name: 'updated_at', type: "TEXT DEFAULT ''" }
   ];
 
   for (const col of requiredCols) {
@@ -680,6 +680,7 @@ async function seedDefaultExams(env) {
   await ensureExamsTable(env);
 
   let insertedCount = 0;
+  let maxId = 0;
   for (const ex of DEFAULT_EXAMS) {
     try {
       const locStr = Array.isArray(ex.location_id) ? JSON.stringify(ex.location_id) : JSON.stringify([ex.location_id || 'All India']);
@@ -694,9 +695,16 @@ async function seedDefaultExams(env) {
         ex.answerkey_login_link || '', ex.description || '', ex.external_exam_id || '', ex.youtube_link || ''
       ).run();
       insertedCount++;
+      if (ex.id > maxId) maxId = ex.id;
     } catch (err) {
       console.warn("Seed row notice:", ex.slug, err.message);
     }
+  }
+  // Sync autoincrement sequence so subsequent inserts do not collide with IDs
+  if (maxId > 0) {
+    try {
+      await db.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('exams', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'exams'), 0), ?))").bind(maxId).run();
+    } catch (e) {}
   }
   return insertedCount;
 }
@@ -858,22 +866,26 @@ export default {
 
         const availableCols = await getTableColumns(env);
         let updateSql = `UPDATE exams SET ${field} = ?`;
+        let updateParams = [newValue];
         if (availableCols.includes('updated_at')) {
-          updateSql += ", updated_at = datetime('now')";
+          updateSql += ", updated_at = ?";
+          updateParams.push(new Date().toISOString());
         }
         updateSql += " WHERE id = ?";
+        updateParams.push(id);
 
-        await executeD1(env, updateSql, [newValue, id]);
+        await executeD1(env, updateSql, updateParams);
 
         return jsonResponse({
           success: true,
-          message: `Field '${field}' updated to ${newValue}`,
+          message: `Field '${field}' updated to ${newValue} in D1 database`,
           id: id,
           field: field,
-          newValue: newValue
+          newValue: newValue,
+          isD1Bound: true
         });
       } catch (err) {
-        return errorResponse("Toggle failed: " + err.message, 500);
+        return errorResponse("Toggle failed: " + err.message, 500, { isD1Bound: true });
       }
     }
 
@@ -927,6 +939,7 @@ export default {
         const youtubeLink = String(body.youtube_link || '').trim();
 
         const availableCols = await getTableColumns(env);
+        const nowIso = new Date().toISOString();
         const dataMap = {
           title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
           location_type_id: locTypeId, location_id: locId, marks_right: marksRight, marks_wrong: marksWrong,
@@ -947,25 +960,36 @@ export default {
 
         if (availableCols.includes('created_at')) {
           colsToInsert.push('created_at');
-          placeholders.push("datetime('now')");
+          placeholders.push('?');
+          valuesToInsert.push(nowIso);
         }
         if (availableCols.includes('updated_at')) {
           colsToInsert.push('updated_at');
-          placeholders.push("datetime('now')");
+          placeholders.push('?');
+          valuesToInsert.push(nowIso);
         }
 
         const insertSql = `INSERT INTO exams (${colsToInsert.join(', ')}) VALUES (${placeholders.join(', ')})`;
         const result = await executeD1(env, insertSql, valuesToInsert);
-        const newId = result?.meta?.last_row_id || result?.lastRowId || null;
+
+        // Retrieve real assigned ID directly from D1 to guarantee persistence
+        let newId = result?.meta?.last_row_id || result?.lastRowId || null;
+        try {
+          const insertedRow = await executeD1(env, "SELECT id FROM exams WHERE slug = ? LIMIT 1", [slug]);
+          if (insertedRow && insertedRow.length > 0) {
+            newId = insertedRow[0].id;
+          }
+        } catch (e) {}
 
         return jsonResponse({
           success: true,
-          message: "Exam added successfully!",
+          message: "Exam added successfully to D1 database!",
           id: newId,
-          slug: slug
+          slug: slug,
+          isD1Bound: true
         }, 201);
       } catch (err) {
-        return errorResponse("Failed to add exam: " + err.message, 500);
+        return errorResponse("Failed to add exam: " + err.message, 500, { isD1Bound: true });
       }
     }
 
@@ -1035,7 +1059,8 @@ export default {
         });
 
         if (availableCols.includes('updated_at')) {
-          setClauses.push("updated_at = datetime('now')");
+          setClauses.push("updated_at = ?");
+          setValues.push(new Date().toISOString());
         }
 
         setValues.push(examId);
@@ -1044,11 +1069,12 @@ export default {
 
         return jsonResponse({
           success: true,
-          message: "Exam updated successfully!",
-          id: examId
+          message: "Exam updated successfully in D1 database!",
+          id: examId,
+          isD1Bound: true
         });
       } catch (err) {
-        return errorResponse("Failed to update exam: " + err.message, 500);
+        return errorResponse("Failed to update exam: " + err.message, 500, { isD1Bound: true });
       }
     }
 
@@ -1085,11 +1111,12 @@ export default {
 
         return jsonResponse({
           success: true,
-          message: `Exam #${examId} ('${existing[0].title}') deleted successfully.`,
-          id: examId
+          message: `Exam #${examId} ('${existing[0].title}') deleted successfully from D1 database.`,
+          id: examId,
+          isD1Bound: true
         });
       } catch (err) {
-        return errorResponse("Failed to delete exam: " + err.message, 500);
+        return errorResponse("Failed to delete exam: " + err.message, 500, { isD1Bound: true });
       }
     }
 
@@ -1209,10 +1236,11 @@ export default {
         return jsonResponse({
           success: true,
           count: rows.length,
-          data: rows
+          data: rows,
+          isD1Bound: true
         });
       } catch (err) {
-        return errorResponse(err.message, 500);
+        return errorResponse(err.message, 500, { isD1Bound: true });
       }
     }
 
@@ -1271,15 +1299,18 @@ export default {
 // =============================================================================
 function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbError) {
   const initialJson = JSON.stringify(preloadedExams || []);
+  const isD1Active = isD1Bound && !dbError;
 
-  const d1StatusBadge = isD1Bound
+  const d1StatusBadge = isD1Active
     ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Connected (' + preloadedExams.length + ' Exams)</span>'
-    : '<span class="badge-status-err" title="Add binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ Preview Mode (27 Default Exams)</span>';
+    : (isD1Bound && dbError
+      ? '<span class="badge-status-err" title="' + escapeHtml(dbError) + '">⚠️ D1 Error (Click DB Setup)</span>'
+      : '<span class="badge-status-err" title="Add binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ Preview Mode (27 Default Exams)</span>');
 
   const alertBox = !isD1Bound
     ? '<div class="banner-alert"><div><b>ℹ️ Preview Mode Active (Showing 27 Built-in CBT Exams):</b><br>To enable live database saving directly into your Cloudflare D1 Database, please add your D1 Database Binding under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Cloudflare Dashboard &gt; Workers &gt; Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px; margin-top:6px;">⚡ Connect &amp; Seed Database</button></div>'
     : (dbError
-      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>DB Notice:</b> ' + escapeHtml(dbError) + ' (Displaying fallback exams)</div><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px;">⚡ Repair &amp; Seed Table</button></div>'
+      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>⚠️ D1 Database Initialization Notice:</b> ' + escapeHtml(dbError) + '<br>Click below to create/verify the <code>exams</code> table or seed default exams.</div><div style="display:flex; gap:8px; margin-top:8px;"><button type="button" class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">⚙️ Run DB Setup</button><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px;">⚡ Seed 27 Exams</button></div></div>'
       : '');
 
   const html = `<!DOCTYPE html>
@@ -2583,7 +2614,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
   <script>
     let allExams = ${initialJson};
-    let isD1Connected = ${isD1Bound ? 'true' : 'false'};
+    let isD1Connected = ${isD1Active ? 'true' : 'false'};
     let currentFilter = 'all';
     let searchQuery = '';
     let isSlugManual = false;
@@ -3321,56 +3352,43 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         is_latest: document.getElementById('formIsLatest').checked ? 1 : 0
       };
 
-      try {
-        var res;
-        if (isEdit) {
-          payload.id = parseInt(examId, 10);
-          res = await fetch('/api/exams/' + examId, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        } else {
-          res = await fetch('/api/exams', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        }
-
-        var data = await res.json();
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
-
-        // Check if D1 is not bound or running in preview mode
-        if (!isD1Connected || !data.isD1Bound) {
-          var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
-          payload.id = newId;
+      if (isD1Connected) {
+        try {
+          var res;
           if (isEdit) {
-            for (var k = 0; k < allExams.length; k++) {
-              if (allExams[k].id == newId) { allExams[k] = payload; break; }
-            }
+            payload.id = parseInt(examId, 10);
+            res = await fetch('/api/exams/' + examId, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
           } else {
-            allExams.unshift(payload);
+            res = await fetch('/api/exams', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
           }
-          saveLocalStorage();
+
+          var data = await res.json();
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
+
+          if (!data.success) {
+            alert('Database Error: ' + (data.error || 'Failed to save exam to D1 database'));
+            return;
+          }
+
           closeModal('examModal');
-          showToast(isEdit ? 'Exam updated & saved locally!' : 'Exam added & saved locally!');
-          renderAllViews();
-          updateStats();
-          return;
+          showToast(isEdit ? 'Exam updated in D1 Database!' : 'Exam added to D1 Database!');
+          await refreshData();
+        } catch (err) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
+          alert('Network / API Error: ' + err.message);
         }
-
-        if (!data.success) {
-          alert('Error: ' + (data.error || 'Failed to save exam'));
-          return;
-        }
-
-        closeModal('examModal');
-        showToast(isEdit ? 'Exam updated in D1!' : 'Exam added to D1 Database!');
-        await refreshData();
-      } catch (err) {
-        // Offline or preview fallback: persist into browser storage
+      } else {
+        // Preview Mode Fallback (when Cloudflare D1 is not bound)
         var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
         payload.id = newId;
         if (isEdit) {
@@ -3381,8 +3399,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           allExams.unshift(payload);
         }
         saveLocalStorage();
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
         closeModal('examModal');
-        showToast(isEdit ? 'Exam updated (Saved locally)!' : 'Exam added (Saved locally)!');
+        showToast(isEdit ? 'Exam updated & saved locally!' : 'Exam added & saved locally!');
         renderAllViews();
         updateStats();
       }
@@ -3410,43 +3430,35 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       confirmBtn.disabled = true;
       confirmBtn.innerText = 'Deleting...';
 
-      try {
-        var res = await fetch('/api/exams/' + id, { method: 'DELETE' });
-        var data = await res.json();
+      if (isD1Connected) {
+        try {
+          var res = await fetch('/api/exams/' + id, { method: 'DELETE' });
+          var data = await res.json();
+          confirmBtn.disabled = false;
+          confirmBtn.innerText = 'Yes, Delete Exam';
+
+          if (!data.success) {
+            alert('Delete Error: ' + (data.error || 'Failed to delete exam from D1'));
+            return;
+          }
+
+          closeModal('deleteModal');
+          showToast('Exam #' + id + ' deleted from D1 Database!');
+          await refreshData();
+        } catch (err) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerText = 'Yes, Delete Exam';
+          alert('Network Error: ' + err.message);
+        }
+      } else {
+        allExams = allExams.filter(function(x) { return x.id != id; });
+        saveLocalStorage();
         confirmBtn.disabled = false;
         confirmBtn.innerText = 'Yes, Delete Exam';
-
-        if (!isD1Connected || !data.isD1Bound) {
-          allExams = allExams.filter(function(x) { return x.id != id; });
-          saveLocalStorage();
-          closeModal('deleteModal');
-          showToast('Exam #' + id + ' deleted (Saved locally)!');
-          renderAllViews();
-          updateStats();
-          return;
-        }
-
-        if (!data.success) {
-          alert('Delete error: ' + (data.error || 'Failed to delete'));
-          return;
-        }
-
         closeModal('deleteModal');
-        showToast('Exam #' + id + ' deleted from D1!');
-        await refreshData();
-      } catch (err) {
-        if (!isD1Connected) {
-          allExams = allExams.filter(function(x) { return x.id != id; });
-          saveLocalStorage();
-          closeModal('deleteModal');
-          showToast('Exam #' + id + ' deleted (Saved locally)!');
-          renderAllViews();
-          updateStats();
-          return;
-        }
-        confirmBtn.disabled = false;
-        confirmBtn.innerText = 'Yes, Delete Exam';
-        alert('Network Error: ' + err.message);
+        showToast('Exam #' + id + ' deleted (Saved locally)!');
+        renderAllViews();
+        updateStats();
       }
     }
 
@@ -3459,15 +3471,20 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
       var currentVal = exam[field] == 1 ? 1 : 0;
       var newVal = currentVal ? 0 : 1;
-      exam[field] = newVal;
-      renderAllViews();
-      updateStats();
 
       if (!isD1Connected) {
+        exam[field] = newVal;
         saveLocalStorage();
+        renderAllViews();
+        updateStats();
         showToast('Updated ' + field + ' for Exam #' + id + ' (Saved locally)');
         return;
       }
+
+      // Optimistic update with automatic rollback on server failure
+      exam[field] = newVal;
+      renderAllViews();
+      updateStats();
 
       try {
         var res = await fetch('/api/exams/toggle', {
@@ -3480,15 +3497,15 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           exam[field] = currentVal;
           renderAllViews();
           updateStats();
-          showToast('Toggle failed: ' + data.error, 'error');
+          alert('Toggle failed in D1: ' + (data.error || 'Unknown error'));
         } else {
-          showToast('Updated ' + field + ' for Exam #' + id);
+          showToast('Updated ' + field + ' for Exam #' + id + ' in D1');
         }
       } catch (err) {
         exam[field] = currentVal;
         renderAllViews();
         updateStats();
-        showToast('Network error on toggle', 'error');
+        alert('Network error on toggle: ' + err.message);
       }
     }
 
@@ -3551,10 +3568,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         var res = await fetch('/api/setup-table', { method: 'POST' });
         var data = await res.json();
         if (data.success) {
-          showToast('exams table verified successfully!');
-          refreshData();
+          showToast('exams table verified successfully in D1!');
+          await refreshData();
         } else {
-          alert('Setup error: ' + data.error);
+          alert('Setup error: ' + (data.error || 'Failed to verify table'));
         }
       } catch (e) {
         alert('Request failed: ' + e.message);
