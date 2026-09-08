@@ -2223,7 +2223,27 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       .kpi-grid { grid-template-columns: 1fr; }
       .card-details-grid { grid-template-columns: 1fr; }
     }
+
+    /* TinyMCE Dark Theme & Modal Overrides */
+    .tox-tinymce-aux {
+      z-index: 2100 !important;
+    }
+    .tox.tox-tinymce {
+      border-radius: 9px !important;
+      border: 1px solid var(--card-border) !important;
+      background: var(--card-inner) !important;
+    }
+    .tox .tox-toolbar, .tox .tox-toolbar__overflow, .tox .tox-toolbar__primary {
+      background: #1e293b !important;
+      border-bottom: 1px solid #334155 !important;
+    }
+    .tox .tox-statusbar {
+      background: #0f172a !important;
+      border-top: 1px solid #334155 !important;
+    }
   </style>
+  <!-- TinyMCE 6 Rich Text WYSIWYG Editor (Full HTML Support) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js" referrerpolicy="origin"></script>
 </head>
 <body>
 
@@ -2494,12 +2514,19 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             </div>
 
             <!-- SECTION 6: DESCRIPTION & GUIDELINES -->
-            <div class="form-section-title">📝 6. Description &amp; Instructions</div>
+            <div class="form-section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <span>📝 6. Description &amp; Instructions (HTML Supported)</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; font-weight:normal; text-transform:none;">
+                <button type="button" class="preset-chip" onclick="insertDescriptionTemplate('guidelines')">+ Guidelines</button>
+                <button type="button" class="preset-chip" onclick="insertDescriptionTemplate('cutoff')">+ Cut-off Table</button>
+                <button type="button" class="preset-chip" id="toggleEditorModeBtn" onclick="toggleEditorMode()">💻 HTML Code</button>
+              </div>
+            </div>
 
             <!-- Description -->
             <div class="form-group form-group-full">
-              <label class="form-label">Detailed Notes / Guidelines (Optional)</label>
-              <textarea id="formDescription" class="form-textarea" placeholder="Enter normalization rules, expected cut-off guidelines, or candidate instructions..."></textarea>
+              <label class="form-label">Detailed Notes / Guidelines (HTML &amp; Rich Text)</label>
+              <textarea id="formDescription" class="form-textarea" placeholder="Enter normalization rules, expected cut-off guidelines, or candidate instructions (HTML supported)..."></textarea>
             </div>
 
           </div>
@@ -2530,6 +2557,22 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     </div>
   </div>
 
+  <!-- HTML Description Preview Modal -->
+  <div class="modal-overlay" id="descPreviewModal">
+    <div class="modal-box" style="max-width: 680px; max-height: 85vh; height: auto;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="descPreviewTitle" style="font-size:16px;">📝 Exam Guidelines &amp; Notes</h3>
+        <button type="button" class="modal-close" onclick="closeModal('descPreviewModal')">&times;</button>
+      </div>
+      <div class="modal-body" id="descPreviewBody" style="padding:20px; line-height:1.7; color:#e2e8f0; max-height:65vh; overflow-y:auto; background:#0b0f19;">
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:12px; color:#64748b;">Rendered HTML Preview</span>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('descPreviewModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
@@ -2543,8 +2586,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     let currentFilter = 'all';
     let searchQuery = '';
     let isSlugManual = false;
-
-    // Safe initialization that works in all browsers and webviews
+    var STATES_UT_LIST = 'Andaman & Nicobar, Andhra Pradesh, Arunachal Pradesh, Assam, Bihar, Chandigarh, Chhattisgarh, Dadra & Nagar Haveli and Daman & Diu, Delhi, Goa, Gujarat, Haryana, Himachal Pradesh, Jammu & Kashmir, Jharkhand, Karnataka, Kerala, Ladakh, Lakshadweep, Madhya Pradesh, Maharashtra, Manipur, Meghalaya, Mizoram, Nagaland, Odisha, Puducherry, Punjab, Rajasthan, Sikkim, Tamil Nadu, Telangana, Tripura, Uttar Pradesh, Uttarakhand, West Bengal';
+    var RRB_ZONES_LIST = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+    var isTinyMceReady = false;
+    var isRawHtmlMode = false;
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initApp);
     } else {
@@ -2554,6 +2599,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     function initApp() {
       renderAllViews();
       updateStats();
+      initTinyMce();
     }
 
     function copyExamSlug(id) {
@@ -2678,7 +2724,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           linksHtml += '<a href="' + escapeHtml(exam.answerkey_login_link) + '" target="_blank" class="link-chip" title="Official Answer Key Login Link">🔗 Key Link</a> ';
         }
         if (exam.youtube_link) {
-          linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a>';
+          linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a> ';
+        }
+        if (exam.description && exam.description.trim()) {
+          linksHtml += '<span class="link-chip" style="cursor:pointer;" onclick="previewExamDescription(' + exam.id + ')" title="Preview HTML Notes & Guidelines">📝 Notes</span>';
         }
 
         return '<div class="exam-mobile-card">' +
@@ -2768,7 +2817,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           linksHtml += '<a href="' + escapeHtml(exam.answerkey_login_link) + '" target="_blank" class="link-chip" title="Official Answer Key Login Link">🔗 Key Link</a> ';
         }
         if (exam.youtube_link) {
-          linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a>';
+          linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a> ';
+        }
+        if (exam.description && exam.description.trim()) {
+          linksHtml += '<span class="link-chip" style="cursor:pointer;" onclick="previewExamDescription(' + exam.id + ')" title="Preview HTML Notes & Guidelines">📝 Notes</span>';
         }
 
         return '<tr>' +
@@ -2878,11 +2930,139 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       if (e.key === 'Escape') {
         closeModal('examModal');
         closeModal('deleteModal');
+        closeModal('descPreviewModal');
       }
     });
 
-    var STATES_UT_LIST = 'Andaman & Nicobar, Andhra Pradesh, Arunachal Pradesh, Assam, Bihar, Chandigarh, Chhattisgarh, Dadra & Nagar Haveli and Daman & Diu, Delhi, Goa, Gujarat, Haryana, Himachal Pradesh, Jammu & Kashmir, Jharkhand, Karnataka, Kerala, Ladakh, Lakshadweep, Madhya Pradesh, Maharashtra, Manipur, Meghalaya, Mizoram, Nagaland, Odisha, Puducherry, Punjab, Rajasthan, Sikkim, Tamil Nadu, Telangana, Tripura, Uttar Pradesh, Uttarakhand, West Bengal';
-    var RRB_ZONES_LIST = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+    function initTinyMce(callback) {
+      if (typeof tinymce === 'undefined') {
+        if (callback) callback(null);
+        return;
+      }
+      var existing = tinymce.get('formDescription');
+      if (existing) {
+        if (callback) callback(existing);
+        return;
+      }
+      try {
+        tinymce.init({
+          selector: '#formDescription',
+          base_url: 'https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2',
+          suffix: '.min',
+          skin: 'oxide-dark',
+          content_css: 'dark',
+          height: 280,
+          menubar: false,
+          plugins: 'link lists table code fullscreen wordcount autolink',
+          toolbar: 'undo redo | blocks | bold italic underline forecolor backcolor | bullist numlist | table link | code fullscreen',
+          content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; color: #f1f5f9; background: #0f172a; line-height: 1.6; padding: 12px; } a { color: #38bdf8; } table { border-collapse: collapse; width: 100%; } table, th, td { border: 1px solid #334155; padding: 6px 10px; }',
+          branding: false,
+          promotion: false,
+          setup: function(editor) {
+            editor.on('init', function() {
+              isTinyMceReady = true;
+              if (callback) callback(editor);
+            });
+            editor.on('change keyup', function() {
+              var val = editor.getContent();
+              document.getElementById('formDescription').value = val;
+            });
+          }
+        });
+      } catch (e) {
+        console.warn('TinyMCE init skipped:', e);
+        if (callback) callback(null);
+      }
+    }
+
+    function getDescriptionContent() {
+      if (window.tinymce && tinymce.get('formDescription') && !isRawHtmlMode) {
+        var val = tinymce.get('formDescription').getContent();
+        document.getElementById('formDescription').value = val;
+        return val;
+      }
+      return document.getElementById('formDescription').value || '';
+    }
+
+    function setDescriptionContent(html) {
+      var val = html || '';
+      var txt = document.getElementById('formDescription');
+      if (txt) txt.value = val;
+      if (window.tinymce && tinymce.get('formDescription')) {
+        tinymce.get('formDescription').setContent(val);
+      }
+    }
+
+    function toggleEditorMode() {
+      var ed = window.tinymce ? tinymce.get('formDescription') : null;
+      var btn = document.getElementById('toggleEditorModeBtn');
+      var txt = document.getElementById('formDescription');
+
+      if (!isRawHtmlMode) {
+        // Switch to Raw HTML Code Mode
+        if (ed) {
+          var currentVal = ed.getContent();
+          txt.value = currentVal;
+          ed.hide();
+        }
+        txt.style.display = 'block';
+        if (btn) btn.innerHTML = '📝 Visual Mode';
+        isRawHtmlMode = true;
+      } else {
+        // Switch to Visual TinyMCE Mode
+        if (ed) {
+          var currentVal = txt.value;
+          ed.show();
+          ed.setContent(currentVal);
+        }
+        if (btn) btn.innerHTML = '💻 HTML Code';
+        isRawHtmlMode = false;
+      }
+    }
+
+    function insertDescriptionTemplate(type) {
+      var tpl = '';
+      if (type === 'guidelines') {
+        tpl = '<h4>📌 Important Instructions &amp; Guidelines</h4>' +
+          '<ul>' +
+            '<li><strong>Normalization Method:</strong> Normalization formula will be implemented across multi-shift CBTs.</li>' +
+            '<li><strong>Negative Marking:</strong> Negative deduction applies for every wrong answer.</li>' +
+            '<li><strong>Objection Tracker:</strong> Candidates can raise queries regarding official keys within the designated window.</li>' +
+          '</ul>';
+      } else if (type === 'cutoff') {
+        tpl = '<h4>📊 Expected Category-wise Safe Cut-off</h4>' +
+          '<table style="width:100%; border-collapse:collapse;" border="1">' +
+            '<thead>' +
+              '<tr style="background:#1e293b; color:#38bdf8;">' +
+                '<th style="padding:6px 10px;">Category</th>' +
+                '<th style="padding:6px 10px;">Expected Score</th>' +
+                '<th style="padding:6px 10px;">Safe Score</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+              '<tr><td style="padding:6px 10px;">UR / General</td><td style="padding:6px 10px;">75 - 80</td><td style="padding:6px 10px;">82+</td></tr>' +
+              '<tr><td style="padding:6px 10px;">OBC / EWS</td><td style="padding:6px 10px;">70 - 74</td><td style="padding:6px 10px;">76+</td></tr>' +
+              '<tr><td style="padding:6px 10px;">SC / ST</td><td style="padding:6px 10px;">60 - 68</td><td style="padding:6px 10px;">70+</td></tr>' +
+            '</tbody>' +
+          '</table>';
+      }
+
+      var current = getDescriptionContent().trim();
+      var finalContent = current ? current + '<br>' + tpl : tpl;
+      setDescriptionContent(finalContent);
+      showToast('Template inserted into Description!');
+    }
+
+    function previewExamDescription(id) {
+      var exam = null;
+      for (var i = 0; i < allExams.length; i++) {
+        if (allExams[i].id == id) { exam = allExams[i]; break; }
+      }
+      if (!exam) return;
+      document.getElementById('descPreviewTitle').innerHTML = '📝 ' + escapeHtml(exam.title) + ' - Notes &amp; Guidelines';
+      document.getElementById('descPreviewBody').innerHTML = exam.description || '<p style="color:#64748b;">No notes or guidelines provided for this exam.</p>';
+      openModal('descPreviewModal');
+    }
 
     function openAddModal() {
       isSlugManual = false;
@@ -2904,6 +3084,14 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
       // Auto-populate all 36 States/UTs when States/UT is selected
       document.getElementById('formLocationId').value = STATES_UT_LIST;
+
+      if (isRawHtmlMode) {
+        toggleEditorMode();
+      }
+      setDescriptionContent('');
+      initTinyMce(function(ed) {
+        if (ed) ed.setContent('');
+      });
 
       updateLinkTester('formAnswerLink', 'testAnswerLinkBtn');
       updateLinkTester('formYoutubeLink', 'testYoutubeLinkBtn');
@@ -2948,7 +3136,15 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('formExternalExamId').value = exam.external_exam_id || '';
       document.getElementById('formAnswerLink').value = exam.answerkey_login_link || '';
       document.getElementById('formYoutubeLink').value = exam.youtube_link || '';
-      document.getElementById('formDescription').value = exam.description || '';
+
+      if (isRawHtmlMode) {
+        toggleEditorMode();
+      }
+      var desc = exam.description || '';
+      setDescriptionContent(desc);
+      initTinyMce(function(ed) {
+        if (ed) ed.setContent(desc);
+      });
 
       document.getElementById('formIsVisible').checked = isTruthy(exam.is_visible, true);
       document.getElementById('formSetOnTop').checked = isTruthy(exam.set_on_top, false);
@@ -3095,7 +3291,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         external_exam_id: document.getElementById('formExternalExamId').value.trim(),
         answerkey_login_link: document.getElementById('formAnswerLink').value.trim(),
         youtube_link: document.getElementById('formYoutubeLink').value.trim(),
-        description: document.getElementById('formDescription').value.trim(),
+        description: getDescriptionContent().trim(),
         is_visible: document.getElementById('formIsVisible').checked ? 1 : 0,
         set_on_top: document.getElementById('formSetOnTop').checked ? 1 : 0,
         is_latest: document.getElementById('formIsLatest').checked ? 1 : 0
