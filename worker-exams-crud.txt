@@ -1137,24 +1137,26 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 1000;
-      padding: 16px;
+      padding: 20px;
     }
     .modal-box {
-      background: #111827;
+      background: #0f172a;
       border: 1px solid #334155;
       border-radius: 16px;
       width: 100%;
-      max-width: 720px;
+      max-width: 780px;
       max-height: 90vh;
+      height: 90vh;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05);
       animation: modalFadeIn 0.2s ease-out;
       overflow: hidden;
     }
@@ -1162,44 +1164,87 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       from { opacity: 0; transform: translateY(12px) scale(0.98); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
+    /* Critical: Ensures form flexes smoothly inside modal-box so modal-body can scroll */
+    .modal-form, #examForm {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
     .modal-header {
-      padding: 16px 22px;
-      border-bottom: 1px solid var(--card-border);
+      padding: 16px 24px;
+      border-bottom: 1px solid #1e293b;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #0f172a;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      background: #0b0f19;
+      flex-shrink: 0;
     }
-    .modal-title { font-size: 17px; font-weight: 800; color: #fff; }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .modal-close {
-      background: none;
-      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #334155;
       color: var(--text-muted);
-      font-size: 24px;
+      font-size: 20px;
       cursor: pointer;
       line-height: 1;
-      padding: 4px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
     }
-    .modal-close:hover { color: #fff; }
+    .modal-close:hover {
+      background: #ef4444;
+      color: #fff;
+      border-color: #ef4444;
+    }
     .modal-body {
-      padding: 22px;
+      padding: 22px 24px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       flex: 1;
+      min-height: 0;
     }
     .modal-footer {
-      padding: 14px 22px;
-      border-top: 1px solid var(--card-border);
+      padding: 14px 24px;
+      border-top: 1px solid #1e293b;
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
+      align-items: center;
+      gap: 12px;
       background: #0b0f19;
-      position: sticky;
-      bottom: 0;
-      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    /* Form Section Dividers */
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin: 16px 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+      padding-bottom: 6px;
+      grid-column: 1 / -1;
+    }
+    .form-section-title:first-child {
+      margin-top: 0;
     }
 
     /* Form Fields */
@@ -1231,15 +1276,17 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       color: #fff;
       font-size: 14px;
       outline: none;
-      transition: border 0.2s;
+      transition: border 0.2s, box-shadow 0.2s;
     }
     .form-input:focus, .form-select:focus, .form-textarea:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
     }
     .form-textarea {
-      min-height: 70px;
+      min-height: 80px;
       resize: vertical;
+      font-family: inherit;
+      line-height: 1.5;
     }
     .preset-chips {
       display: flex;
@@ -1252,34 +1299,92 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       border: 1px solid #334155;
       color: #38bdf8;
       font-size: 11px;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
       user-select: none;
+      transition: all 0.15s;
     }
-    .preset-chip:hover { background: #334155; color: #fff; }
+    .preset-chip:hover {
+      background: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
 
-    .checkbox-group {
+    /* Status Toggle Cards */
+    .status-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      grid-column: 1 / -1;
+    }
+    .status-toggle-card {
       display: flex;
-      gap: 16px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-    .custom-check {
-      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      font-size: 13px;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--card-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
       cursor: pointer;
+      transition: all 0.15s ease;
       user-select: none;
-      color: #cbd5e1;
     }
-    .custom-check input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
+    .status-toggle-card:hover {
+      border-color: #475569;
+      background: #1e293b;
+    }
+    .status-toggle-label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .status-toggle-label .name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .status-toggle-label .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .status-toggle-card input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
       accent-color: var(--primary);
       cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    /* External Link Chips */
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #38bdf8;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .link-chip:hover {
+      background: rgba(56, 189, 248, 0.25);
+      color: #fff;
+    }
+    .link-youtube {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+    }
+    .link-youtube:hover {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
     }
 
     /* Toast Notification */
@@ -1367,14 +1472,18 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       .modal-box {
         max-width: 100%;
         width: 100%;
-        height: 100%;
+        height: 100vh;
         max-height: 100vh;
         border-radius: 0;
         border: none;
       }
+      .modal-header { padding: 14px 16px; }
       .modal-body { padding: 16px 14px; }
       .modal-footer { padding: 12px 14px; }
       .modal-footer .btn { flex: 1; min-height: 44px; font-size: 14px; }
+      .form-grid { grid-template-columns: 1fr; gap: 12px; }
+      .form-group-full { grid-column: span 1; }
+      .status-cards-grid { grid-template-columns: 1fr; }
       .form-input, .form-select, .form-textarea { font-size: 16px; padding: 11px; } /* Prevents iOS auto-zoom */
 
       .toast-container { left: 12px; right: 12px; bottom: 16px; max-width: 100%; }
@@ -1517,18 +1626,21 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
   </main>
 
-  <!-- Add / Edit Exam Modal (Responsive Fullscreen on Mobile) -->
+  <!-- Add / Edit Exam Modal (Fully Responsive & Structured) -->
   <div class="modal-overlay" id="examModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title" id="modalTitle">Add New Exam</h3>
-        <button class="modal-close" onclick="closeModal('examModal')">&times;</button>
+        <h3 class="modal-title" id="modalTitle">➕ Add New Exam</h3>
+        <button type="button" class="modal-close" onclick="closeModal('examModal')">&times;</button>
       </div>
       <form id="examForm" onsubmit="handleFormSubmit(event)">
         <div class="modal-body">
           <input type="hidden" id="formExamId">
 
           <div class="form-grid">
+            <!-- SECTION 1: BASIC INFORMATION -->
+            <div class="form-section-title">📋 1. Basic Exam Information</div>
+
             <!-- Title -->
             <div class="form-group form-group-full">
               <label class="form-label">Exam Title <span class="req">*</span></label>
@@ -1537,10 +1649,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
             <!-- Slug -->
             <div class="form-group form-group-full">
-              <label class="form-label" style="display:flex; justify-content:space-between;">
-                <span>Slug (Unique URL identifier) <span class="req">*</span></span>
-                <span style="color:#38bdf8; cursor:pointer;" onclick="autoGenerateSlug()">⚡ Auto Generate</span>
-              </label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <label class="form-label" style="margin-bottom:0;">Slug (Unique URL identifier) <span class="req">*</span></label>
+                <button type="button" class="preset-chip" style="background:#0284c7; color:#fff; border:none;" onclick="autoGenerateSlug()">⚡ Auto Generate</button>
+              </div>
               <input type="text" id="formSlug" class="form-input" placeholder="e.g. rrb-ntpc-ug-2026-cbt-1" required>
             </div>
 
@@ -1550,14 +1662,18 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
               <input type="text" id="formSubtitle" class="form-input" placeholder="e.g. Check Your Answer Key &amp; Rank of RRB NTPC UG 2026">
             </div>
 
+            <!-- SECTION 2: MARKING SCHEME & EXAM ID -->
+            <div class="form-section-title">⚖️ 2. Marking Scheme &amp; External Exam ID</div>
+
             <!-- Marks Right -->
             <div class="form-group">
               <label class="form-label">Marks for Correct (+)</label>
               <input type="number" step="0.01" id="formMarksRight" class="form-input" value="1.0" required>
               <div class="preset-chips">
-                <span class="preset-chip" onclick="setMarks(1.0, 0.25)">+1 / -0.25 (SSC/State)</span>
+                <span class="preset-chip" onclick="setMarks(1.0, 0.25)">+1 / -0.25 (SSC)</span>
                 <span class="preset-chip" onclick="setMarks(1.0, 0.33)">+1 / -0.33 (Railway)</span>
-                <span class="preset-chip" onclick="setMarks(2.0, 0.5)">+2 / -0.5 (CGL/CPO)</span>
+                <span class="preset-chip" onclick="setMarks(2.0, 0.5)">+2 / -0.5 (CGL)</span>
+                <span class="preset-chip" onclick="setMarks(3.0, 1.0)">+3 / -1.0 (CHSL)</span>
               </div>
             </div>
 
@@ -1566,6 +1682,16 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
               <label class="form-label">Marks for Negative (-)</label>
               <input type="number" step="0.01" id="formMarksWrong" class="form-input" value="0.25" required>
             </div>
+
+            <!-- External Exam ID -->
+            <div class="form-group form-group-full">
+              <label class="form-label">External Exam ID / Digialm FormId</label>
+              <input type="text" id="formExternalExamId" class="form-input" placeholder="e.g. 100576 or 33128">
+              <div style="font-size:11px; color:#64748b; margin-top:3px;">Digialm assessment / form ID for matching response sheets and candidate answer keys</div>
+            </div>
+
+            <!-- SECTION 3: LOCATION SETTINGS -->
+            <div class="form-section-title">🗺️ 3. Location &amp; Region Settings</div>
 
             <!-- Location Type -->
             <div class="form-group">
@@ -1578,60 +1704,83 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
               </select>
             </div>
 
-            <!-- External Exam ID -->
-            <div class="form-group">
-              <label class="form-label">External Exam ID / Digialm FormId</label>
-              <input type="text" id="formExternalExamId" class="form-input" placeholder="e.g. 100576 or 33128">
-            </div>
-
             <!-- Location Values -->
             <div class="form-group form-group-full">
-              <label class="form-label">Locations (Comma separated or All India)</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <label class="form-label" style="margin-bottom:0;">Locations (Comma-separated)</label>
+                <div style="display:flex; gap:6px;">
+                  <button type="button" class="preset-chip" onclick="setLocationPreset('All India')">All India</button>
+                  <button type="button" class="preset-chip" onclick="setLocationPreset('RRB')">21 RRB Zones</button>
+                  <button type="button" class="preset-chip" onclick="setLocationPreset('')">Clear</button>
+                </div>
+              </div>
               <input type="text" id="formLocationId" class="form-input" placeholder="e.g. All India  OR  Odisha, Bihar, Delhi">
             </div>
 
+            <!-- SECTION 4: OFFICIAL LINKS -->
+            <div class="form-section-title">🔗 4. Official Links &amp; Media</div>
+
             <!-- Answer Key Link -->
             <div class="form-group form-group-full">
-              <label class="form-label">Official Answer Key Login Link</label>
-              <input type="url" id="formAnswerLink" class="form-input" placeholder="https://cdn3.digialm.com/EForms/loginAction.do?...">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <label class="form-label" style="margin-bottom:0;">Official Answer Key Login Link</label>
+                <span id="testAnswerLinkBtn" style="font-size:11px; color:#38bdf8; cursor:pointer; display:none;" onclick="testLink('formAnswerLink')">↗ Open Link</span>
+              </div>
+              <input type="url" id="formAnswerLink" class="form-input" placeholder="https://cdn3.digialm.com/EForms/loginAction.do?..." oninput="updateLinkTester('formAnswerLink', 'testAnswerLinkBtn')">
             </div>
 
             <!-- YouTube Link -->
             <div class="form-group form-group-full">
-              <label class="form-label">YouTube Video Explanation Link</label>
-              <input type="url" id="formYoutubeLink" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <label class="form-label" style="margin-bottom:0;">YouTube Video Solution Link</label>
+                <span id="testYoutubeLinkBtn" style="font-size:11px; color:#38bdf8; cursor:pointer; display:none;" onclick="testLink('formYoutubeLink')">↗ Open Video</span>
+              </div>
+              <input type="url" id="formYoutubeLink" class="form-input" placeholder="https://www.youtube.com/watch?v=..." oninput="updateLinkTester('formYoutubeLink', 'testYoutubeLinkBtn')">
             </div>
 
-            <!-- Status Checkboxes -->
-            <div class="form-group form-group-full">
-              <label class="form-label">Status &amp; Flags</label>
-              <div class="checkbox-group">
-                <label class="custom-check">
-                  <input type="checkbox" id="formIsVisible" checked>
-                  <span><b>Visible</b> (Show in active exam list)</span>
-                </label>
-                <label class="custom-check">
-                  <input type="checkbox" id="formSetOnTop">
-                  <span><b>Set On Top</b> (Pin at top of website)</span>
-                </label>
-                <label class="custom-check">
-                  <input type="checkbox" id="formIsLatest" checked>
-                  <span><b>Latest</b> (Show 'New' / Latest badge)</span>
-                </label>
-              </div>
+            <!-- SECTION 5: STATUS & DISPLAY FLAGS -->
+            <div class="form-section-title">⚙️ 5. Visibility &amp; Status Flags</div>
+
+            <div class="status-cards-grid">
+              <label class="status-toggle-card">
+                <div class="status-toggle-label">
+                  <span class="name">👁️ Visible</span>
+                  <span class="hint">Show in active exam list</span>
+                </div>
+                <input type="checkbox" id="formIsVisible" checked>
+              </label>
+
+              <label class="status-toggle-card">
+                <div class="status-toggle-label">
+                  <span class="name">📌 Set On Top</span>
+                  <span class="hint">Pin to top of website</span>
+                </div>
+                <input type="checkbox" id="formSetOnTop">
+              </label>
+
+              <label class="status-toggle-card">
+                <div class="status-toggle-label">
+                  <span class="name">⚡ Latest</span>
+                  <span class="hint">Display 'New' badge</span>
+                </div>
+                <input type="checkbox" id="formIsLatest" checked>
+              </label>
             </div>
+
+            <!-- SECTION 6: DESCRIPTION & GUIDELINES -->
+            <div class="form-section-title">📝 6. Description &amp; Instructions</div>
 
             <!-- Description -->
             <div class="form-group form-group-full">
-              <label class="form-label">Detailed Description / Instructions</label>
-              <textarea id="formDescription" class="form-textarea" placeholder="Optional notes, normalization details, or cut-off guidelines..."></textarea>
+              <label class="form-label">Detailed Notes / Guidelines (Optional)</label>
+              <textarea id="formDescription" class="form-textarea" placeholder="Enter normalization rules, expected cut-off guidelines, or candidate instructions..."></textarea>
             </div>
 
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal('examModal')">Cancel</button>
-          <button type="submit" id="saveExamBtn" class="btn btn-primary">Save Exam</button>
+          <button type="submit" id="saveExamBtn" class="btn btn-primary">💾 Save Exam</button>
         </div>
       </form>
     </div>
@@ -1779,21 +1928,29 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           }
         }
 
-        var isVis = exam.is_visible == 1;
-        var isTop = exam.set_on_top == 1;
-        var isLat = exam.is_latest == 1;
+        var isVis = isTruthy(exam.is_visible, true);
+        var isTop = isTruthy(exam.set_on_top, false);
+        var isLat = isTruthy(exam.is_latest, true);
+
+        var linksHtml = '';
+        if (exam.answerkey_login_link) {
+          linksHtml += '<a href="' + escapeHtml(exam.answerkey_login_link) + '" target="_blank" class="link-chip" title="Official Answer Key Login Link">🔗 Key Link</a> ';
+        }
+        if (exam.youtube_link) {
+          linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a>';
+        }
 
         return '<div class="exam-mobile-card">' +
           '<div class="card-top-row">' +
             '<span class="badge-id">#' + exam.id + '</span>' +
             '<div class="card-status-bar">' +
-              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_visible\\')" title="Click to toggle visibility">' +
+              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_visible\')" title="Click to toggle visibility">' +
                 (isVis ? '✓ Visible' : 'Hidden') +
               '</span>' +
-              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'set_on_top\\')" title="Click to toggle pin">' +
+              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'set_on_top\')" title="Click to toggle pin">' +
                 (isTop ? '📌 Top' : 'Normal') +
               '</span>' +
-              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_latest\\')" title="Click to toggle latest">' +
+              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_latest\')" title="Click to toggle latest">' +
                 (isLat ? '⚡ Latest' : 'Standard') +
               '</span>' +
             '</div>' +
@@ -1804,7 +1961,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
           '<div class="card-slug-row">' +
             '<span class="card-slug-text">' + escapeHtml(exam.slug) + '</span>' +
-            '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\\'' + escapeHtml(exam.slug) + '\\')" title="Copy Slug">📋</button>' +
+            '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\'' + escapeHtml(exam.slug) + '\')" title="Copy Slug">📋</button>' +
           '</div>' +
 
           '<div class="card-details-grid">' +
@@ -1828,6 +1985,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
               '<span class="card-detail-value" style="font-family:monospace; color:#38bdf8;">' + escapeHtml(exam.external_exam_id || '—') + '</span>' +
             '</div>' +
           '</div>' +
+
+          (linksHtml ? '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:2px;">' + linksHtml + '</div>' : '') +
 
           '<div class="card-actions-bar">' +
             '<button type="button" class="btn btn-secondary" style="font-size:13px;" onclick="openEditModal(' + exam.id + ')">✏️ Edit Exam</button>' +
@@ -1859,9 +2018,17 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           }
         }
 
-        var isVis = exam.is_visible == 1;
-        var isTop = exam.set_on_top == 1;
-        var isLat = exam.is_latest == 1;
+        var isVis = isTruthy(exam.is_visible, true);
+        var isTop = isTruthy(exam.set_on_top, false);
+        var isLat = isTruthy(exam.is_latest, true);
+
+        var linksHtml = '';
+        if (exam.answerkey_login_link) {
+          linksHtml += '<a href="' + escapeHtml(exam.answerkey_login_link) + '" target="_blank" class="link-chip" title="Official Answer Key Login Link">🔗 Key Link</a> ';
+        }
+        if (exam.youtube_link) {
+          linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a>';
+        }
 
         return '<tr>' +
           '<td><span class="badge-id">#' + exam.id + '</span></td>' +
@@ -1869,7 +2036,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             '<div style="font-weight:700; color:#fff; font-size:14px;">' + escapeHtml(exam.title) + '</div>' +
             '<div style="display:flex; align-items:center; gap:6px;">' +
               '<span class="slug-badge">' + escapeHtml(exam.slug) + '</span>' +
-              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\\'' + escapeHtml(exam.slug) + '\\')" title="Copy Slug">📋</button>' +
+              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\'' + escapeHtml(exam.slug) + '\')" title="Copy Slug">📋</button>' +
             '</div>' +
             (exam.subtitle ? '<div style="font-size:12px; color:#94a3b8; margin-top:2px;">' + escapeHtml(exam.subtitle) + '</div>' : '') +
           '</td>' +
@@ -1887,16 +2054,17 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             (exam.external_exam_id 
               ? '<span style="font-family:monospace; color:#a5f3fc; background:#0f172a; padding:2px 6px; border-radius:4px; font-size:11px;">' + escapeHtml(exam.external_exam_id) + '</span>' 
               : '<span style="color:#64748b; font-size:12px;">—</span>') +
+            (linksHtml ? '<div style="display:flex; gap:4px; margin-top:5px; flex-wrap:wrap;">' + linksHtml + '</div>' : '') +
           '</td>' +
           '<td>' +
             '<div style="display:flex; gap:4px; flex-wrap:wrap;">' +
-              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_visible\\')" title="Click to toggle visibility">' +
+              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_visible\')" title="Click to toggle visibility">' +
                 (isVis ? '✓ Visible' : 'Hidden') +
               '</span>' +
-              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'set_on_top\\')" title="Click to toggle pin">' +
+              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'set_on_top\')" title="Click to toggle pin">' +
                 (isTop ? '📌 Top' : 'Normal') +
               '</span>' +
-              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_latest\\')" title="Click to toggle latest">' +
+              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \'is_latest\')" title="Click to toggle latest">' +
                 (isLat ? '⚡ Latest' : 'Standard') +
               '</span>' +
             '</div>' +
@@ -1911,22 +2079,73 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       }).join('');
     }
 
+    // Safe Truthy check for SQLite boolean/integer/string values
+    function isTruthy(val, defaultVal) {
+      if (val === undefined || val === null) return !!defaultVal;
+      if (typeof val === 'boolean') return val;
+      if (typeof val === 'number') return val === 1;
+      if (typeof val === 'string') {
+        var s = val.trim().toLowerCase();
+        return s === '1' || s === 'true';
+      }
+      return Boolean(val);
+    }
+
+    // Format location array/string cleanly for text input
+    function formatLocationInput(loc) {
+      if (!loc) return 'All India';
+      if (Array.isArray(loc)) return loc.join(', ');
+      if (typeof loc === 'string') {
+        var trimmed = loc.trim();
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          try {
+            var parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) return parsed.join(', ');
+          } catch (e) {}
+        }
+        return trimmed;
+      }
+      return String(loc);
+    }
+
     function openModal(id) {
       var m = document.getElementById(id);
-      if (m) m.style.display = 'flex';
+      if (m) {
+        m.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
     }
 
     function closeModal(id) {
       var m = document.getElementById(id);
-      if (m) m.style.display = 'none';
+      if (m) {
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+      }
     }
+
+    // Close modals on clicking overlay backdrop
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('modal-overlay')) {
+        closeModal('examModal');
+        closeModal('deleteModal');
+      }
+    });
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal('examModal');
+        closeModal('deleteModal');
+      }
+    });
 
     function openAddModal() {
       isSlugManual = false;
       document.getElementById('examForm').reset();
       document.getElementById('formExamId').value = '';
-      document.getElementById('modalTitle').innerText = 'Add New Exam';
-      document.getElementById('saveExamBtn').innerText = 'Create Exam';
+      document.getElementById('modalTitle').innerHTML = '➕ Add New Exam';
+      document.getElementById('saveExamBtn').innerHTML = '💾 Create Exam';
       document.getElementById('formMarksRight').value = '1.0';
       document.getElementById('formMarksWrong').value = '0.25';
       document.getElementById('formIsVisible').checked = true;
@@ -1934,6 +2153,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('formSetOnTop').checked = false;
       document.getElementById('formLocationTypeId').value = 'States/UT';
       document.getElementById('formLocationId').value = 'All India';
+      updateLinkTester('formAnswerLink', 'testAnswerLinkBtn');
+      updateLinkTester('formYoutubeLink', 'testYoutubeLinkBtn');
       openModal('examModal');
     }
 
@@ -1943,33 +2164,30 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       for (var i = 0; i < allExams.length; i++) {
         if (allExams[i].id == id) { exam = allExams[i]; break; }
       }
-      if (!exam) return alert('Exam not found');
+      if (!exam) return alert('Exam not found with ID: #' + id);
 
       document.getElementById('formExamId').value = exam.id;
-      document.getElementById('modalTitle').innerText = 'Edit Exam #' + exam.id;
-      document.getElementById('saveExamBtn').innerText = 'Update Exam';
+      document.getElementById('modalTitle').innerHTML = '✏️ Edit Exam <span style="color:#38bdf8; font-weight:800; font-size:15px; margin-left:4px;">#' + exam.id + '</span>';
+      document.getElementById('saveExamBtn').innerHTML = '💾 Update Exam';
 
       document.getElementById('formTitle').value = exam.title || '';
       document.getElementById('formSlug').value = exam.slug || '';
       document.getElementById('formSubtitle').value = exam.subtitle || '';
-      document.getElementById('formMarksRight').value = (exam.marks_right !== undefined ? exam.marks_right : 1.0);
-      document.getElementById('formMarksWrong').value = (exam.marks_wrong !== undefined ? exam.marks_wrong : 0.25);
+      document.getElementById('formMarksRight').value = (exam.marks_right !== undefined && exam.marks_right !== null) ? exam.marks_right : 1.0;
+      document.getElementById('formMarksWrong').value = (exam.marks_wrong !== undefined && exam.marks_wrong !== null) ? exam.marks_wrong : 0.25;
       document.getElementById('formLocationTypeId').value = exam.location_type_id || 'States/UT';
-
-      var locStr = 'All India';
-      if (exam.location_id) {
-        locStr = Array.isArray(exam.location_id) ? exam.location_id.join(', ') : String(exam.location_id);
-      }
-      document.getElementById('formLocationId').value = locStr;
-
+      document.getElementById('formLocationId').value = formatLocationInput(exam.location_id);
       document.getElementById('formExternalExamId').value = exam.external_exam_id || '';
       document.getElementById('formAnswerLink').value = exam.answerkey_login_link || '';
       document.getElementById('formYoutubeLink').value = exam.youtube_link || '';
       document.getElementById('formDescription').value = exam.description || '';
 
-      document.getElementById('formIsVisible').checked = exam.is_visible == 1;
-      document.getElementById('formSetOnTop').checked = exam.set_on_top == 1;
-      document.getElementById('formIsLatest').checked = exam.is_latest == 1;
+      document.getElementById('formIsVisible').checked = isTruthy(exam.is_visible, true);
+      document.getElementById('formSetOnTop').checked = isTruthy(exam.set_on_top, false);
+      document.getElementById('formIsLatest').checked = isTruthy(exam.is_latest, true);
+
+      updateLinkTester('formAnswerLink', 'testAnswerLinkBtn');
+      updateLinkTester('formYoutubeLink', 'testYoutubeLinkBtn');
 
       openModal('examModal');
     }
@@ -1991,9 +2209,9 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\\s+/g, '-')
-        .replace(/[^a-z0-9\\-]+/g, '')
-        .replace(/\\-\\-+/g, '-')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-]+/g, '')
+        .replace(/\-\-+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
     }
@@ -2007,23 +2225,64 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       var locInput = document.getElementById('formLocationId');
       if (typeVal === 'All India') {
         locInput.value = 'All India';
-      } else if (typeVal === 'RRB Zones' && locInput.value === 'All India') {
+      } else if (typeVal === 'RRB Zones' && (locInput.value === 'All India' || !locInput.value)) {
         locInput.value = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+      }
+    }
+
+    function setLocationPreset(preset) {
+      var locInput = document.getElementById('formLocationId');
+      if (preset === 'All India') {
+        locInput.value = 'All India';
+        document.getElementById('formLocationTypeId').value = 'All India';
+      } else if (preset === 'RRB') {
+        locInput.value = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+        document.getElementById('formLocationTypeId').value = 'RRB Zones';
+      } else {
+        locInput.value = '';
+      }
+    }
+
+    function updateLinkTester(inputId, btnId) {
+      var el = document.getElementById(inputId);
+      var btn = document.getElementById(btnId);
+      if (el && btn) {
+        btn.style.display = el.value.trim() ? 'inline' : 'none';
+      }
+    }
+
+    function testLink(inputId) {
+      var el = document.getElementById(inputId);
+      if (el && el.value.trim()) {
+        window.open(el.value.trim(), '_blank');
       }
     }
 
     async function handleFormSubmit(e) {
       e.preventDefault();
       var saveBtn = document.getElementById('saveExamBtn');
-      saveBtn.disabled = true;
-      saveBtn.innerText = 'Saving...';
-
       var examId = document.getElementById('formExamId').value;
       var isEdit = !!examId;
 
+      var title = document.getElementById('formTitle').value.trim();
+      var slug = document.getElementById('formSlug').value.trim();
+
+      if (!title) {
+        alert('Please enter the Exam Title.');
+        document.getElementById('formTitle').focus();
+        return;
+      }
+      if (!slug) {
+        slug = slugify(title);
+        document.getElementById('formSlug').value = slug;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.innerText = '⏳ Saving...';
+
       var payload = {
-        title: document.getElementById('formTitle').value.trim(),
-        slug: document.getElementById('formSlug').value.trim(),
+        title: title,
+        slug: slug,
         subtitle: document.getElementById('formSubtitle').value.trim(),
         marks_right: parseFloat(document.getElementById('formMarksRight').value) || 1.0,
         marks_wrong: parseFloat(document.getElementById('formMarksWrong').value) || 0.25,
@@ -2057,7 +2316,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
         var data = await res.json();
         saveBtn.disabled = false;
-        saveBtn.innerText = isEdit ? 'Update Exam' : 'Create Exam';
+        saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
 
         if (!data.success) {
           alert('Error: ' + (data.error || 'Failed to save exam'));
@@ -2069,7 +2328,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         await refreshData();
       } catch (err) {
         saveBtn.disabled = false;
-        saveBtn.innerText = isEdit ? 'Update Exam' : 'Create Exam';
+        saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
         alert('Network Error: ' + err.message);
       }
     }
