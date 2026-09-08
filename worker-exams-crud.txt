@@ -1,19 +1,25 @@
 /**
  * ============================================================================
  * Cloudflare Worker: CBT RANK - Exams Table Management Portal & CRUD API
+ * 100% All-Device Responsive Edition (Mobile, Tablet, Desktop)
  * ============================================================================
  * 
  * Target Table: exams (in Cloudflare D1 Database)
  * 
  * Features:
- *   1. All Exam List: Real-time searchable, filterable data table with stats
- *   2. Add Exam: Intuitive modal form, auto-slug generator, preset marks
- *   3. Update Exam: Full modal editing + 1-click status toggles (Visible/Top/Latest)
- *   4. Delete Exam: Safe deletion with confirmation modal
- *   5. Schema-Adaptive: Automatically adapts to existing table columns via PRAGMA
- *   6. Auto-Migration: 1-click table creator if 'exams' table doesn't exist yet
- *   7. REST API: /api/exams, /api/exams/:id, /api/exams/toggle, /exams
- *   8. Modern Dark UI: Fully responsive, zero external CDN dependencies
+ *   1. 100% All-Device Responsive Design (Mobile 320px+, Tablet, Laptop, 4K)
+ *   2. Dual View Modes:
+ *        - Mobile Cards View: Native app card layout optimized for touch
+ *        - Desktop Table View: Full interactive data table with horizontal scroll
+ *        - 1-Click View Switcher: [📱 Cards | 📋 Table] with auto-detection
+ *   3. All Exam List: Real-time search, filter tabs, live stats counters
+ *   4. Add Exam: Mobile-friendly modal, auto-slug generator, preset marks
+ *   5. Update Exam: Full modal editing + 1-tap status toggles (Visible/Top/Latest)
+ *   6. Delete Exam: Safe deletion with confirmation modal
+ *   7. Schema-Adaptive: Automatically adapts to existing table columns via PRAGMA
+ *   8. Auto-Migration: 1-click table creator if 'exams' table doesn't exist yet
+ *   9. REST API: /api/exams, /api/exams/:id, /api/exams/toggle, /exams
+ *  10. Zero External Dependencies: Fast, secure, self-contained HTML/CSS/JS
  * 
  * Cloudflare D1 Binding Requirement:
  *   - Variable Name: DB (Settings -> Bindings -> D1 Database Bindings -> Variable: DB)
@@ -545,6 +551,7 @@ export default {
 
 // =============================================================================
 // HTML RENDERER: Professional Dark-Mode Exams Management Portal
+// (100% All-Device Responsive: Mobile Phones, Foldables, Tablets, Desktops)
 // =============================================================================
 function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbError) {
   const initialJson = JSON.stringify(preloadedExams || []);
@@ -563,7 +570,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>CBT Rank - Exams D1 Manager Portal</title>
   <style>
     :root {
@@ -571,6 +578,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       --card-bg: #111827;
       --card-inner: #0b0f19;
       --card-border: #1e293b;
+      --card-border-hover: #334155;
       --primary: #38bdf8;
       --primary-hover: #0284c7;
       --accent-blue: #2563eb;
@@ -589,24 +597,33 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* Top Navigation */
+    /* Top Navigation Header */
     .navbar {
       background: #0f172a;
       border-bottom: 1px solid var(--card-border);
-      padding: 14px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 12px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .navbar-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
       color: #fff;
     }
@@ -614,42 +631,52 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       background: linear-gradient(135deg, #0284c7, #2563eb);
       color: #fff;
       font-weight: 900;
-      font-size: 17px;
-      width: 36px;
-      height: 36px;
+      font-size: 16px;
+      width: 34px;
+      height: 34px;
       border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+      flex-shrink: 0;
     }
-    .brand-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+    .brand-title { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; white-space: nowrap; }
     .brand-title span { color: var(--primary); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
     /* D1 Badges */
     .badge-status-ok {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 12px;
+      padding: 5px 10px;
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.35);
       color: #34d399;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
+      white-space: nowrap;
     }
     .badge-status-err {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 12px;
+      padding: 5px 10px;
       background: rgba(239, 68, 68, 0.12);
       border: 1px solid rgba(239, 68, 68, 0.35);
       color: #f87171;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
+      white-space: nowrap;
     }
     .pulse-dot {
       width: 7px;
@@ -659,11 +686,39 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       box-shadow: 0 0 8px #10b981;
     }
 
+    /* View Switcher: Cards vs Table */
+    .view-switch {
+      display: inline-flex;
+      background: #0b0f19;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .view-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .view-btn.active {
+      background: #1e293b;
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
     /* Main Container */
     .main-wrapper {
       max-width: 1320px;
       margin: 0 auto;
-      padding: 28px 20px;
+      padding: 20px 16px;
       width: 100%;
       flex: 1;
     }
@@ -673,64 +728,66 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       background: rgba(245, 158, 11, 0.1);
       border: 1px solid rgba(245, 158, 11, 0.3);
       color: #fbbf24;
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-radius: 12px;
-      margin-bottom: 24px;
-      font-size: 14px;
+      margin-bottom: 20px;
+      font-size: 13px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
-    /* KPI Row */
+    /* KPI Grid - Responsive for all screens */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
     }
     .kpi-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 18px 20px;
+      border-radius: 12px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     }
-    .kpi-info h4 { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .kpi-info .val { font-size: 28px; font-weight: 800; color: var(--primary); margin-top: 4px; line-height: 1.1; }
+    .kpi-info h4 { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-info .val { font-size: 24px; font-weight: 800; color: var(--primary); margin-top: 2px; line-height: 1.1; }
     .kpi-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       background: rgba(56, 189, 248, 0.1);
       border: 1px solid rgba(56, 189, 248, 0.2);
       color: var(--primary);
+      flex-shrink: 0;
     }
 
-    /* Toolbar & Search */
+    /* Action Bar / Search & Tools */
     .action-bar {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 16px 20px;
-      margin-bottom: 24px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
       justify-content: space-between;
     }
     .search-box-wrap {
       flex: 1;
-      min-width: 260px;
+      min-width: 220px;
       position: relative;
     }
     .search-input {
@@ -739,8 +796,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       border: 1px solid var(--card-border);
       color: #fff;
       font-size: 14px;
-      padding: 11px 16px 11px 38px;
-      border-radius: 10px;
+      padding: 10px 14px 10px 36px;
+      border-radius: 9px;
       outline: none;
       transition: all 0.2s;
     }
@@ -750,7 +807,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
     .search-icon {
       position: absolute;
-      left: 14px;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-muted);
@@ -759,22 +816,25 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
     .btn-group {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
       flex-wrap: wrap;
     }
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 15px;
+      border-radius: 9px;
+      font-size: 13px;
       font-weight: 700;
       border: none;
       cursor: pointer;
       transition: all 0.2s ease;
       text-decoration: none;
+      white-space: nowrap;
+      min-height: 38px;
     }
     .btn-primary {
       background: linear-gradient(135deg, #0284c7, #2563eb);
@@ -801,23 +861,38 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       color: #fff;
     }
 
-    /* Filter Tabs */
+    /* Filter Tabs (Horizontal scrolling on mobile) */
+    .filter-tabs-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
     .filter-tabs {
       display: flex;
       gap: 8px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+      flex: 1;
     }
+    .filter-tabs::-webkit-scrollbar { display: none; }
     .filter-tab {
-      padding: 7px 14px;
+      padding: 7px 13px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.15s;
+      flex-shrink: 0;
+      user-select: none;
     }
     .filter-tab:hover { background: #1e293b; color: #fff; }
     .filter-tab.active {
@@ -827,7 +902,110 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       font-weight: 700;
     }
 
-    /* Data Table */
+    /* 📱 CARDS VIEW (Optimized for Mobile Phones & Small Tablets) */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 14px;
+    }
+    .exam-mobile-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    }
+    .exam-mobile-card:hover {
+      border-color: var(--card-border-hover);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+    .card-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: -4px;
+      line-height: 1.3;
+    }
+    .card-slug-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #1e293b;
+    }
+    .card-slug-text {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .card-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--card-inner);
+      padding: 10px;
+      border-radius: 9px;
+      border: 1px solid #1e293b;
+    }
+    .card-detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .card-detail-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card-detail-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #e2e8f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-status-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .card-actions-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      border-top: 1px solid #1a2333;
+      padding-top: 10px;
+    }
+    .card-actions-bar .btn {
+      flex: 1;
+    }
+
+    /* 📋 TABLE VIEW (Optimized for Desktops & Tablets) */
     .table-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -838,17 +1016,28 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     .table-container {
       width: 100%;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .scroll-hint {
+      display: none;
+      font-size: 11px;
+      color: var(--primary);
+      background: rgba(56, 189, 248, 0.08);
+      padding: 6px 14px;
+      border-bottom: 1px solid var(--card-border);
+      text-align: right;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       text-align: left;
       font-size: 13px;
+      min-width: 720px;
     }
     thead th {
       background: #0f172a;
       color: var(--text-muted);
-      padding: 14px 16px;
+      padding: 12px 14px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -857,7 +1046,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       white-space: nowrap;
     }
     tbody td {
-      padding: 14px 16px;
+      padding: 12px 14px;
       border-bottom: 1px solid #1a2333;
       vertical-align: middle;
     }
@@ -874,6 +1063,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       padding: 3px 8px;
       border-radius: 6px;
       font-size: 12px;
+      display: inline-block;
+      white-space: nowrap;
     }
     .slug-badge {
       display: inline-block;
@@ -884,7 +1075,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       border-radius: 5px;
       font-size: 11px;
       margin-top: 4px;
-      max-width: 240px;
+      max-width: 220px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -900,6 +1091,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       cursor: pointer;
       user-select: none;
       transition: all 0.15s;
+      white-space: nowrap;
     }
     .badge-tag:hover { transform: scale(1.05); }
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
@@ -936,6 +1128,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       align-items: center;
       gap: 4px;
       transition: all 0.15s;
+      min-height: 32px;
     }
     .btn-icon:hover { background: #334155; color: #fff; }
     .btn-icon-del {
@@ -947,12 +1140,12 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       color: #fff;
     }
 
-    /* Modal Styles */
+    /* Modal Styles - Responsive for Mobile & Desktop */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -968,73 +1161,82 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       max-height: 90vh;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
       animation: modalFadeIn 0.2s ease-out;
+      overflow: hidden;
     }
     @keyframes modalFadeIn {
       from { opacity: 0; transform: translateY(12px) scale(0.98); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .modal-header {
-      padding: 18px 24px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--card-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: #0f172a;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
-    .modal-title { font-size: 18px; font-weight: 800; color: #fff; }
+    .modal-title { font-size: 17px; font-weight: 800; color: #fff; }
     .modal-close {
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 22px;
+      font-size: 24px;
       cursor: pointer;
       line-height: 1;
+      padding: 4px;
     }
     .modal-close:hover { color: #fff; }
     .modal-body {
-      padding: 24px;
+      padding: 20px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       flex: 1;
     }
     .modal-footer {
-      padding: 16px 24px;
+      padding: 14px 20px;
       border-top: 1px solid var(--card-border);
       display: flex;
       justify-content: flex-end;
-      gap: 12px;
+      gap: 10px;
       background: #0b0f19;
-      border-radius: 0 0 16px 16px;
+      position: sticky;
+      bottom: 0;
+      z-index: 10;
     }
 
     /* Form Fields */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
     .form-group-full { grid-column: span 2; }
     .form-group {
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .form-label {
       display: block;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     .form-label .req { color: #f87171; }
     .form-input, .form-select, .form-textarea {
       width: 100%;
-      padding: 10px 14px;
+      padding: 10px 12px;
       background: var(--card-inner);
       border: 1px solid var(--card-border);
       border-radius: 9px;
       color: #fff;
-      font-size: 14px;
+      font-size: 15px;
       outline: none;
       transition: border 0.2s;
     }
@@ -1057,16 +1259,17 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       border: 1px solid #334155;
       color: #38bdf8;
       font-size: 11px;
-      padding: 3px 8px;
+      padding: 4px 8px;
       border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
+      user-select: none;
     }
     .preset-chip:hover { background: #334155; color: #fff; }
 
     .checkbox-group {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       margin-top: 8px;
       flex-wrap: wrap;
     }
@@ -1080,8 +1283,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       color: #cbd5e1;
     }
     .custom-check input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       accent-color: var(--primary);
       cursor: pointer;
     }
@@ -1096,17 +1299,18 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       flex-direction: column;
       gap: 10px;
       pointer-events: none;
+      max-width: 400px;
     }
     .toast {
       pointer-events: auto;
       background: #1e293b;
       border: 1px solid #334155;
       color: #fff;
-      padding: 12px 18px;
+      padding: 12px 16px;
       border-radius: 10px;
       font-size: 13px;
       font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -1123,32 +1327,103 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     footer {
       background: #0f172a;
       border-top: 1px solid var(--card-border);
-      padding: 20px;
+      padding: 18px 16px;
       text-align: center;
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 12px;
       margin-top: auto;
     }
 
+    /* =========================================================================
+       RESPONSIVE MEDIA QUERIES (Breakpoints: 1024px, 768px, 640px, 480px)
+       ========================================================================= */
+
+    /* Tablets (<= 1024px) */
+    @media (max-width: 1024px) {
+      .main-wrapper { padding: 18px 14px; }
+      .scroll-hint { display: block; }
+    }
+
+    /* Mobile Tablets & Large Phones (<= 768px) */
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-group-full { grid-column: span 1; }
-      .navbar { padding: 12px 16px; }
-      .main-wrapper { padding: 16px 12px; }
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .search-box-wrap { width: 100%; min-width: 0; }
+      .btn-group { width: 100%; justify-content: space-between; }
+      .btn-group .btn { flex: 1; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    }
+
+    /* Smartphones (<= 640px) */
+    @media (max-width: 640px) {
+      .navbar { padding: 10px 14px; }
+      .navbar-container { flex-direction: column; align-items: stretch; gap: 8px; }
+      .nav-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+      .nav-bottom-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 8px; }
+      
+      .brand-title { font-size: 16px; }
+      .brand-logo { width: 30px; height: 30px; font-size: 14px; }
+
+      .main-wrapper { padding: 14px 10px; }
+      
+      .kpi-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .kpi-card { padding: 12px; }
+      .kpi-info h4 { font-size: 10px; }
+      .kpi-info .val { font-size: 20px; }
+      .kpi-icon { width: 34px; height: 34px; font-size: 16px; }
+
+      .btn-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+      .btn-group .btn { padding: 8px 4px; font-size: 11px; }
+
+      /* Fullscreen Modal on Mobile to prevent keyboard overlapping */
+      .modal-overlay { padding: 0; }
+      .modal-box {
+        max-width: 100%;
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+      }
+      .modal-body { padding: 16px 14px; }
+      .modal-footer { padding: 12px 14px; }
+      .modal-footer .btn { flex: 1; min-height: 44px; font-size: 14px; }
+      .form-input, .form-select, .form-textarea { font-size: 16px; padding: 11px; } /* Prevents iOS auto-zoom */
+
+      .toast-container { left: 12px; right: 12px; bottom: 16px; max-width: 100%; }
+      .toast { width: 100%; justify-content: center; }
+    }
+
+    /* Ultra-small phones (<= 380px) */
+    @media (max-width: 380px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+      .card-details-grid { grid-template-columns: 1fr; }
+      .btn-group { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
+  <!-- Top Navigation Header (Fully Responsive) -->
   <header class="navbar">
-    <a href="/" class="brand">
-      <div class="brand-logo">C</div>
-      <div class="brand-title">CBT<span>RANK</span> Exams Manager</div>
-    </a>
-    <div style="display:flex; align-items:center; gap:12px;">
-      ${d1StatusBadge}
-      <button class="btn btn-primary" onclick="openAddModal()">+ Add New Exam</button>
+    <div class="navbar-container">
+      <div class="nav-top-row">
+        <a href="/" class="brand">
+          <div class="brand-logo">C</div>
+          <div class="brand-title">CBT<span>RANK</span> Exams</div>
+        </a>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Add New Exam</button>
+      </div>
+
+      <div class="nav-bottom-row">
+        ${d1StatusBadge}
+        <!-- Dual View Switcher -->
+        <div class="view-switch">
+          <button type="button" class="view-btn active" id="btnViewCards" onclick="setViewMode('cards')">📱 Cards</button>
+          <button type="button" class="view-btn" id="btnViewTable" onclick="setViewMode('table')">📋 Table</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -1157,7 +1432,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
     ${alertBox}
 
-    <!-- KPI Stats Cards -->
+    <!-- KPI Stats Cards (2x2 on mobile, 4-col on desktop) -->
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-info">
@@ -1189,7 +1464,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       </div>
     </div>
 
-    <!-- Action Bar / Search & Tools -->
+    <!-- Action Bar / Search & Quick Tools -->
     <div class="action-bar">
       <div class="search-box-wrap">
         <span class="search-icon">🔍</span>
@@ -1198,45 +1473,57 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
-        <button class="btn btn-secondary" onclick="exportJson()">📥 Export JSON</button>
+        <button class="btn btn-secondary" onclick="exportJson()">📥 Export</button>
         <button class="btn btn-secondary" onclick="setupTable()">⚙️ DB Setup</button>
       </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="filter-tabs">
-      <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">All Exams (<span id="cntAll">0</span>)</div>
-      <div class="filter-tab" data-filter="visible" onclick="setFilter('visible')">Active / Visible (<span id="cntVisible">0</span>)</div>
-      <div class="filter-tab" data-filter="hidden" onclick="setFilter('hidden')">Hidden (<span id="cntHidden">0</span>)</div>
-      <div class="filter-tab" data-filter="top" onclick="setFilter('top')">Pinned On Top (<span id="cntTop">0</span>)</div>
-      <div class="filter-tab" data-filter="latest" onclick="setFilter('latest')">Latest (<span id="cntLatest">0</span>)</div>
+    <!-- Filter Tabs (Horizontal touch-swipe on mobile) -->
+    <div class="filter-tabs-wrapper">
+      <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">All (<span id="cntAll">0</span>)</div>
+        <div class="filter-tab" data-filter="visible" onclick="setFilter('visible')">Active (<span id="cntVisible">0</span>)</div>
+        <div class="filter-tab" data-filter="hidden" onclick="setFilter('hidden')">Hidden (<span id="cntHidden">0</span>)</div>
+        <div class="filter-tab" data-filter="top" onclick="setFilter('top')">Top (<span id="cntTop">0</span>)</div>
+        <div class="filter-tab" data-filter="latest" onclick="setFilter('latest')">Latest (<span id="cntLatest">0</span>)</div>
+      </div>
     </div>
 
-    <!-- Exams Data Table -->
-    <div class="table-card">
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:65px;">ID</th>
-              <th>Exam Title &amp; Slug</th>
-              <th style="width:110px;">Marking</th>
-              <th style="width:160px;">Locations</th>
-              <th style="width:110px;">Ext. ID</th>
-              <th style="width:160px;">Status Flags</th>
-              <th style="width:130px; text-align:right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="examsTableBody">
-            <tr><td colspan="7" style="text-align:center; padding:30px; color:#94a3b8;">Loading exams...</td></tr>
-          </tbody>
-        </table>
+    <!-- VIEW CONTAINER 1: Mobile Cards Grid -->
+    <div id="cardsViewContainer">
+      <div class="cards-grid" id="examsCardsGrid">
+        <div style="text-align:center; padding:30px; color:#94a3b8; grid-column: 1 / -1;">Loading exams...</div>
+      </div>
+    </div>
+
+    <!-- VIEW CONTAINER 2: Desktop Table View -->
+    <div id="tableViewContainer" style="display: none;">
+      <div class="table-card">
+        <div class="scroll-hint">💡 Tip: Swipe horizontally to view all columns 👉</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:65px;">ID</th>
+                <th>Exam Title &amp; Slug</th>
+                <th style="width:110px;">Marking</th>
+                <th style="width:160px;">Locations</th>
+                <th style="width:110px;">Ext. ID</th>
+                <th style="width:160px;">Status Flags</th>
+                <th style="width:130px; text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="examsTableBody">
+              <tr><td colspan="7" style="text-align:center; padding:30px; color:#94a3b8;">Loading exams...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
   </main>
 
-  <!-- Add / Edit Exam Modal -->
+  <!-- Add / Edit Exam Modal (Responsive Fullscreen on Mobile) -->
   <div class="modal-overlay" id="examModal">
     <div class="modal-box">
       <div class="modal-header">
@@ -1356,16 +1643,16 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
+  <!-- Delete Confirmation Modal (Responsive) -->
   <div class="modal-overlay" id="deleteModal">
-    <div class="modal-box" style="max-width: 460px;">
+    <div class="modal-box" style="max-width: 440px;">
       <div class="modal-header">
         <h3 class="modal-title" style="color:#ef4444;">⚠️ Delete Exam</h3>
         <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size:15px; color:#e2e8f0;">Are you sure you want to delete this exam permanently?</p>
-        <div id="deleteExamDetails" style="margin-top:12px; padding:12px; background:#0b0f19; border-radius:8px; border:1px solid #1e293b; font-size:13px; color:#94a3b8;"></div>
+        <p style="font-size:14px; color:#e2e8f0;">Are you sure you want to delete this exam permanently?</p>
+        <div id="deleteExamDetails" style="margin-top:12px; padding:12px; background:#0b0f19; border-radius:8px; border:1px solid #1e293b; font-size:13px; color:#94a3b8; line-height:1.5;"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
@@ -1387,12 +1674,51 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     let currentFilter = 'all';
     let searchQuery = '';
     let isSlugManual = false;
+    // Auto-detect optimal view: mobile screens (<= 768px) default to Cards, desktop defaults to Table
+    let currentViewMode = (window.innerWidth <= 768) ? 'cards' : 'table';
 
     // Initialize UI on load
     document.addEventListener('DOMContentLoaded', function() {
-      renderTable();
+      applyViewMode(currentViewMode);
+      renderAllViews();
       updateStats();
+
+      // Listen for window resize to adjust responsive layout dynamically
+      window.addEventListener('resize', function() {
+        if (!window.userChangedView) {
+          var autoMode = (window.innerWidth <= 768) ? 'cards' : 'table';
+          if (autoMode !== currentViewMode) {
+            currentViewMode = autoMode;
+            applyViewMode(autoMode);
+          }
+        }
+      });
     });
+
+    function setViewMode(mode) {
+      window.userChangedView = true;
+      currentViewMode = mode;
+      applyViewMode(mode);
+    }
+
+    function applyViewMode(mode) {
+      var cardsContainer = document.getElementById('cardsViewContainer');
+      var tableContainer = document.getElementById('tableViewContainer');
+      var btnCards = document.getElementById('btnViewCards');
+      var btnTable = document.getElementById('btnViewTable');
+
+      if (mode === 'cards') {
+        if (cardsContainer) cardsContainer.style.display = 'block';
+        if (tableContainer) tableContainer.style.display = 'none';
+        if (btnCards) btnCards.classList.add('active');
+        if (btnTable) btnTable.classList.remove('active');
+      } else {
+        if (cardsContainer) cardsContainer.style.display = 'none';
+        if (tableContainer) tableContainer.style.display = 'block';
+        if (btnCards) btnCards.classList.remove('active');
+        if (btnTable) btnTable.classList.add('active');
+      }
+    }
 
     function showToast(msg, type) {
       type = type || 'success';
@@ -1411,7 +1737,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
     function onSearchChange(val) {
       searchQuery = (val || '').trim().toLowerCase();
-      renderTable();
+      renderAllViews();
     }
 
     function setFilter(filterName) {
@@ -1424,7 +1750,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           tabs[i].classList.remove('active');
         }
       }
-      renderTable();
+      renderAllViews();
     }
 
     function updateStats() {
@@ -1451,11 +1777,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('cntLatest').innerText = latest;
     }
 
-    function renderTable() {
-      var tbody = document.getElementById('examsTableBody');
-      if (!tbody) return;
-
-      var filtered = allExams.filter(function(item) {
+    function getFilteredExams() {
+      return allExams.filter(function(item) {
         if (currentFilter === 'visible' && item.is_visible != 1) return false;
         if (currentFilter === 'hidden' && item.is_visible == 1) return false;
         if (currentFilter === 'top' && item.set_on_top != 1) return false;
@@ -1471,6 +1794,98 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
         return true;
       });
+    }
+
+    function renderAllViews() {
+      var filtered = getFilteredExams();
+      renderCards(filtered);
+      renderTable(filtered);
+    }
+
+    // Render Mobile Cards View
+    function renderCards(filtered) {
+      var grid = document.getElementById('examsCardsGrid');
+      if (!grid) return;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b; grid-column: 1 / -1;">No exams match your current filters.</div>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(function(exam) {
+        var locText = 'All India';
+        if (exam.location_id) {
+          if (Array.isArray(exam.location_id)) {
+            locText = exam.location_id.length > 2 
+              ? exam.location_id.slice(0, 2).join(', ') + ' +' + (exam.location_id.length - 2) + ' more'
+              : exam.location_id.join(', ');
+          } else {
+            locText = String(exam.location_id);
+          }
+        }
+
+        var isVis = exam.is_visible == 1;
+        var isTop = exam.set_on_top == 1;
+        var isLat = exam.is_latest == 1;
+
+        return '<div class="exam-mobile-card">' +
+          '<div class="card-top-row">' +
+            '<span class="badge-id">#' + exam.id + '</span>' +
+            '<div class="card-status-bar">' +
+              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_visible\\')" title="Click to toggle visibility">' +
+                (isVis ? '✓ Visible' : 'Hidden') +
+              '</span>' +
+              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'set_on_top\\')" title="Click to toggle pin">' +
+                (isTop ? '📌 Top' : 'Normal') +
+              '</span>' +
+              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_latest\\')" title="Click to toggle latest">' +
+                (isLat ? '⚡ Latest' : 'Standard') +
+              '</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="card-title">' + escapeHtml(exam.title) + '</div>' +
+          (exam.subtitle ? '<div class="card-subtitle">' + escapeHtml(exam.subtitle) + '</div>' : '') +
+
+          '<div class="card-slug-row">' +
+            '<span class="card-slug-text">' + escapeHtml(exam.slug) + '</span>' +
+            '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\\'' + escapeHtml(exam.slug) + '\\')" title="Copy Slug">📋</button>' +
+          '</div>' +
+
+          '<div class="card-details-grid">' +
+            '<div class="card-detail-item">' +
+              '<span class="card-detail-label">Marking</span>' +
+              '<span class="card-detail-value marks-chip">' +
+                '<span class="marks-plus">+' + (exam.marks_right !== undefined ? exam.marks_right : 1) + '</span> / ' +
+                '<span class="marks-minus">-' + (exam.marks_wrong !== undefined ? exam.marks_wrong : 0.25) + '</span>' +
+              '</span>' +
+            '</div>' +
+            '<div class="card-detail-item">' +
+              '<span class="card-detail-label">Location Type</span>' +
+              '<span class="card-detail-value">' + escapeHtml(exam.location_type_id || 'States/UT') + '</span>' +
+            '</div>' +
+            '<div class="card-detail-item">' +
+              '<span class="card-detail-label">Locations</span>' +
+              '<span class="card-detail-value" title="' + escapeHtml(locText) + '">' + escapeHtml(locText) + '</span>' +
+            '</div>' +
+            '<div class="card-detail-item">' +
+              '<span class="card-detail-label">Ext. ID</span>' +
+              '<span class="card-detail-value" style="font-family:monospace; color:#38bdf8;">' + escapeHtml(exam.external_exam_id || '—') + '</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="card-actions-bar">' +
+            '<button type="button" class="btn btn-secondary" style="font-size:13px;" onclick="openEditModal(' + exam.id + ')">✏️ Edit Exam</button>' +
+            '<button type="button" class="btn btn-danger" style="font-size:13px;" onclick="openDeleteModal(' + exam.id + ')">🗑️ Delete</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    // Render Desktop Table View
+    function renderTable(filtered) {
+      var tbody = document.getElementById('examsTableBody');
+      if (!tbody) return;
 
       if (filtered.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px 20px; color:#64748b;">No exams match your current filters.</td></tr>';
@@ -1499,7 +1914,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             '<div style="font-weight:700; color:#fff; font-size:14px;">' + escapeHtml(exam.title) + '</div>' +
             '<div style="display:flex; align-items:center; gap:6px;">' +
               '<span class="slug-badge">' + escapeHtml(exam.slug) + '</span>' +
-              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px;" onclick="copyText(\\'' + escapeHtml(exam.slug) + '\\')" title="Copy Slug">📋</button>' +
+              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyText(\\'' + escapeHtml(exam.slug) + '\\')" title="Copy Slug">📋</button>' +
             '</div>' +
             (exam.subtitle ? '<div style="font-size:12px; color:#94a3b8; margin-top:2px;">' + escapeHtml(exam.subtitle) + '</div>' : '') +
           '</td>' +
@@ -1757,7 +2172,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       var currentVal = exam[field] == 1 ? 1 : 0;
       var newVal = currentVal ? 0 : 1;
       exam[field] = newVal;
-      renderTable();
+      renderAllViews();
       updateStats();
 
       try {
@@ -1769,7 +2184,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         var data = await res.json();
         if (!data.success) {
           exam[field] = currentVal;
-          renderTable();
+          renderAllViews();
           updateStats();
           showToast('Toggle failed: ' + data.error, 'error');
         } else {
@@ -1777,7 +2192,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         }
       } catch (err) {
         exam[field] = currentVal;
-        renderTable();
+        renderAllViews();
         updateStats();
         showToast('Network error on toggle', 'error');
       }
@@ -1789,7 +2204,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         var json = await res.json();
         if (json.success && Array.isArray(json.data)) {
           allExams = json.data;
-          renderTable();
+          renderAllViews();
           updateStats();
         }
       } catch (e) {
