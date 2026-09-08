@@ -2412,27 +2412,35 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             <div class="form-section-title">🗺️ 3. Location &amp; Region Settings</div>
 
             <!-- Location Type -->
-            <div class="form-group">
+            <div class="form-group" id="locationTypeGroup">
               <label class="form-label">Location Type</label>
               <select id="formLocationTypeId" class="form-select" onchange="onLocationTypeChange(this.value)">
                 <option value="States/UT">States / UT</option>
                 <option value="RRB Zones">RRB Zones</option>
                 <option value="All India">All India</option>
-                <option value="General">General / Other</option>
+                <option value="General">General</option>
+                <option value="Other">Other (Custom Type)</option>
               </select>
+            </div>
+
+            <!-- Custom Location Type Name (Shown when 'Other' is chosen) -->
+            <div class="form-group" id="customLocationTypeGroup" style="display:none;">
+              <label class="form-label">Custom Location Type Name <span class="req">*</span></label>
+              <input type="text" id="formCustomLocationType" class="form-input" placeholder="e.g. Metro Rail, Banking Circle, Region">
             </div>
 
             <!-- Location Values -->
             <div class="form-group form-group-full">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; flex-wrap:wrap; gap:6px;">
                 <label class="form-label" style="margin-bottom:0;">Locations (Comma-separated)</label>
-                <div style="display:flex; gap:6px;">
-                  <button type="button" class="preset-chip" onclick="setLocationPreset('All India')">All India</button>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button type="button" class="preset-chip" onclick="setLocationPreset('States/UT')">All 36 States/UTs</button>
                   <button type="button" class="preset-chip" onclick="setLocationPreset('RRB')">21 RRB Zones</button>
+                  <button type="button" class="preset-chip" onclick="setLocationPreset('All India')">All India</button>
                   <button type="button" class="preset-chip" onclick="setLocationPreset('')">Clear</button>
                 </div>
               </div>
-              <input type="text" id="formLocationId" class="form-input" placeholder="e.g. All India  OR  Odisha, Bihar, Delhi">
+              <input type="text" id="formLocationId" class="form-input" placeholder="e.g. Andaman &amp; Nicobar, Andhra Pradesh, ... OR All India">
             </div>
 
             <!-- SECTION 4: OFFICIAL LINKS -->
@@ -2873,6 +2881,9 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       }
     });
 
+    var STATES_UT_LIST = 'Andaman & Nicobar, Andhra Pradesh, Arunachal Pradesh, Assam, Bihar, Chandigarh, Chhattisgarh, Dadra & Nagar Haveli and Daman & Diu, Delhi, Goa, Gujarat, Haryana, Himachal Pradesh, Jammu & Kashmir, Jharkhand, Karnataka, Kerala, Ladakh, Lakshadweep, Madhya Pradesh, Maharashtra, Manipur, Meghalaya, Mizoram, Nagaland, Odisha, Puducherry, Punjab, Rajasthan, Sikkim, Tamil Nadu, Telangana, Tripura, Uttar Pradesh, Uttarakhand, West Bengal';
+    var RRB_ZONES_LIST = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+
     function openAddModal() {
       isSlugManual = false;
       document.getElementById('examForm').reset();
@@ -2884,8 +2895,16 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('formIsVisible').checked = true;
       document.getElementById('formIsLatest').checked = true;
       document.getElementById('formSetOnTop').checked = false;
+
       document.getElementById('formLocationTypeId').value = 'States/UT';
-      document.getElementById('formLocationId').value = 'All India';
+      var customGroup = document.getElementById('customLocationTypeGroup');
+      if (customGroup) customGroup.style.display = 'none';
+      var customInput = document.getElementById('formCustomLocationType');
+      if (customInput) customInput.value = '';
+
+      // Auto-populate all 36 States/UTs when States/UT is selected
+      document.getElementById('formLocationId').value = STATES_UT_LIST;
+
       updateLinkTester('formAnswerLink', 'testAnswerLinkBtn');
       updateLinkTester('formYoutubeLink', 'testYoutubeLinkBtn');
       openModal('examModal');
@@ -2908,7 +2927,23 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('formSubtitle').value = exam.subtitle || '';
       document.getElementById('formMarksRight').value = (exam.marks_right !== undefined && exam.marks_right !== null) ? exam.marks_right : 1.0;
       document.getElementById('formMarksWrong').value = (exam.marks_wrong !== undefined && exam.marks_wrong !== null) ? exam.marks_wrong : 0.25;
-      document.getElementById('formLocationTypeId').value = exam.location_type_id || 'States/UT';
+
+      var standardTypes = ['States/UT', 'RRB Zones', 'All India', 'General'];
+      var locType = exam.location_type_id || 'States/UT';
+      var typeSelect = document.getElementById('formLocationTypeId');
+      var customGroup = document.getElementById('customLocationTypeGroup');
+      var customInput = document.getElementById('formCustomLocationType');
+
+      if (standardTypes.indexOf(locType) !== -1) {
+        typeSelect.value = locType;
+        if (customGroup) customGroup.style.display = 'none';
+        if (customInput) customInput.value = '';
+      } else {
+        typeSelect.value = 'Other';
+        if (customGroup) customGroup.style.display = 'block';
+        if (customInput) customInput.value = locType;
+      }
+
       document.getElementById('formLocationId').value = formatLocationInput(exam.location_id);
       document.getElementById('formExternalExamId').value = exam.external_exam_id || '';
       document.getElementById('formAnswerLink').value = exam.answerkey_login_link || '';
@@ -2956,21 +2991,43 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
     function onLocationTypeChange(typeVal) {
       var locInput = document.getElementById('formLocationId');
-      if (typeVal === 'All India') {
-        locInput.value = 'All India';
-      } else if (typeVal === 'RRB Zones' && (locInput.value === 'All India' || !locInput.value)) {
-        locInput.value = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+      var customGroup = document.getElementById('customLocationTypeGroup');
+      var customInput = document.getElementById('formCustomLocationType');
+
+      if (typeVal === 'Other') {
+        if (customGroup) customGroup.style.display = 'block';
+        if (customInput) customInput.focus();
+        if (locInput.value === STATES_UT_LIST || locInput.value === RRB_ZONES_LIST || locInput.value === 'All India') {
+          locInput.value = '';
+        }
+      } else {
+        if (customGroup) customGroup.style.display = 'none';
+        if (typeVal === 'States/UT') {
+          locInput.value = STATES_UT_LIST;
+        } else if (typeVal === 'RRB Zones') {
+          locInput.value = RRB_ZONES_LIST;
+        } else if (typeVal === 'All India') {
+          locInput.value = 'All India';
+        }
       }
     }
 
     function setLocationPreset(preset) {
       var locInput = document.getElementById('formLocationId');
-      if (preset === 'All India') {
-        locInput.value = 'All India';
-        document.getElementById('formLocationTypeId').value = 'All India';
+      var typeSelect = document.getElementById('formLocationTypeId');
+      var customGroup = document.getElementById('customLocationTypeGroup');
+      if (preset === 'States/UT') {
+        locInput.value = STATES_UT_LIST;
+        typeSelect.value = 'States/UT';
+        if (customGroup) customGroup.style.display = 'none';
       } else if (preset === 'RRB') {
-        locInput.value = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
-        document.getElementById('formLocationTypeId').value = 'RRB Zones';
+        locInput.value = RRB_ZONES_LIST;
+        typeSelect.value = 'RRB Zones';
+        if (customGroup) customGroup.style.display = 'none';
+      } else if (preset === 'All India') {
+        locInput.value = 'All India';
+        typeSelect.value = 'All India';
+        if (customGroup) customGroup.style.display = 'none';
       } else {
         locInput.value = '';
       }
@@ -3013,14 +3070,28 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       saveBtn.disabled = true;
       saveBtn.innerText = '⏳ Saving...';
 
+      var locTypeSelect = document.getElementById('formLocationTypeId').value;
+      var finalLocationType = locTypeSelect;
+      if (locTypeSelect === 'Other') {
+        var customVal = document.getElementById('formCustomLocationType').value.trim();
+        if (!customVal) {
+          alert('Please enter a Custom Location Type Name.');
+          document.getElementById('formCustomLocationType').focus();
+          saveBtn.disabled = false;
+          saveBtn.innerText = isEdit ? '💾 Update Exam' : '💾 Create Exam';
+          return;
+        }
+        finalLocationType = customVal;
+      }
+
       var payload = {
         title: title,
         slug: slug,
         subtitle: document.getElementById('formSubtitle').value.trim(),
         marks_right: parseFloat(document.getElementById('formMarksRight').value) || 1.0,
         marks_wrong: parseFloat(document.getElementById('formMarksWrong').value) || 0.25,
-        location_type_id: document.getElementById('formLocationTypeId').value,
-        location_id: document.getElementById('formLocationId').value.trim(),
+        location_type_id: finalLocationType,
+        location_id: document.getElementById('formLocationId').value.trim() || 'All India',
         external_exam_id: document.getElementById('formExternalExamId').value.trim(),
         answerkey_login_link: document.getElementById('formAnswerLink').value.trim(),
         youtube_link: document.getElementById('formYoutubeLink').value.trim(),
