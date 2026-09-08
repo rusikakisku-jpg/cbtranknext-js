@@ -1,0 +1,1861 @@
+/**
+ * ============================================================================
+ * Cloudflare Worker: CBT RANK - Exams Table Management Portal & CRUD API
+ * ============================================================================
+ * 
+ * Target Table: exams (in Cloudflare D1 Database)
+ * 
+ * Features:
+ *   1. All Exam List: Real-time searchable, filterable data table with stats
+ *   2. Add Exam: Intuitive modal form, auto-slug generator, preset marks
+ *   3. Update Exam: Full modal editing + 1-click status toggles (Visible/Top/Latest)
+ *   4. Delete Exam: Safe deletion with confirmation modal
+ *   5. Schema-Adaptive: Automatically adapts to existing table columns via PRAGMA
+ *   6. Auto-Migration: 1-click table creator if 'exams' table doesn't exist yet
+ *   7. REST API: /api/exams, /api/exams/:id, /api/exams/toggle, /exams
+ *   8. Modern Dark UI: Fully responsive, zero external CDN dependencies
+ * 
+ * Cloudflare D1 Binding Requirement:
+ *   - Variable Name: DB (Settings -> Bindings -> D1 Database Bindings -> Variable: DB)
+ */
+
+// =============================================================================
+// Helper: D1 Query Executor (Handles Parameterized Bindings & Mutations)
+// =============================================================================
+async function executeD1(env, sql, params = []) {
+  const db = env.DB || env.DATABASE || env.d1;
+  if (!db) {
+    throw new Error("Cloudflare D1 database binding 'DB' is missing. Please bind your D1 database under Worker Settings -> Bindings -> D1 Database Bindings with variable name DB.");
+  }
+
+  const cleanParams = params.map(p => {
+    if (p === undefined || p === null) return null;
+    if (typeof p === 'boolean') return p ? 1 : 0;
+    return p;
+  });
+
+  try {
+    const stmt = db.prepare(sql);
+    const bound = cleanParams.length > 0 ? stmt.bind(...cleanParams) : stmt;
+    const isSelectOrPragma = /^\s*(SELECT|PRAGMA)/i.test(sql);
+
+    if (isSelectOrPragma) {
+      const res = await bound.all();
+      return (res && res.results) ? res.results : (res || []);
+    } else {
+      const res = await bound.run();
+      return res;
+    }
+  } catch (err) {
+    console.error("D1 Execution Error:", err.message, "\nSQL:", sql, "\nParams:", params);
+    throw err;
+  }
+}
+
+// =============================================================================
+// Helper: Inspect Existing Columns of 'exams' Table via PRAGMA
+// =============================================================================
+async function getTableColumns(env) {
+  try {
+    const info = await executeD1(env, "PRAGMA table_info(exams)");
+    if (Array.isArray(info) && info.length > 0) {
+      return info.map(c => c.name);
+    }
+  } catch (e) {
+    // Table may not exist yet
+  }
+  return [];
+}
+
+// =============================================================================
+// Helper: Auto-create 'exams' Table with Standard CBT Rank Schema
+// =============================================================================
+async function ensureExamsTable(env) {
+  const createSql = `
+    CREATE TABLE IF NOT EXISTS exams (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      subtitle TEXT DEFAULT '',
+      slug TEXT NOT NULL UNIQUE,
+      is_latest INTEGER DEFAULT 1,
+      is_visible INTEGER DEFAULT 1,
+      set_on_top INTEGER DEFAULT 0,
+      location_type_id TEXT DEFAULT 'States/UT',
+      location_id TEXT DEFAULT '["All India"]',
+      marks_right REAL DEFAULT 1.0,
+      marks_wrong REAL DEFAULT 0.25,
+      answerkey_login_link TEXT DEFAULT '',
+      description TEXT DEFAULT '',
+      external_exam_id TEXT DEFAULT '',
+      youtube_link TEXT DEFAULT '',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  return await executeD1(env, createSql);
+}
+
+// =============================================================================
+// Helper: Location Value Normalizer
+// =============================================================================
+function normalizeLocationId(loc) {
+  if (!loc) return '["All India"]';
+  if (Array.isArray(loc)) return JSON.stringify(loc);
+  if (typeof loc === 'string') {
+    const trimmed = loc.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        JSON.parse(trimmed);
+        return trimmed;
+      } catch (e) {}
+    }
+    const parts = trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    if (parts.length > 1) {
+      return JSON.stringify(parts);
+    }
+    return JSON.stringify([trimmed]);
+  }
+  return JSON.stringify([String(loc)]);
+}
+
+// =============================================================================
+// Helper: CORS & JSON Responses
+// =============================================================================
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+  'Access-Control-Max-Age': '86400'
+};
+
+function jsonResponse(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json; charset=utf-8'
+    }
+  });
+}
+
+function errorResponse(message, status = 400, extra = {}) {
+  return jsonResponse({ success: false, error: message, ...extra }, status);
+}
+
+// =============================================================================
+// Main Worker Router & Handler
+// =============================================================================
+export default {
+  async fetch(request, env, ctx) {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders, status: 204 });
+    }
+
+    const url = new URL(request.url);
+    let pathname = url.pathname.replace(/\/+/g, '/');
+    if (pathname.length > 1 && pathname.endsWith('/')) {
+      pathname = pathname.slice(0, -1);
+    }
+
+    const isD1Bound = !!(env && (env.DB || env.DATABASE || env.d1));
+
+    // -------------------------------------------------------------------------
+    // ROUTE 1: Schema Diagnostics & Setup
+    // -------------------------------------------------------------------------
+    if (pathname === '/api/schema' || pathname === '/api/diagnostics') {
+      if (!isD1Bound) return errorResponse("D1 database 'DB' is not bound.", 500, { isD1Bound: false });
+      try {
+        const columns = await getTableColumns(env);
+        const countRes = columns.length > 0 ? await executeD1(env, "SELECT COUNT(*) as total FROM exams") : [{ total: 0 }];
+        return jsonResponse({
+          success: true,
+          isD1Bound: true,
+          tableExists: columns.length > 0,
+          totalExams: countRes[0]?.total ?? 0,
+          columns: columns
+        });
+      } catch (err) {
+        return errorResponse(err.message, 500);
+      }
+    }
+
+    if (pathname === '/api/setup-table' && (request.method === 'POST' || request.method === 'GET')) {
+      if (!isD1Bound) return errorResponse("D1 database 'DB' is not bound.", 500);
+      try {
+        await ensureExamsTable(env);
+        const columns = await getTableColumns(env);
+        return jsonResponse({
+          success: true,
+          message: "Table 'exams' verified / created successfully.",
+          columns: columns
+        });
+      } catch (err) {
+        return errorResponse("Failed to setup table: " + err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 2: Quick Status Toggle (is_visible, is_latest, set_on_top)
+    // -------------------------------------------------------------------------
+    if (pathname === '/api/exams/toggle' && request.method === 'POST') {
+      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      try {
+        const body = await request.json();
+        const id = parseInt(body.id, 10);
+        const field = String(body.field || '').trim();
+        const allowedFields = ['is_visible', 'is_latest', 'set_on_top'];
+
+        if (isNaN(id) || !allowedFields.includes(field)) {
+          return errorResponse("Invalid id or toggle field. Allowed: " + allowedFields.join(', '));
+        }
+
+        const currentExam = await executeD1(env, `SELECT ${field} FROM exams WHERE id = ?`, [id]);
+        if (!currentExam || currentExam.length === 0) {
+          return errorResponse("Exam not found with id: " + id, 404);
+        }
+
+        const currentValue = currentExam[0][field] ? 1 : 0;
+        const newValue = (body.value !== undefined) ? (body.value ? 1 : 0) : (currentValue ? 0 : 1);
+
+        const availableCols = await getTableColumns(env);
+        let updateSql = `UPDATE exams SET ${field} = ?`;
+        if (availableCols.includes('updated_at')) {
+          updateSql += ", updated_at = datetime('now')";
+        }
+        updateSql += " WHERE id = ?";
+
+        await executeD1(env, updateSql, [newValue, id]);
+
+        return jsonResponse({
+          success: true,
+          message: `Field '${field}' updated to ${newValue}`,
+          id: id,
+          field: field,
+          newValue: newValue
+        });
+      } catch (err) {
+        return errorResponse("Toggle failed: " + err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 3: Add New Exam (POST /api/exams or POST /api/exams/add)
+    // -------------------------------------------------------------------------
+    if ((pathname === '/api/exams' || pathname === '/api/exams/add') && request.method === 'POST') {
+      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      try {
+        const body = await request.json();
+        const title = String(body.title || '').trim();
+        let slug = String(body.slug || '').trim().toLowerCase();
+
+        if (!title) return errorResponse("Field 'title' is required.");
+        if (!slug) {
+          slug = title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        }
+
+        const existing = await executeD1(env, "SELECT id FROM exams WHERE slug = ? LIMIT 1", [slug]);
+        if (existing && existing.length > 0) {
+          return errorResponse(`An exam with slug '${slug}' already exists (ID: #${existing[0].id}). Please choose a unique slug.`);
+        }
+
+        const subtitle = String(body.subtitle || '').trim();
+        const isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 1;
+        const isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 1;
+        const setOnTop = body.set_on_top ? 1 : 0;
+        const locTypeId = String(body.location_type_id || 'States/UT').trim();
+        const locId = normalizeLocationId(body.location_id);
+        const marksRight = (body.marks_right !== undefined && body.marks_right !== '') ? parseFloat(body.marks_right) : 1.0;
+        const marksWrong = (body.marks_wrong !== undefined && body.marks_wrong !== '') ? parseFloat(body.marks_wrong) : 0.25;
+        const answerLink = String(body.answerkey_login_link || '').trim();
+        const description = String(body.description || '').trim();
+        const externalExamId = String(body.external_exam_id || '').trim();
+        const youtubeLink = String(body.youtube_link || '').trim();
+
+        const availableCols = await getTableColumns(env);
+        const dataMap = {
+          title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
+          location_type_id: locTypeId, location_id: locId, marks_right: marksRight, marks_wrong: marksWrong,
+          answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
+        };
+
+        let colsToInsert = [];
+        let placeholders = [];
+        let valuesToInsert = [];
+
+        Object.keys(dataMap).forEach(col => {
+          if (availableCols.length === 0 || availableCols.includes(col)) {
+            colsToInsert.push(col);
+            placeholders.push('?');
+            valuesToInsert.push(dataMap[col]);
+          }
+        });
+
+        if (availableCols.includes('created_at')) {
+          colsToInsert.push('created_at');
+          placeholders.push("datetime('now')");
+        }
+        if (availableCols.includes('updated_at')) {
+          colsToInsert.push('updated_at');
+          placeholders.push("datetime('now')");
+        }
+
+        const insertSql = `INSERT INTO exams (${colsToInsert.join(', ')}) VALUES (${placeholders.join(', ')})`;
+        const result = await executeD1(env, insertSql, valuesToInsert);
+        const newId = result?.meta?.last_row_id || result?.lastRowId || null;
+
+        return jsonResponse({
+          success: true,
+          message: "Exam added successfully!",
+          id: newId,
+          slug: slug
+        }, 201);
+      } catch (err) {
+        return errorResponse("Failed to add exam: " + err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 4: Update Exam (PUT /api/exams/:id or POST /api/exams/update)
+    // -------------------------------------------------------------------------
+    const updateMatch = pathname.match(/^\/api\/exams\/(\d+)$/);
+    if ((updateMatch && (request.method === 'PUT' || request.method === 'POST')) || (pathname === '/api/exams/update' && request.method === 'POST')) {
+      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      try {
+        const body = await request.json();
+        const examId = updateMatch ? parseInt(updateMatch[1], 10) : parseInt(body.id, 10);
+        if (isNaN(examId)) return errorResponse("Invalid or missing Exam ID for update.");
+
+        const existing = await executeD1(env, "SELECT id, slug FROM exams WHERE id = ?", [examId]);
+        if (!existing || existing.length === 0) {
+          return errorResponse(`No exam found with ID: #${examId}`, 404);
+        }
+
+        const title = String(body.title || '').trim();
+        let slug = String(body.slug || '').trim().toLowerCase();
+        if (!title) return errorResponse("Title cannot be empty.");
+        if (!slug) {
+          slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+
+        const slugCheck = await executeD1(env, "SELECT id FROM exams WHERE slug = ? AND id != ? LIMIT 1", [slug, examId]);
+        if (slugCheck && slugCheck.length > 0) {
+          return errorResponse(`Slug '${slug}' is already in use by another exam (ID: #${slugCheck[0].id}).`);
+        }
+
+        const subtitle = String(body.subtitle || '').trim();
+        const isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 1;
+        const isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 1;
+        const setOnTop = body.set_on_top ? 1 : 0;
+        const locTypeId = String(body.location_type_id || 'States/UT').trim();
+        const locId = normalizeLocationId(body.location_id);
+        const marksRight = (body.marks_right !== undefined && body.marks_right !== '') ? parseFloat(body.marks_right) : 1.0;
+        const marksWrong = (body.marks_wrong !== undefined && body.marks_wrong !== '') ? parseFloat(body.marks_wrong) : 0.25;
+        const answerLink = String(body.answerkey_login_link || '').trim();
+        const description = String(body.description || '').trim();
+        const externalExamId = String(body.external_exam_id || '').trim();
+        const youtubeLink = String(body.youtube_link || '').trim();
+
+        const availableCols = await getTableColumns(env);
+        const dataMap = {
+          title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
+          location_type_id: locTypeId, location_id: locId, marks_right: marksRight, marks_wrong: marksWrong,
+          answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
+        };
+
+        let setClauses = [];
+        let setValues = [];
+
+        Object.keys(dataMap).forEach(col => {
+          if (availableCols.length === 0 || availableCols.includes(col)) {
+            setClauses.push(`${col} = ?`);
+            setValues.push(dataMap[col]);
+          }
+        });
+
+        if (availableCols.includes('updated_at')) {
+          setClauses.push("updated_at = datetime('now')");
+        }
+
+        setValues.push(examId);
+        const updateSql = `UPDATE exams SET ${setClauses.join(', ')} WHERE id = ?`;
+        await executeD1(env, updateSql, setValues);
+
+        return jsonResponse({
+          success: true,
+          message: "Exam updated successfully!",
+          id: examId
+        });
+      } catch (err) {
+        return errorResponse("Failed to update exam: " + err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 5: Delete Exam (DELETE /api/exams/:id or POST /api/exams/delete)
+    // -------------------------------------------------------------------------
+    const deleteMatch = pathname.match(/^\/api\/exams\/(\d+)$/);
+    if ((deleteMatch && request.method === 'DELETE') || (pathname === '/api/exams/delete' && (request.method === 'POST' || request.method === 'DELETE'))) {
+      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      try {
+        let examId;
+        if (deleteMatch) {
+          examId = parseInt(deleteMatch[1], 10);
+        } else {
+          const body = await request.json().catch(() => ({}));
+          examId = parseInt(body.id || url.searchParams.get('id'), 10);
+        }
+
+        if (isNaN(examId)) return errorResponse("Invalid or missing Exam ID for deletion.");
+
+        const existing = await executeD1(env, "SELECT id, title FROM exams WHERE id = ?", [examId]);
+        if (!existing || existing.length === 0) {
+          return errorResponse(`No exam found with ID: #${examId}`, 404);
+        }
+
+        await executeD1(env, "DELETE FROM exams WHERE id = ?", [examId]);
+
+        return jsonResponse({
+          success: true,
+          message: `Exam #${examId} ('${existing[0].title}') deleted successfully.`,
+          id: examId
+        });
+      } catch (err) {
+        return errorResponse("Failed to delete exam: " + err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 6: Get Single Exam Details (GET /api/exams/:id or :slug)
+    // -------------------------------------------------------------------------
+    const getSingleMatch = pathname.match(/^\/api\/exams\/([a-zA-Z0-9_-]+)$/);
+    if (getSingleMatch && request.method === 'GET') {
+      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      try {
+        const identifier = getSingleMatch[1];
+        let sql = "SELECT * FROM exams WHERE slug = ? LIMIT 1";
+        let params = [identifier];
+        if (/^\d+$/.test(identifier)) {
+          sql = "SELECT * FROM exams WHERE id = ? OR slug = ? LIMIT 1";
+          params = [parseInt(identifier, 10), identifier];
+        }
+        const rows = await executeD1(env, sql, params);
+        if (rows && rows.length > 0) {
+          const item = rows[0];
+          if (typeof item.location_id === 'string') {
+            try { item.location_id = JSON.parse(item.location_id); } catch (e) {}
+          }
+          return jsonResponse({ success: true, data: item });
+        }
+        return errorResponse("Exam not found", 404);
+      } catch (err) {
+        return errorResponse(err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 7: List All Exams (GET /api/exams or /exams)
+    // -------------------------------------------------------------------------
+    if ((pathname === '/api/exams' || pathname === '/exams' || pathname === '/get_exams') && request.method === 'GET') {
+      if (!isD1Bound) return errorResponse("D1 Database not bound", 500);
+      try {
+        const search = url.searchParams.get('search') ? url.searchParams.get('search').trim() : '';
+        const visibleOnly = url.searchParams.get('visible_only') === '1' || url.searchParams.get('active') === '1';
+        const rawArray = url.searchParams.get('raw') === '1' || url.searchParams.get('format') === 'array';
+
+        let sql = "SELECT * FROM exams";
+        let wheres = [];
+        let params = [];
+
+        if (visibleOnly) {
+          wheres.push("is_visible = 1");
+        }
+        if (search) {
+          wheres.push("(title LIKE ? OR slug LIKE ? OR external_exam_id LIKE ?)");
+          const term = `%${search}%`;
+          params.push(term, term, term);
+        }
+
+        if (wheres.length > 0) {
+          sql += " WHERE " + wheres.join(" AND ");
+        }
+        sql += " ORDER BY set_on_top DESC, id DESC";
+
+        const rows = await executeD1(env, sql, params);
+
+        if (Array.isArray(rows)) {
+          rows.forEach(r => {
+            if (typeof r.location_id === 'string') {
+              try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
+            }
+          });
+        }
+
+        if (rawArray) {
+          return new Response(JSON.stringify(rows), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
+            status: 200
+          });
+        }
+
+        return jsonResponse({
+          success: true,
+          count: rows.length,
+          data: rows
+        });
+      } catch (err) {
+        return errorResponse(err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 8: Web Dashboard Portal (GET / or browser requests)
+    // -------------------------------------------------------------------------
+    if (request.method === 'GET') {
+      let initialExams = [];
+      let tableCols = [];
+      let dbError = null;
+
+      if (isD1Bound) {
+        try {
+          tableCols = await getTableColumns(env);
+          if (tableCols.length > 0) {
+            initialExams = await executeD1(env, "SELECT * FROM exams ORDER BY set_on_top DESC, id DESC");
+            if (Array.isArray(initialExams)) {
+              initialExams.forEach(r => {
+                if (typeof r.location_id === 'string') {
+                  try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
+                }
+              });
+            }
+          }
+        } catch (e) {
+          dbError = e.message;
+        }
+      }
+
+      return renderExamsManagerPortal(isD1Bound, tableCols.length > 0, initialExams, dbError);
+    }
+
+    return errorResponse("Method or endpoint not found", 404);
+  }
+};
+
+// =============================================================================
+// HTML RENDERER: Professional Dark-Mode Exams Management Portal
+// =============================================================================
+function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbError) {
+  const initialJson = JSON.stringify(preloadedExams || []);
+
+  const d1StatusBadge = isD1Bound
+    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 DB Connected</span>'
+    : '<span class="badge-status-err">⚠️ D1 Not Bound (Variable: DB)</span>';
+
+  const alertBox = !isD1Bound
+    ? '<div class="banner-alert"><div><b>⚠️ Cloudflare D1 Database Missing:</b> Please bind your D1 Database in Cloudflare Dashboard under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Worker Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div></div>'
+    : (dbError
+      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>DB Error:</b> ' + escapeHtml(dbError) + '</div><button class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">Initialize Table</button></div>'
+      : '');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CBT Rank - Exams D1 Manager Portal</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #111827;
+      --card-inner: #0b0f19;
+      --card-border: #1e293b;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --accent-blue: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    .navbar {
+      background: #0f172a;
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .brand-logo {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      font-weight: 900;
+      font-size: 17px;
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    .brand-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+    .brand-title span { color: var(--primary); }
+
+    /* D1 Badges */
+    .badge-status-ok {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-status-err {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    /* Main Container */
+    .main-wrapper {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 20px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Warning Banner */
+    .banner-alert {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+      padding: 14px 18px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* KPI Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .kpi-info h4 { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi-info .val { font-size: 28px; font-weight: 800; color: var(--primary); margin-top: 4px; line-height: 1.1; }
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: var(--primary);
+    }
+
+    /* Toolbar & Search */
+    .action-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search-box-wrap {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--card-inner);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      font-size: 14px;
+      padding: 11px 16px 11px 38px;
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid #334155;
+    }
+    .btn-secondary:hover { background: #334155; }
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .btn-danger:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover { background: #1e293b; color: #fff; }
+    .filter-tab.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Data Table */
+    .table-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    thead th {
+      background: #0f172a;
+      color: var(--text-muted);
+      padding: 14px 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #1a2333;
+      vertical-align: middle;
+    }
+    tbody tr:hover {
+      background: rgba(30, 41, 59, 0.5);
+    }
+
+    /* Badges & Tags */
+    .badge-id {
+      font-family: monospace;
+      font-weight: 800;
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .slug-badge {
+      display: inline-block;
+      font-family: monospace;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 11px;
+      margin-top: 4px;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .badge-tag:hover { transform: scale(1.05); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-gray { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .marks-chip {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .marks-plus { color: #34d399; }
+    .marks-minus { color: #f87171; }
+
+    /* Action Buttons in Row */
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .btn-icon {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-icon:hover { background: #334155; color: #fff; }
+    .btn-icon-del {
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .btn-icon-del:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-box {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 720px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; color: #fff; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #fff; }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: #0b0f19;
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* Form Fields */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group-full { grid-column: span 2; }
+    .form-group {
+      margin-bottom: 6px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .form-label .req { color: #f87171; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--card-inner);
+      border: 1px solid var(--card-border);
+      border-radius: 9px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+    .form-textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+    .preset-chips {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .preset-chip {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .preset-chip:hover { background: #334155; color: #fff; }
+
+    .checkbox-group {
+      display: flex;
+      gap: 20px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .custom-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      color: #cbd5e1;
+    }
+    .custom-check input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastSlide 0.25s ease-out;
+    }
+    @keyframes toastSlide {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .toast-success { border-color: rgba(16, 185, 129, 0.4); }
+    .toast-error { border-color: rgba(239, 68, 68, 0.4); }
+
+    /* Footer */
+    footer {
+      background: #0f172a;
+      border-top: 1px solid var(--card-border);
+      padding: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group-full { grid-column: span 1; }
+      .navbar { padding: 12px 16px; }
+      .main-wrapper { padding: 16px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <a href="/" class="brand">
+      <div class="brand-logo">C</div>
+      <div class="brand-title">CBT<span>RANK</span> Exams Manager</div>
+    </a>
+    <div style="display:flex; align-items:center; gap:12px;">
+      ${d1StatusBadge}
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add New Exam</button>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
+
+    ${alertBox}
+
+    <!-- KPI Stats Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h4>Total Exams</h4>
+          <div class="val" id="statTotal">0</div>
+        </div>
+        <div class="kpi-icon">📚</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h4>Visible / Active</h4>
+          <div class="val" id="statVisible">0</div>
+        </div>
+        <div class="kpi-icon" style="color:#10b981; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2);">👁️</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h4>Pinned On Top</h4>
+          <div class="val" id="statTop">0</div>
+        </div>
+        <div class="kpi-icon" style="color:#fbbf24; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.2);">📌</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <h4>Latest Exams</h4>
+          <div class="val" id="statLatest">0</div>
+        </div>
+        <div class="kpi-icon" style="color:#38bdf8; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.2);">⚡</div>
+      </div>
+    </div>
+
+    <!-- Action Bar / Search & Tools -->
+    <div class="action-bar">
+      <div class="search-box-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by Exam Title, Slug, or Exam ID..." oninput="onSearchChange(this.value)">
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+        <button class="btn btn-secondary" onclick="exportJson()">📥 Export JSON</button>
+        <button class="btn btn-secondary" onclick="setupTable()">⚙️ DB Setup</button>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">All Exams (<span id="cntAll">0</span>)</div>
+      <div class="filter-tab" data-filter="visible" onclick="setFilter('visible')">Active / Visible (<span id="cntVisible">0</span>)</div>
+      <div class="filter-tab" data-filter="hidden" onclick="setFilter('hidden')">Hidden (<span id="cntHidden">0</span>)</div>
+      <div class="filter-tab" data-filter="top" onclick="setFilter('top')">Pinned On Top (<span id="cntTop">0</span>)</div>
+      <div class="filter-tab" data-filter="latest" onclick="setFilter('latest')">Latest (<span id="cntLatest">0</span>)</div>
+    </div>
+
+    <!-- Exams Data Table -->
+    <div class="table-card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:65px;">ID</th>
+              <th>Exam Title &amp; Slug</th>
+              <th style="width:110px;">Marking</th>
+              <th style="width:160px;">Locations</th>
+              <th style="width:110px;">Ext. ID</th>
+              <th style="width:160px;">Status Flags</th>
+              <th style="width:130px; text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="examsTableBody">
+            <tr><td colspan="7" style="text-align:center; padding:30px; color:#94a3b8;">Loading exams...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Add / Edit Exam Modal -->
+  <div class="modal-overlay" id="examModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Add New Exam</h3>
+        <button class="modal-close" onclick="closeModal('examModal')">&times;</button>
+      </div>
+      <form id="examForm" onsubmit="handleFormSubmit(event)">
+        <div class="modal-body">
+          <input type="hidden" id="formExamId">
+
+          <div class="form-grid">
+            <!-- Title -->
+            <div class="form-group form-group-full">
+              <label class="form-label">Exam Title <span class="req">*</span></label>
+              <input type="text" id="formTitle" class="form-input" placeholder="e.g. RRB NTPC UG 2026 CBT-1" required oninput="onTitleInput(this.value)">
+            </div>
+
+            <!-- Slug -->
+            <div class="form-group form-group-full">
+              <label class="form-label" style="display:flex; justify-content:space-between;">
+                <span>Slug (Unique URL identifier) <span class="req">*</span></span>
+                <span style="color:#38bdf8; cursor:pointer;" onclick="autoGenerateSlug()">⚡ Auto Generate</span>
+              </label>
+              <input type="text" id="formSlug" class="form-input" placeholder="e.g. rrb-ntpc-ug-2026-cbt-1" required>
+            </div>
+
+            <!-- Subtitle -->
+            <div class="form-group form-group-full">
+              <label class="form-label">Subtitle / Description Line</label>
+              <input type="text" id="formSubtitle" class="form-input" placeholder="e.g. Check Your Answer Key &amp; Rank of RRB NTPC UG 2026">
+            </div>
+
+            <!-- Marks Right -->
+            <div class="form-group">
+              <label class="form-label">Marks for Correct (+)</label>
+              <input type="number" step="0.01" id="formMarksRight" class="form-input" value="1.0" required>
+              <div class="preset-chips">
+                <span class="preset-chip" onclick="setMarks(1.0, 0.25)">+1 / -0.25 (SSC/State)</span>
+                <span class="preset-chip" onclick="setMarks(1.0, 0.33)">+1 / -0.33 (Railway)</span>
+                <span class="preset-chip" onclick="setMarks(2.0, 0.5)">+2 / -0.5 (CGL/CPO)</span>
+              </div>
+            </div>
+
+            <!-- Marks Wrong -->
+            <div class="form-group">
+              <label class="form-label">Marks for Negative (-)</label>
+              <input type="number" step="0.01" id="formMarksWrong" class="form-input" value="0.25" required>
+            </div>
+
+            <!-- Location Type -->
+            <div class="form-group">
+              <label class="form-label">Location Type</label>
+              <select id="formLocationTypeId" class="form-select" onchange="onLocationTypeChange(this.value)">
+                <option value="States/UT">States / UT</option>
+                <option value="RRB Zones">RRB Zones</option>
+                <option value="All India">All India</option>
+                <option value="General">General / Other</option>
+              </select>
+            </div>
+
+            <!-- External Exam ID -->
+            <div class="form-group">
+              <label class="form-label">External Exam ID / Digialm FormId</label>
+              <input type="text" id="formExternalExamId" class="form-input" placeholder="e.g. 100576 or 33128">
+            </div>
+
+            <!-- Location Values -->
+            <div class="form-group form-group-full">
+              <label class="form-label">Locations (Comma separated or All India)</label>
+              <input type="text" id="formLocationId" class="form-input" placeholder="e.g. All India  OR  Odisha, Bihar, Delhi">
+            </div>
+
+            <!-- Answer Key Link -->
+            <div class="form-group form-group-full">
+              <label class="form-label">Official Answer Key Login Link</label>
+              <input type="url" id="formAnswerLink" class="form-input" placeholder="https://cdn3.digialm.com/EForms/loginAction.do?...">
+            </div>
+
+            <!-- YouTube Link -->
+            <div class="form-group form-group-full">
+              <label class="form-label">YouTube Video Explanation Link</label>
+              <input type="url" id="formYoutubeLink" class="form-input" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <!-- Status Checkboxes -->
+            <div class="form-group form-group-full">
+              <label class="form-label">Status &amp; Flags</label>
+              <div class="checkbox-group">
+                <label class="custom-check">
+                  <input type="checkbox" id="formIsVisible" checked>
+                  <span><b>Visible</b> (Show in active exam list)</span>
+                </label>
+                <label class="custom-check">
+                  <input type="checkbox" id="formSetOnTop">
+                  <span><b>Set On Top</b> (Pin at top of website)</span>
+                </label>
+                <label class="custom-check">
+                  <input type="checkbox" id="formIsLatest" checked>
+                  <span><b>Latest</b> (Show 'New' / Latest badge)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group form-group-full">
+              <label class="form-label">Detailed Description / Instructions</label>
+              <textarea id="formDescription" class="form-textarea" placeholder="Optional notes, normalization details, or cut-off guidelines..."></textarea>
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('examModal')">Cancel</button>
+          <button type="submit" id="saveExamBtn" class="btn btn-primary">Save Exam</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-box" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color:#ef4444;">⚠️ Delete Exam</h3>
+        <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:15px; color:#e2e8f0;">Are you sure you want to delete this exam permanently?</p>
+        <div id="deleteExamDetails" style="margin-top:12px; padding:12px; background:#0b0f19; border-radius:8px; border:1px solid #1e293b; font-size:13px; color:#94a3b8;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete Exam</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer>
+    &copy; 2026 CBT RANK System | Cloudflare D1 Native Exam Management Portal
+  </footer>
+
+  <script>
+    let allExams = ${initialJson};
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let isSlugManual = false;
+
+    // Initialize UI on load
+    document.addEventListener('DOMContentLoaded', function() {
+      renderTable();
+      updateStats();
+    });
+
+    function showToast(msg, type) {
+      type = type || 'success';
+      var c = document.getElementById('toastContainer');
+      if (!c) return;
+      var t = document.createElement('div');
+      t.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success');
+      t.innerHTML = (type === 'error' ? '❌ ' : '✅ ') + escapeHtml(msg);
+      c.appendChild(t);
+      setTimeout(function() {
+        t.style.opacity = '0';
+        t.style.transform = 'translateX(100%)';
+        setTimeout(function() { t.remove(); }, 300);
+      }, 3500);
+    }
+
+    function onSearchChange(val) {
+      searchQuery = (val || '').trim().toLowerCase();
+      renderTable();
+    }
+
+    function setFilter(filterName) {
+      currentFilter = filterName;
+      var tabs = document.querySelectorAll('.filter-tab');
+      for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].getAttribute('data-filter') === filterName) {
+          tabs[i].classList.add('active');
+        } else {
+          tabs[i].classList.remove('active');
+        }
+      }
+      renderTable();
+    }
+
+    function updateStats() {
+      var total = allExams.length;
+      var visible = 0;
+      var top = 0;
+      var latest = 0;
+      for (var i = 0; i < allExams.length; i++) {
+        if (allExams[i].is_visible == 1) visible++;
+        if (allExams[i].set_on_top == 1) top++;
+        if (allExams[i].is_latest == 1) latest++;
+      }
+      var hidden = total - visible;
+
+      document.getElementById('statTotal').innerText = total;
+      document.getElementById('statVisible').innerText = visible;
+      document.getElementById('statTop').innerText = top;
+      document.getElementById('statLatest').innerText = latest;
+
+      document.getElementById('cntAll').innerText = total;
+      document.getElementById('cntVisible').innerText = visible;
+      document.getElementById('cntHidden').innerText = hidden;
+      document.getElementById('cntTop').innerText = top;
+      document.getElementById('cntLatest').innerText = latest;
+    }
+
+    function renderTable() {
+      var tbody = document.getElementById('examsTableBody');
+      if (!tbody) return;
+
+      var filtered = allExams.filter(function(item) {
+        if (currentFilter === 'visible' && item.is_visible != 1) return false;
+        if (currentFilter === 'hidden' && item.is_visible == 1) return false;
+        if (currentFilter === 'top' && item.set_on_top != 1) return false;
+        if (currentFilter === 'latest' && item.is_latest != 1) return false;
+
+        if (searchQuery) {
+          var matchTitle = (item.title || '').toLowerCase().indexOf(searchQuery) !== -1;
+          var matchSlug = (item.slug || '').toLowerCase().indexOf(searchQuery) !== -1;
+          var matchExt = String(item.external_exam_id || '').toLowerCase().indexOf(searchQuery) !== -1;
+          var matchId = String(item.id || '') === searchQuery;
+          if (!matchTitle && !matchSlug && !matchExt && !matchId) return false;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px 20px; color:#64748b;">No exams match your current filters.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(function(exam) {
+        var locText = 'All India';
+        if (exam.location_id) {
+          if (Array.isArray(exam.location_id)) {
+            locText = exam.location_id.length > 2 
+              ? exam.location_id.slice(0, 2).join(', ') + ' +' + (exam.location_id.length - 2) + ' more'
+              : exam.location_id.join(', ');
+          } else {
+            locText = String(exam.location_id);
+          }
+        }
+
+        var isVis = exam.is_visible == 1;
+        var isTop = exam.set_on_top == 1;
+        var isLat = exam.is_latest == 1;
+
+        return '<tr>' +
+          '<td><span class="badge-id">#' + exam.id + '</span></td>' +
+          '<td>' +
+            '<div style="font-weight:700; color:#fff; font-size:14px;">' + escapeHtml(exam.title) + '</div>' +
+            '<div style="display:flex; align-items:center; gap:6px;">' +
+              '<span class="slug-badge">' + escapeHtml(exam.slug) + '</span>' +
+              '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px;" onclick="copyText(\\'' + escapeHtml(exam.slug) + '\\')" title="Copy Slug">📋</button>' +
+            '</div>' +
+            (exam.subtitle ? '<div style="font-size:12px; color:#94a3b8; margin-top:2px;">' + escapeHtml(exam.subtitle) + '</div>' : '') +
+          '</td>' +
+          '<td>' +
+            '<div class="marks-chip">' +
+              '<span class="marks-plus">+' + (exam.marks_right !== undefined ? exam.marks_right : 1) + '</span> / ' +
+              '<span class="marks-minus">-' + (exam.marks_wrong !== undefined ? exam.marks_wrong : 0.25) + '</span>' +
+            '</div>' +
+          '</td>' +
+          '<td>' +
+            '<div style="font-weight:600; color:#cbd5e1;">' + escapeHtml(locText) + '</div>' +
+            (exam.location_type_id ? '<div style="font-size:11px; color:#64748b;">' + escapeHtml(exam.location_type_id) + '</div>' : '') +
+          '</td>' +
+          '<td>' +
+            (exam.external_exam_id 
+              ? '<span style="font-family:monospace; color:#a5f3fc; background:#0f172a; padding:2px 6px; border-radius:4px; font-size:11px;">' + escapeHtml(exam.external_exam_id) + '</span>' 
+              : '<span style="color:#64748b; font-size:12px;">—</span>') +
+          '</td>' +
+          '<td>' +
+            '<div style="display:flex; gap:4px; flex-wrap:wrap;">' +
+              '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_visible\\')" title="Click to toggle visibility">' +
+                (isVis ? '✓ Visible' : 'Hidden') +
+              '</span>' +
+              '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'set_on_top\\')" title="Click to toggle pin">' +
+                (isTop ? '📌 Top' : 'Normal') +
+              '</span>' +
+              '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', \\'is_latest\\')" title="Click to toggle latest">' +
+                (isLat ? '⚡ Latest' : 'Standard') +
+              '</span>' +
+            '</div>' +
+          '</td>' +
+          '<td>' +
+            '<div class="row-actions">' +
+              '<button type="button" class="btn-icon" onclick="openEditModal(' + exam.id + ')">✏️ Edit</button>' +
+              '<button type="button" class="btn-icon btn-icon-del" onclick="openDeleteModal(' + exam.id + ')">🗑️</button>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function openModal(id) {
+      var m = document.getElementById(id);
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeModal(id) {
+      var m = document.getElementById(id);
+      if (m) m.style.display = 'none';
+    }
+
+    function openAddModal() {
+      isSlugManual = false;
+      document.getElementById('examForm').reset();
+      document.getElementById('formExamId').value = '';
+      document.getElementById('modalTitle').innerText = 'Add New Exam';
+      document.getElementById('saveExamBtn').innerText = 'Create Exam';
+      document.getElementById('formMarksRight').value = '1.0';
+      document.getElementById('formMarksWrong').value = '0.25';
+      document.getElementById('formIsVisible').checked = true;
+      document.getElementById('formIsLatest').checked = true;
+      document.getElementById('formSetOnTop').checked = false;
+      document.getElementById('formLocationTypeId').value = 'States/UT';
+      document.getElementById('formLocationId').value = 'All India';
+      openModal('examModal');
+    }
+
+    function openEditModal(id) {
+      isSlugManual = true;
+      var exam = null;
+      for (var i = 0; i < allExams.length; i++) {
+        if (allExams[i].id == id) { exam = allExams[i]; break; }
+      }
+      if (!exam) return alert('Exam not found');
+
+      document.getElementById('formExamId').value = exam.id;
+      document.getElementById('modalTitle').innerText = 'Edit Exam #' + exam.id;
+      document.getElementById('saveExamBtn').innerText = 'Update Exam';
+
+      document.getElementById('formTitle').value = exam.title || '';
+      document.getElementById('formSlug').value = exam.slug || '';
+      document.getElementById('formSubtitle').value = exam.subtitle || '';
+      document.getElementById('formMarksRight').value = (exam.marks_right !== undefined ? exam.marks_right : 1.0);
+      document.getElementById('formMarksWrong').value = (exam.marks_wrong !== undefined ? exam.marks_wrong : 0.25);
+      document.getElementById('formLocationTypeId').value = exam.location_type_id || 'States/UT';
+
+      var locStr = 'All India';
+      if (exam.location_id) {
+        locStr = Array.isArray(exam.location_id) ? exam.location_id.join(', ') : String(exam.location_id);
+      }
+      document.getElementById('formLocationId').value = locStr;
+
+      document.getElementById('formExternalExamId').value = exam.external_exam_id || '';
+      document.getElementById('formAnswerLink').value = exam.answerkey_login_link || '';
+      document.getElementById('formYoutubeLink').value = exam.youtube_link || '';
+      document.getElementById('formDescription').value = exam.description || '';
+
+      document.getElementById('formIsVisible').checked = exam.is_visible == 1;
+      document.getElementById('formSetOnTop').checked = exam.set_on_top == 1;
+      document.getElementById('formIsLatest').checked = exam.is_latest == 1;
+
+      openModal('examModal');
+    }
+
+    function onTitleInput(val) {
+      if (!isSlugManual) {
+        document.getElementById('formSlug').value = slugify(val);
+      }
+    }
+
+    function autoGenerateSlug() {
+      var title = document.getElementById('formTitle').value;
+      document.getElementById('formSlug').value = slugify(title);
+      isSlugManual = false;
+    }
+
+    function slugify(text) {
+      return (text || '')
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/\\s+/g, '-')
+        .replace(/[^a-z0-9\\-]+/g, '')
+        .replace(/\\-\\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+    }
+
+    function setMarks(r, w) {
+      document.getElementById('formMarksRight').value = r;
+      document.getElementById('formMarksWrong').value = w;
+    }
+
+    function onLocationTypeChange(typeVal) {
+      var locInput = document.getElementById('formLocationId');
+      if (typeVal === 'All India') {
+        locInput.value = 'All India';
+      } else if (typeVal === 'RRB Zones' && locInput.value === 'All India') {
+        locInput.value = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      var saveBtn = document.getElementById('saveExamBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'Saving...';
+
+      var examId = document.getElementById('formExamId').value;
+      var isEdit = !!examId;
+
+      var payload = {
+        title: document.getElementById('formTitle').value.trim(),
+        slug: document.getElementById('formSlug').value.trim(),
+        subtitle: document.getElementById('formSubtitle').value.trim(),
+        marks_right: parseFloat(document.getElementById('formMarksRight').value) || 1.0,
+        marks_wrong: parseFloat(document.getElementById('formMarksWrong').value) || 0.25,
+        location_type_id: document.getElementById('formLocationTypeId').value,
+        location_id: document.getElementById('formLocationId').value.trim(),
+        external_exam_id: document.getElementById('formExternalExamId').value.trim(),
+        answerkey_login_link: document.getElementById('formAnswerLink').value.trim(),
+        youtube_link: document.getElementById('formYoutubeLink').value.trim(),
+        description: document.getElementById('formDescription').value.trim(),
+        is_visible: document.getElementById('formIsVisible').checked ? 1 : 0,
+        set_on_top: document.getElementById('formSetOnTop').checked ? 1 : 0,
+        is_latest: document.getElementById('formIsLatest').checked ? 1 : 0
+      };
+
+      try {
+        var res;
+        if (isEdit) {
+          payload.id = parseInt(examId, 10);
+          res = await fetch('/api/exams/' + examId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          res = await fetch('/api/exams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        }
+
+        var data = await res.json();
+        saveBtn.disabled = false;
+        saveBtn.innerText = isEdit ? 'Update Exam' : 'Create Exam';
+
+        if (!data.success) {
+          alert('Error: ' + (data.error || 'Failed to save exam'));
+          return;
+        }
+
+        closeModal('examModal');
+        showToast(isEdit ? 'Exam updated successfully!' : 'Exam added successfully!');
+        await refreshData();
+      } catch (err) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = isEdit ? 'Update Exam' : 'Create Exam';
+        alert('Network Error: ' + err.message);
+      }
+    }
+
+    function openDeleteModal(id) {
+      var exam = null;
+      for (var i = 0; i < allExams.length; i++) {
+        if (allExams[i].id == id) { exam = allExams[i]; break; }
+      }
+      if (!exam) return;
+
+      document.getElementById('deleteExamDetails').innerHTML = 
+        '<b>ID:</b> #' + exam.id + '<br>' +
+        '<b>Title:</b> ' + escapeHtml(exam.title) + '<br>' +
+        '<b>Slug:</b> ' + escapeHtml(exam.slug);
+
+      var confirmBtn = document.getElementById('confirmDeleteBtn');
+      confirmBtn.onclick = function() { executeDelete(id); };
+      openModal('deleteModal');
+    }
+
+    async function executeDelete(id) {
+      var confirmBtn = document.getElementById('confirmDeleteBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = 'Deleting...';
+
+      try {
+        var res = await fetch('/api/exams/' + id, { method: 'DELETE' });
+        var data = await res.json();
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Yes, Delete Exam';
+
+        if (!data.success) {
+          alert('Delete error: ' + (data.error || 'Failed to delete'));
+          return;
+        }
+
+        closeModal('deleteModal');
+        showToast('Exam #' + id + ' deleted successfully!');
+        await refreshData();
+      } catch (err) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Yes, Delete Exam';
+        alert('Network Error: ' + err.message);
+      }
+    }
+
+    async function toggleFlag(id, field) {
+      var exam = null;
+      for (var i = 0; i < allExams.length; i++) {
+        if (allExams[i].id == id) { exam = allExams[i]; break; }
+      }
+      if (!exam) return;
+
+      var currentVal = exam[field] == 1 ? 1 : 0;
+      var newVal = currentVal ? 0 : 1;
+      exam[field] = newVal;
+      renderTable();
+      updateStats();
+
+      try {
+        var res = await fetch('/api/exams/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id, field: field, value: newVal })
+        });
+        var data = await res.json();
+        if (!data.success) {
+          exam[field] = currentVal;
+          renderTable();
+          updateStats();
+          showToast('Toggle failed: ' + data.error, 'error');
+        } else {
+          showToast('Updated ' + field + ' for Exam #' + id);
+        }
+      } catch (err) {
+        exam[field] = currentVal;
+        renderTable();
+        updateStats();
+        showToast('Network error on toggle', 'error');
+      }
+    }
+
+    async function refreshData() {
+      try {
+        var res = await fetch('/api/exams');
+        var json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          allExams = json.data;
+          renderTable();
+          updateStats();
+        }
+      } catch (e) {
+        console.error('Refresh error:', e);
+      }
+    }
+
+    async function setupTable() {
+      if (!confirm('Run database setup to create / verify the exams table in Cloudflare D1?')) return;
+      try {
+        var res = await fetch('/api/setup-table', { method: 'POST' });
+        var data = await res.json();
+        if (data.success) {
+          showToast('exams table verified successfully!');
+          refreshData();
+        } else {
+          alert('Setup error: ' + data.error);
+        }
+      } catch (e) {
+        alert('Request failed: ' + e.message);
+      }
+    }
+
+    function exportJson() {
+      var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(allExams, null, 2));
+      var a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', 'exams_d1_backup_' + new Date().toISOString().slice(0, 10) + '.json');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function copyText(str) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(str).then(function() {
+          showToast('Slug copied: ' + str);
+        });
+      }
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
