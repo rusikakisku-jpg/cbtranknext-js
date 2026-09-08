@@ -2583,6 +2583,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
   <script>
     let allExams = ${initialJson};
+    let isD1Connected = ${isD1Bound ? 'true' : 'false'};
     let currentFilter = 'all';
     let searchQuery = '';
     let isSlugManual = false;
@@ -2590,6 +2591,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     var RRB_ZONES_LIST = 'Ahmedabad, Ajmer, Allahabad (Prayagraj), Bangalore, Bhopal, Bhubaneswar, Bilaspur, Chandigarh, Chennai, Gorakhpur, Guwahati, Jammu-Srinagar, Kolkata, Malda, Mumbai, Muzaffarpur, Patna, Ranchi, Secunderabad, Siliguri, Thiruvananthapuram';
     var isTinyMceReady = false;
     var isRawHtmlMode = false;
+
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initApp);
     } else {
@@ -2597,9 +2599,31 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
 
     function initApp() {
+      // LocalStorage persistence fallback: preserve user exams on refresh even if D1 is not bound yet!
+      if (!isD1Connected) {
+        try {
+          var saved = localStorage.getItem('cbtrank_exams_store');
+          if (saved) {
+            var parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              allExams = parsed;
+            }
+          } else {
+            localStorage.setItem('cbtrank_exams_store', JSON.stringify(allExams));
+          }
+        } catch (e) {}
+      }
       renderAllViews();
       updateStats();
       initTinyMce();
+    }
+
+    function saveLocalStorage() {
+      if (!isD1Connected) {
+        try {
+          localStorage.setItem('cbtrank_exams_store', JSON.stringify(allExams));
+        } catch (e) {}
+      }
     }
 
     function copyExamSlug(id) {
@@ -3318,33 +3342,35 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         saveBtn.disabled = false;
         saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
 
-        if (!data.success) {
-          // Check if running in preview mode or failed binding
-          if (!data.isD1Bound || (data.error && data.error.includes("not bound"))) {
-            var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
-            payload.id = newId;
-            if (isEdit) {
-              for (var k = 0; k < allExams.length; k++) {
-                if (allExams[k].id == newId) { allExams[k] = payload; break; }
-              }
-            } else {
-              allExams.unshift(payload);
+        // Check if D1 is not bound or running in preview mode
+        if (!isD1Connected || !data.isD1Bound) {
+          var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
+          payload.id = newId;
+          if (isEdit) {
+            for (var k = 0; k < allExams.length; k++) {
+              if (allExams[k].id == newId) { allExams[k] = payload; break; }
             }
-            closeModal('examModal');
-            showToast(isEdit ? 'Exam updated (Preview Mode)!' : 'Exam added (Preview Mode)!');
-            renderAllViews();
-            updateStats();
-            return;
+          } else {
+            allExams.unshift(payload);
           }
+          saveLocalStorage();
+          closeModal('examModal');
+          showToast(isEdit ? 'Exam updated & saved locally!' : 'Exam added & saved locally!');
+          renderAllViews();
+          updateStats();
+          return;
+        }
+
+        if (!data.success) {
           alert('Error: ' + (data.error || 'Failed to save exam'));
           return;
         }
 
         closeModal('examModal');
-        showToast(isEdit ? 'Exam updated successfully!' : 'Exam added successfully!');
+        showToast(isEdit ? 'Exam updated in D1!' : 'Exam added to D1 Database!');
         await refreshData();
       } catch (err) {
-        // Offline or preview fallback
+        // Offline or preview fallback: persist into browser storage
         var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
         payload.id = newId;
         if (isEdit) {
@@ -3354,8 +3380,9 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         } else {
           allExams.unshift(payload);
         }
+        saveLocalStorage();
         closeModal('examModal');
-        showToast(isEdit ? 'Exam updated (Preview)!' : 'Exam added (Preview)!');
+        showToast(isEdit ? 'Exam updated (Saved locally)!' : 'Exam added (Saved locally)!');
         renderAllViews();
         updateStats();
       }
@@ -3389,15 +3416,34 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         confirmBtn.disabled = false;
         confirmBtn.innerText = 'Yes, Delete Exam';
 
+        if (!isD1Connected || !data.isD1Bound) {
+          allExams = allExams.filter(function(x) { return x.id != id; });
+          saveLocalStorage();
+          closeModal('deleteModal');
+          showToast('Exam #' + id + ' deleted (Saved locally)!');
+          renderAllViews();
+          updateStats();
+          return;
+        }
+
         if (!data.success) {
           alert('Delete error: ' + (data.error || 'Failed to delete'));
           return;
         }
 
         closeModal('deleteModal');
-        showToast('Exam #' + id + ' deleted successfully!');
+        showToast('Exam #' + id + ' deleted from D1!');
         await refreshData();
       } catch (err) {
+        if (!isD1Connected) {
+          allExams = allExams.filter(function(x) { return x.id != id; });
+          saveLocalStorage();
+          closeModal('deleteModal');
+          showToast('Exam #' + id + ' deleted (Saved locally)!');
+          renderAllViews();
+          updateStats();
+          return;
+        }
         confirmBtn.disabled = false;
         confirmBtn.innerText = 'Yes, Delete Exam';
         alert('Network Error: ' + err.message);
@@ -3416,6 +3462,12 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       exam[field] = newVal;
       renderAllViews();
       updateStats();
+
+      if (!isD1Connected) {
+        saveLocalStorage();
+        showToast('Updated ' + field + ' for Exam #' + id + ' (Saved locally)');
+        return;
+      }
 
       try {
         var res = await fetch('/api/exams/toggle', {
@@ -3441,6 +3493,20 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
 
     async function refreshData() {
+      if (!isD1Connected) {
+        try {
+          var saved = localStorage.getItem('cbtrank_exams_store');
+          if (saved) {
+            var parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              allExams = parsed;
+            }
+          }
+        } catch (e) {}
+        renderAllViews();
+        updateStats();
+        return;
+      }
       try {
         var res = await fetch('/api/exams');
         var json = await res.json();
@@ -3455,7 +3521,15 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
 
     async function seedDatabase() {
-      if (!confirm('Do you want to seed/import the 27 default CBT exams (RRB NTPC, SSC CHSL, OSSC, Group D, etc.) into the database?')) return;
+      if (!confirm('Do you want to seed/import the 27 default CBT exams (RRB NTPC, SSC CHSL, OSSC, Group D, etc.)?')) return;
+      if (!isD1Connected) {
+        try {
+          localStorage.removeItem('cbtrank_exams_store');
+        } catch (e) {}
+        showToast('Reset to default 27 CBT exams!');
+        location.reload();
+        return;
+      }
       try {
         showToast('Seeding 27 default exams into D1...', 'info');
         var res = await fetch('/api/seed-exams', { method: 'POST' });
