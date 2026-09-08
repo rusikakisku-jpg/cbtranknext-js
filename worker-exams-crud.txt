@@ -622,8 +622,8 @@ async function ensureExamsTable(env) {
       title TEXT NOT NULL,
       subtitle TEXT DEFAULT '',
       slug TEXT NOT NULL UNIQUE,
-      is_latest INTEGER DEFAULT 1,
-      is_visible INTEGER DEFAULT 1,
+      is_latest INTEGER DEFAULT 0,
+      is_visible INTEGER DEFAULT 0,
       set_on_top INTEGER DEFAULT 0,
       location_type_id TEXT DEFAULT 'States/UT',
       location_id TEXT DEFAULT '["All India"]',
@@ -643,8 +643,8 @@ async function ensureExamsTable(env) {
   const cols = await getTableColumns(env);
   const requiredCols = [
     { name: 'subtitle', type: "TEXT DEFAULT ''" },
-    { name: 'is_latest', type: "INTEGER DEFAULT 1" },
-    { name: 'is_visible', type: "INTEGER DEFAULT 1" },
+    { name: 'is_latest', type: "INTEGER DEFAULT 0" },
+    { name: 'is_visible', type: "INTEGER DEFAULT 0" },
     { name: 'set_on_top', type: "INTEGER DEFAULT 0" },
     { name: 'location_type_id', type: "TEXT DEFAULT 'States/UT'" },
     { name: 'location_id', type: "TEXT DEFAULT '[\"All India\"]'" },
@@ -914,8 +914,8 @@ export default {
         }
 
         const subtitle = String(body.subtitle || '').trim();
-        const isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 1;
-        const isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 1;
+        const isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 0;
+        const isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 0;
         const setOnTop = body.set_on_top ? 1 : 0;
         const locTypeId = String(body.location_type_id || 'States/UT').trim();
         const locId = normalizeLocationId(body.location_id);
@@ -2348,7 +2348,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                 <th style="width:65px;">ID</th>
                 <th>Exam Title &amp; Slug</th>
                 <th style="width:110px;">Marking</th>
-                <th style="width:160px;">Locations</th>
+                <th style="width:160px;">Location Type</th>
                 <th style="width:110px;">Ext. ID</th>
                 <th style="width:160px;">Status Flags</th>
                 <th style="width:130px; text-align:right;">Actions</th>
@@ -2493,7 +2493,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                   <span class="name">👁️ Visible</span>
                   <span class="hint">Show in active exam list</span>
                 </div>
-                <input type="checkbox" id="formIsVisible" checked>
+                <input type="checkbox" id="formIsVisible">
               </label>
 
               <label class="status-toggle-card">
@@ -2509,7 +2509,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                   <span class="name">⚡ Latest</span>
                   <span class="hint">Display 'New' badge</span>
                 </div>
-                <input type="checkbox" id="formIsLatest" checked>
+                <input type="checkbox" id="formIsLatest">
               </label>
             </div>
 
@@ -2840,8 +2840,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             '</div>' +
           '</td>' +
           '<td>' +
-            '<div style="font-weight:600; color:#cbd5e1;">' + escapeHtml(locText) + '</div>' +
-            (exam.location_type_id ? '<div style="font-size:11px; color:#64748b;">' + escapeHtml(exam.location_type_id) + '</div>' : '') +
+            '<div style="font-weight:700; color:#fff; font-size:13px;">' + escapeHtml(exam.location_type_id || 'States/UT') + '</div>' +
+            (locText ? '<div style="font-size:11px; color:#64748b; margin-top:2px;" title="' + escapeHtml(locText) + '">' + escapeHtml(locText) + '</div>' : '') +
           '</td>' +
           '<td>' +
             (exam.external_exam_id 
@@ -3072,8 +3072,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('saveExamBtn').innerHTML = '💾 Create Exam';
       document.getElementById('formMarksRight').value = '1.0';
       document.getElementById('formMarksWrong').value = '0.25';
-      document.getElementById('formIsVisible').checked = true;
-      document.getElementById('formIsLatest').checked = true;
+      document.getElementById('formIsVisible').checked = false;
+      document.getElementById('formIsLatest').checked = false;
       document.getElementById('formSetOnTop').checked = false;
 
       document.getElementById('formLocationTypeId').value = 'States/UT';
@@ -3146,9 +3146,9 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         if (ed) ed.setContent(desc);
       });
 
-      document.getElementById('formIsVisible').checked = isTruthy(exam.is_visible, true);
+      document.getElementById('formIsVisible').checked = isTruthy(exam.is_visible, false);
       document.getElementById('formSetOnTop').checked = isTruthy(exam.set_on_top, false);
-      document.getElementById('formIsLatest').checked = isTruthy(exam.is_latest, true);
+      document.getElementById('formIsLatest').checked = isTruthy(exam.is_latest, false);
 
       updateLinkTester('formAnswerLink', 'testAnswerLinkBtn');
       updateLinkTester('formYoutubeLink', 'testYoutubeLinkBtn');
