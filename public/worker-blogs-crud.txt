@@ -1477,6 +1477,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       justify-content: center;
       padding: 20px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .modal-overlay.open {
       display: flex;
@@ -1486,10 +1487,11 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       width: 100%;
-      max-width: 820px;
+      max-width: 840px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
       display: flex;
       flex-direction: column;
+      height: 90vh;
       max-height: 90vh;
       overflow: hidden;
       animation: modalFade 0.2s ease-out;
@@ -1498,6 +1500,15 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       from { opacity: 0; transform: scale(0.96); }
       to { opacity: 1; transform: scale(1); }
     }
+    /* Critical: Ensures form flexes smoothly inside modal-box so modal-body can scroll */
+    #blogForm, .modal-form {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
     .modal-header {
       padding: 16px 22px;
       border-bottom: 1px solid var(--card-border);
@@ -1505,6 +1516,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       align-items: center;
       justify-content: space-between;
       background: #0f172a;
+      flex-shrink: 0;
     }
     .modal-title {
       font-size: 17px;
@@ -1525,9 +1537,12 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
     .modal-body {
       padding: 22px;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
       gap: 18px;
+      flex: 1;
+      min-height: 0;
     }
     .modal-footer {
       padding: 14px 22px;
@@ -1537,6 +1552,25 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       justify-content: flex-end;
       gap: 12px;
       background: #0f172a;
+      flex-shrink: 0;
+    }
+
+    /* Rendered Article Content inside Preview Modal */
+    .rendered-article-content {
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    .rendered-article-content img {
+      max-width: 100% !important;
+      height: auto !important;
+      border-radius: 8px;
+    }
+    .rendered-article-content table {
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: auto;
+      display: block;
+      border-collapse: collapse;
     }
 
     /* Form Elements */
@@ -1671,18 +1705,121 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       .desktop-table-view { display: none; }
       .mobile-cards-view { display: flex; }
       .action-bar { flex-direction: column; align-items: stretch; }
-      .form-grid { grid-template-columns: 1fr; }
-      .form-group-full { grid-column: span 1; }
+      .form-grid { grid-template-columns: 1fr !important; gap: 14px; }
+      .form-group-full { grid-column: span 1 !important; }
       .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 
-      .modal-box {
-        max-width: 100%;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
-        border: none;
+      /* Fullscreen Responsive Modal on Mobile Devices */
+      .modal-overlay {
+        padding: 0 !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
       }
-      .modal-overlay { padding: 0; }
+      .modal-box {
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100vh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+      }
+      .modal-box.modal-box-delete {
+        height: auto !important;
+        max-height: 90vh !important;
+        border-radius: 16px 16px 0 0 !important;
+        margin-top: auto !important;
+      }
+      .modal-header {
+        padding: 14px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        flex-shrink: 0;
+      }
+      .modal-title { font-size: 16px; }
+      .modal-body {
+        padding: 16px 14px;
+        gap: 14px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      .modal-footer {
+        padding: 12px 14px;
+        gap: 10px;
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        background: #0f172a;
+        flex-shrink: 0;
+      }
+      .modal-footer .btn {
+        flex: 1;
+        min-height: 44px;
+        font-size: 14px;
+        justify-content: center;
+      }
+      .form-input, .form-select, .form-textarea {
+        font-size: 16px !important; /* Prevents iOS Safari auto-zoom */
+        padding: 11px 12px;
+      }
+      .form-label {
+        font-size: 12px;
+      }
+      .form-hint {
+        font-size: 10.5px;
+        word-break: break-word;
+      }
+      .editor-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .editor-tools {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .editor-tools .btn-icon {
+        width: 100%;
+        justify-content: center;
+        padding: 7px 8px;
+        font-size: 11px;
+        min-height: 36px;
+      }
+      .image-preview-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .preview-thumb {
+        width: 100%;
+        max-width: 160px;
+        height: 90px;
+      }
+      .toast-container {
+        left: 12px;
+        right: 12px;
+        bottom: 16px;
+        max-width: 100%;
+      }
+      .toast {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* Small Phones (<= 480px) */
+    @media (max-width: 480px) {
+      .modal-header { padding: 12px 14px; }
+      .modal-body { padding: 14px 12px; gap: 12px; }
+      .modal-footer { padding: 10px 12px; }
+      .modal-footer .btn { font-size: 13px; min-height: 42px; }
+      .editor-tools { grid-template-columns: 1fr 1fr; gap: 4px; }
+      .editor-tools .btn-icon { font-size: 10.5px; padding: 6px 4px; }
     }
 
     /* TinyMCE Overrides */
@@ -1824,7 +1961,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         <button type="button" class="btn-close" onclick="closeModal('blogModal')">&times;</button>
       </div>
 
-      <form id="blogForm" onsubmit="handleFormSubmit(event)">
+      <form id="blogForm" class="modal-form" onsubmit="handleFormSubmit(event)">
         <input type="hidden" id="modalMode" value="add">
         <input type="hidden" id="formBlogId" value="">
 
@@ -1936,7 +2073,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
 
   <!-- Delete Confirmation Modal -->
   <div class="modal-overlay" id="deleteModal">
-    <div class="modal-box" style="max-width:440px;">
+    <div class="modal-box modal-box-delete" style="max-width:440px; height:auto; max-height:85vh;">
       <div class="modal-header" style="background:rgba(239, 68, 68, 0.1);">
         <h3 class="modal-title" style="color:#f87171;">⚠️ Delete Blog Article</h3>
         <button type="button" class="btn-close" onclick="closeModal('deleteModal')">&times;</button>
@@ -2028,10 +2165,11 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       try {
         tinymce.init({
           selector: '#formContent',
-          height: 380,
+          height: (window.innerWidth <= 768 ? 280 : 380),
           skin: 'oxide-dark',
           content_css: 'dark',
           menubar: false,
+          toolbar_mode: 'sliding',
           plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
           toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image code | removeformat preview',
           content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; font-size: 14px; background: #0b0f19; color: #f8fafc; line-height: 1.6; padding: 12px; } a { color: #38bdf8; } h2, h3 { color: #fff; margin-top: 18px; margin-bottom: 8px; } blockquote { border-left: 4px solid #38bdf8; padding-left: 14px; color: #94a3b8; font-style: italic; }',
