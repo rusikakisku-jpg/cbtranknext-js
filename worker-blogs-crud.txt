@@ -4,137 +4,52 @@
  * =============================================================================
  *
  * 🎯 FEATURES:
- *   1. 📱 100% All-Device Responsive UI:
- *      - Mobile (<= 768px): Optimized Cards view with cover image thumbnails,
- *        quick status pills, view counts, and instant edit/delete actions.
- *      - Tablet & Desktop (> 768px): Full-featured data table with sortable columns,
- *        bulk actions, search bar, and category filter pills.
- *   2. ✍️ TinyMCE 6 WYSIWYG Rich Text Editor:
- *      - Dark theme integration with full HTML support (Headings H2/H3, tables,
- *        callout quotes, code blocks, bullet points, numbered lists, links, images).
- *      - Switch to Raw HTML Code mode anytime.
+ *   1. 📱 100% All-Device Responsive Modal & Portal:
+ *      - Mobile (<= 768px): Fullscreen dynamic viewport (100dvh), sticky header,
+ *        sticky footer, touch-friendly buttons, and cards view.
+ *      - Tablet & Desktop (> 768px): Centered modal with smooth scrolling body,
+ *        and full data table with sortable columns and filters.
+ *   2. ☁️ Cloudflare R2 Image Upload Integration:
+ *      - Direct image uploads to Cloudflare R2 bucket (`https://upload.cbtrank.com/<filename>`).
+ *      - Auto-sanitizes filename to clean, SEO-friendly format.
+ *      - Cover Image 1-Click Upload button with real-time thumbnail preview.
+ *      - TinyMCE editor image upload integration (drag-and-drop & in-editor image upload).
+ *   3. ✍️ TinyMCE 6 WYSIWYG Rich Text Editor:
+ *      - Dark theme with sliding responsive toolbar (toolbar_mode: 'sliding').
+ *      - Full HTML support (Headings H2/H3, tables, code blocks, lists, links, images).
+ *      - Switch between Rich Text and Raw HTML Code mode anytime.
  *      - Built-in Quick Insert Templates (Exam Guide & Cut-Off Analysis).
  *      - Live Rendered HTML Article Preview Modal.
- *   3. 🖼️ Cover Image Support & Live Thumbnail Preview:
- *      - Real-time cover image preview while typing URL.
- *      - Fallback illustration if URL is empty.
- *   4. ⚡ Quick 1-Click Status Toggles:
- *      - Instantly toggle between 'publish' and 'draft' from table/cards.
- *   5. 🛡️ Bulletproof D1 Schema Resilience:
+ *   4. 🛡️ Bulletproof D1 Schema Resilience:
  *      - Automatic self-healing: PRAGMA table_info inspection.
  *      - Explicit nextId calculation: Prevents 'NOT NULL constraint failed: blogs.id'.
  *      - Dual-column population: Keeps author & author_name, cover_image & image,
  *        content & description in sync for 100% Next.js compatibility.
- *   6. 🔄 Real D1 Persistence + Preview Fallback:
- *      - Direct D1 database saving with immediate refreshData() sync.
- *      - LocalStorage persistence fallback if D1 is not bound yet.
- *   7. 🌐 REST API Endpoints:
- *      - GET /api/blogs (or /blogs) -> Compatible with app/data/blogs.ts
- *      - GET /api/blogs/:slug (or :id) -> Single blog details
+ *   5. ⚡ Real D1 Database Persistence (Zero Static Data):
+ *      - Directly queries and updates Cloudflare D1 database.
+ *      - No fake or static data: Displays only real articles from your database.
+ *   6. 🌐 Complete REST API Endpoints:
+ *      - GET /api/blogs (or /blogs) -> List all blogs (supports ?raw=1 / ?format=array)
+ *      - GET /api/blogs/:slug -> Single blog details
  *      - POST /api/blogs -> Create new blog post
  *      - PUT /api/blogs/:id -> Update blog post
  *      - DELETE /api/blogs/:id -> Delete blog post
  *      - POST /api/blogs/toggle -> Status toggle (publish <-> draft)
  *      - POST /api/blogs/increment-view -> Increase view count
- *      - POST /api/seed-blogs -> Seed default 5 CBT Rank articles
- *      - POST /api/setup-table -> Auto-create & verify blogs table
+ *      - POST /api/upload -> Upload image to Cloudflare R2 (https://upload.cbtrank.com)
+ *      - POST /api/setup-table -> Auto-create & verify blogs table in D1
+ *      - GET /api/schema -> Diagnostic schema info
  *
- * ⚙️ CLOUDFLARE D1 BINDING:
- *   Worker Dashboard -> Settings -> Bindings -> Add D1 Database Binding:
- *     Variable Name: DB
- *     Database: (Select your Cloudflare D1 Database, e.g. cbtrank_db)
+ * ⚙️ CLOUDFLARE WORKER BINDINGS:
+ *   Worker Dashboard -> Settings -> Bindings:
+ *     1. D1 Database:
+ *        Variable Name: DB
+ *        Database: (Select your Cloudflare D1 Database, e.g. cbtrank_db)
+ *     2. R2 Bucket (For Image Uploads):
+ *        Variable Name: R2 (or BUCKET)
+ *        R2 Bucket: (Select your Cloudflare R2 Bucket, e.g. cbtrank-uploads)
+ *        Custom Domain: upload.cbtrank.com
  */
-
-// =============================================================================
-// 5 DEFAULT CBT RANK BLOG ARTICLES (Preloaded Fallback & Auto-Seed Dataset)
-// =============================================================================
-const DEFAULT_BLOGS = [
-  {
-    "id": 1,
-    "title": "How Normalization & Percentile Score Works in CBT Competitive Exams",
-    "slug": "how-cbt-rank-normalization-works",
-    "excerpt": "Understand how formula-based normalization balances difficulty across multiple exam shifts in SSC, RRB, and State PSC examinations.",
-    "category": "Exam Analysis",
-    "author": "Team CBTRANK",
-    "author_name": "Team CBTRANK",
-    "cover_image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80",
-    "image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80",
-    "content": "<h2>What is Score Normalization?</h2>\n<p>Computer Based Tests (CBT) for large national exams like <strong>SSC CGL, RRB NTPC, and Railway Group D</strong> are conducted across multiple shifts over several days. Since question paper difficulty levels vary naturally between shifts, normalization adjusts candidates' raw marks to ensure fair and equitable evaluation.</p>\n\n<h3>Key Factors Influencing Normalized Marks</h3>\n<ul>\n  <li><strong>Shift Mean:</strong> The average marks obtained by top performers within a specific shift.</li>\n  <li><strong>Standard Deviation:</strong> The score spread of candidates in that shift compared to the benchmark shifts.</li>\n  <li><strong>Overall Candidate Pool:</strong> The aggregate performance across all candidates in all exam sessions.</li>\n</ul>\n\n<h3>How to Check Your Expected Shift Rank</h3>\n<p>By pasting your official candidate response sheet URL into the <strong>CBTRank Answer Key Calculator</strong>, your shift average and category rank are evaluated instantly based on authentic candidate submissions.</p>",
-    "description": "<h2>What is Score Normalization?</h2>\n<p>Computer Based Tests (CBT) for large national exams like <strong>SSC CGL, RRB NTPC, and Railway Group D</strong> are conducted across multiple shifts over several days. Since question paper difficulty levels vary naturally between shifts, normalization adjusts candidates' raw marks to ensure fair and equitable evaluation.</p>\n\n<h3>Key Factors Influencing Normalized Marks</h3>\n<ul>\n  <li><strong>Shift Mean:</strong> The average marks obtained by top performers within a specific shift.</li>\n  <li><strong>Standard Deviation:</strong> The score spread of candidates in that shift compared to the benchmark shifts.</li>\n  <li><strong>Overall Candidate Pool:</strong> The aggregate performance across all candidates in all exam sessions.</li>\n</ul>\n\n<h3>How to Check Your Expected Shift Rank</h3>\n<p>By pasting your official candidate response sheet URL into the <strong>CBTRank Answer Key Calculator</strong>, your shift average and category rank are evaluated instantly based on authentic candidate submissions.</p>",
-    "status": "publish",
-    "views": 1420,
-    "created_at": "2026-08-14 10:00:00",
-    "updated_at": "2026-08-14 10:00:00"
-  },
-  {
-    "id": 2,
-    "title": "Step-by-Step Guide to Check SSC & Railway Answer Key Marks and Rank",
-    "slug": "ssc-cgl-answer-key-step-by-step-rank-checking-guide",
-    "excerpt": "Learn how to retrieve your official Digialm response sheet URL and calculate exact correct, wrong, and net marks in seconds.",
-    "category": "Guides",
-    "author": "Team CBTRANK",
-    "author_name": "Team CBTRANK",
-    "cover_image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80",
-    "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80",
-    "content": "<h2>1. Finding Your Official Response Sheet URL</h2>\n<p>Log in to the official examination conducting body portal (e.g., SSC or RRB Digialm link) using your Roll Number and Password. Open the <em>Candidate Response Sheet / Tentative Answer Key</em> page and copy the full URL from your browser address bar.</p>\n\n<h2>2. Pasting into CBTRank Answer Key Calculator</h2>\n<p>Open <strong>CBTRank.com</strong>, select your target examination from the dropdown menu, choose your vertical category (UR, OBC, EWS, SC, ST), and paste your answer key URL into the box.</p>\n\n<h2>3. Instant Scorecard & Analytics</h2>\n<p>Within seconds, CBTRank generates a granular scorecard detailing:</p>\n<ol>\n  <li>Total Questions Attempted</li>\n  <li>Correct Answers (+Marks)</li>\n  <li>Incorrect Answers (-Negative Marks)</li>\n  <li>Net Raw Marks & Overall Accuracy %</li>\n  <li>Section-wise performance breakdown</li>\n</ol>",
-    "description": "<h2>1. Finding Your Official Response Sheet URL</h2>\n<p>Log in to the official examination conducting body portal (e.g., SSC or RRB Digialm link) using your Roll Number and Password. Open the <em>Candidate Response Sheet / Tentative Answer Key</em> page and copy the full URL from your browser address bar.</p>\n\n<h2>2. Pasting into CBTRank Answer Key Calculator</h2>\n<p>Open <strong>CBTRank.com</strong>, select your target examination from the dropdown menu, choose your vertical category (UR, OBC, EWS, SC, ST), and paste your answer key URL into the box.</p>\n\n<h2>3. Instant Scorecard & Analytics</h2>\n<p>Within seconds, CBTRank generates a granular scorecard detailing:</p>\n<ol>\n  <li>Total Questions Attempted</li>\n  <li>Correct Answers (+Marks)</li>\n  <li>Incorrect Answers (-Negative Marks)</li>\n  <li>Net Raw Marks & Overall Accuracy %</li>\n  <li>Section-wise performance breakdown</li>\n</ol>",
-    "status": "publish",
-    "views": 2850,
-    "created_at": "2026-08-12 14:30:00",
-    "updated_at": "2026-08-12 14:30:00"
-  },
-  {
-    "id": 3,
-    "title": "Understanding Category & Shift-Wise Cut-Off Trends for 2026 Exams",
-    "slug": "understanding-category-and-shift-wise-cut-off-trends",
-    "excerpt": "An in-depth analysis of UR, OBC, EWS, SC, and ST category rank thresholds for Tier-1 and Mains competitive examinations.",
-    "category": "Cut-Off Analysis",
-    "author": "Team CBTRANK",
-    "author_name": "Team CBTRANK",
-    "cover_image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&q=80",
-    "image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&q=80",
-    "content": "<h2>Why Category Ranks Matter More Than Raw Scores</h2>\n<p>In all major competitive exams governed by statutory reservation rules, your rank within your specific category (<strong>UR, OBC, EWS, SC, ST, PwD</strong>) determines your selection probability far more accurately than raw scores alone.</p>\n\n<h2>Comparing Shift Averages Across Dates</h2>\n<p>Candidates appearing in historically difficult shifts typically gain marks during normalization, whereas high-scoring shifts require higher raw marks to clear the same percentile cut-off threshold.</p>\n\n<blockquote>Tip: Regularly check your live rank on CBTRank as candidate submissions grow, because rank stabilization improves with larger sample sizes.</blockquote>",
-    "description": "<h2>Why Category Ranks Matter More Than Raw Scores</h2>\n<p>In all major competitive exams governed by statutory reservation rules, your rank within your specific category (<strong>UR, OBC, EWS, SC, ST, PwD</strong>) determines your selection probability far more accurately than raw scores alone.</p>\n\n<h2>Comparing Shift Averages Across Dates</h2>\n<p>Candidates appearing in historically difficult shifts typically gain marks during normalization, whereas high-scoring shifts require higher raw marks to clear the same percentile cut-off threshold.</p>\n\n<blockquote>Tip: Regularly check your live rank on CBTRank as candidate submissions grow, because rank stabilization improves with larger sample sizes.</blockquote>",
-    "status": "publish",
-    "views": 1980,
-    "created_at": "2026-08-10 09:15:00",
-    "updated_at": "2026-08-10 09:15:00"
-  },
-  {
-    "id": 4,
-    "title": "RRB NTPC CBT-1 Preparation Strategy & Expected Cut-Off Marks",
-    "slug": "rrb-ntpc-cbt-1-preparation-strategy-and-expected-cut-off",
-    "excerpt": "Comprehensive shift-wise difficulty roadmap, high-weightage topics in General Awareness, Mathematics, and General Intelligence.",
-    "category": "Preparation Strategy",
-    "author": "Team CBTRANK",
-    "author_name": "Team CBTRANK",
-    "cover_image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=80",
-    "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=80",
-    "content": "<h2>Subject-Wise Focus Areas for CBT-1</h2>\n<p>The Railway Recruitment Board (RRB) Non-Technical Popular Categories (NTPC) examination tests three primary sections:</p>\n<ul>\n  <li><strong>General Awareness (40 Marks):</strong> Current affairs of the last 12 months, Indian Polity, History, and Science fundamentals.</li>\n  <li><strong>Mathematics (30 Marks):</strong> Number Systems, Percentages, Ratio and Proportion, Time and Work, and Mensuration.</li>\n  <li><strong>General Intelligence & Reasoning (30 Marks):</strong> Coding-Decoding, Syllogism, Blood Relations, and Data Sufficiency.</li>\n</ul>\n\n<h2>Importance of Mock Tests & Response Sheet Review</h2>\n<p>Practicing previous year shift papers and evaluating past cut-offs on CBTRank gives you a realistic benchmark for your score targets.</p>",
-    "description": "<h2>Subject-Wise Focus Areas for CBT-1</h2>\n<p>The Railway Recruitment Board (RRB) Non-Technical Popular Categories (NTPC) examination tests three primary sections:</p>\n<ul>\n  <li><strong>General Awareness (40 Marks):</strong> Current affairs of the last 12 months, Indian Polity, History, and Science fundamentals.</li>\n  <li><strong>Mathematics (30 Marks):</strong> Number Systems, Percentages, Ratio and Proportion, Time and Work, and Mensuration.</li>\n  <li><strong>General Intelligence & Reasoning (30 Marks):</strong> Coding-Decoding, Syllogism, Blood Relations, and Data Sufficiency.</li>\n</ul>\n\n<h2>Importance of Mock Tests & Response Sheet Review</h2>\n<p>Practicing previous year shift papers and evaluating past cut-offs on CBTRank gives you a realistic benchmark for your score targets.</p>",
-    "status": "publish",
-    "views": 940,
-    "created_at": "2026-08-08 11:45:00",
-    "updated_at": "2026-08-08 11:45:00"
-  },
-  {
-    "id": 5,
-    "title": "Top 5 Mistakes Candidates Make While Checking Candidate Response Sheets",
-    "slug": "top-mistakes-to-avoid-while-checking-candidate-response-sheet",
-    "excerpt": "Avoid expired session links, incorrect negative marking options, and category selection errors while verifying your score.",
-    "category": "Guides",
-    "author": "Team CBTRANK",
-    "author_name": "Team CBTRANK",
-    "cover_image": "https://images.unsplash.com/photo-1584697964190-7bb510842db7?w=1200&q=80",
-    "image": "https://images.unsplash.com/photo-1584697964190-7bb510842db7?w=1200&q=80",
-    "content": "<h2>1. Copying Obsolete or Logout Redirect URLs</h2>\n<p>Make sure you copy the URL while the response sheet is actively displayed on your screen, not after the session expires or from the login screen.</p>\n\n<h2>2. Incorrect Vertical Category Selection</h2>\n<p>Always verify whether your exam category is UR, OBC, EWS, SC, or ST to ensure your category rank is mapped to the correct peer group.</p>\n\n<h2>3. Overlooking Sectional Cut-Off Requirements</h2>\n<p>Some examinations require minimum qualifying thresholds in specific modules (e.g., Computer Proficiency or Typing). Check sectional performance along with total raw score.</p>",
-    "description": "<h2>1. Copying Obsolete or Logout Redirect URLs</h2>\n<p>Make sure you copy the URL while the response sheet is actively displayed on your screen, not after the session expires or from the login screen.</p>\n\n<h2>2. Incorrect Vertical Category Selection</h2>\n<p>Always verify whether your exam category is UR, OBC, EWS, SC, or ST to ensure your category rank is mapped to the correct peer group.</p>\n\n<h2>3. Overlooking Sectional Cut-Off Requirements</h2>\n<p>Some examinations require minimum qualifying thresholds in specific modules (e.g., Computer Proficiency or Typing). Check sectional performance along with total raw score.</p>",
-    "status": "publish",
-    "views": 670,
-    "created_at": "2026-08-05 16:20:00",
-    "updated_at": "2026-08-05 16:20:00"
-  }
-];
 
 // =============================================================================
 // Helper: Safe Cloudflare D1 Database Instance Extractor
@@ -144,7 +59,6 @@ function getD1Database(env) {
   if (env.DB && typeof env.DB.prepare === 'function') return env.DB;
   if (env.DATABASE && typeof env.DATABASE.prepare === 'function') return env.DATABASE;
   if (env.d1 && typeof env.d1.prepare === 'function') return env.d1;
-  // Scan all env properties for custom D1 binding names
   for (const key of Object.keys(env)) {
     const val = env[key];
     if (val && typeof val === 'object' && typeof val.prepare === 'function') {
@@ -152,6 +66,32 @@ function getD1Database(env) {
     }
   }
   return null;
+}
+
+// =============================================================================
+// Helper: Safe Cloudflare R2 Bucket Instance Extractor
+// =============================================================================
+function getR2Bucket(env) {
+  if (!env) return null;
+  if (env.R2 && typeof env.R2.put === 'function') return env.R2;
+  if (env.BUCKET && typeof env.BUCKET.put === 'function') return env.BUCKET;
+  if (env.UPLOAD_BUCKET && typeof env.UPLOAD_BUCKET.put === 'function') return env.UPLOAD_BUCKET;
+  if (env.IMAGES_BUCKET && typeof env.IMAGES_BUCKET.put === 'function') return env.IMAGES_BUCKET;
+  if (env.IMAGES && typeof env.IMAGES.put === 'function') return env.IMAGES;
+  for (const key of Object.keys(env)) {
+    const val = env[key];
+    if (val && typeof val === 'object' && typeof val.put === 'function' && typeof val.get === 'function') {
+      return val;
+    }
+  }
+  return null;
+}
+
+const DEFAULT_R2_PUBLIC_DOMAIN = "https://upload.cbtrank.com";
+
+function getR2PublicDomain(env) {
+  const domain = (env && env.R2_PUBLIC_DOMAIN) ? env.R2_PUBLIC_DOMAIN : DEFAULT_R2_PUBLIC_DOMAIN;
+  return domain.replace(/\/+$/, '');
 }
 
 // =============================================================================
@@ -261,62 +201,12 @@ async function ensureBlogsTable(env) {
 }
 
 // =============================================================================
-// Helper: Seed Default 5 CBT Rank Blog Articles into D1 Table
-// =============================================================================
-async function seedDefaultBlogs(env) {
-  const db = getD1Database(env);
-  if (!db) return 0;
-  await ensureBlogsTable(env);
-
-  let insertedCount = 0;
-  let maxId = 0;
-
-  for (const b of DEFAULT_BLOGS) {
-    try {
-      await db.prepare(`
-        INSERT OR IGNORE INTO blogs (id, title, slug, excerpt, category, author, author_name, cover_image, image, content, description, status, views, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        b.id,
-        b.title,
-        b.slug,
-        b.excerpt || '',
-        b.category || 'Exam Analysis',
-        b.author || 'Team CBTRANK',
-        b.author_name || b.author || 'Team CBTRANK',
-        b.cover_image || '',
-        b.image || b.cover_image || '',
-        b.content || '',
-        b.description || b.content || '',
-        b.status || 'publish',
-        b.views || 0,
-        b.created_at || new Date().toISOString(),
-        b.updated_at || new Date().toISOString()
-      ).run();
-      insertedCount++;
-      if (b.id > maxId) maxId = b.id;
-    } catch (err) {
-      console.warn("Seed row notice:", b.slug, err.message);
-    }
-  }
-
-  // Ensure sqlite_sequence is at least maxId to prevent AUTOINCREMENT collision
-  if (maxId > 0) {
-    try {
-      await db.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('blogs', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'blogs'), 0), ?))").bind(maxId).run();
-    } catch (e) {}
-  }
-
-  return insertedCount;
-}
-
-// =============================================================================
 // Helper: CORS & JSON Responses
 // =============================================================================
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-api-key, x-filename, x-overwrite',
   'Access-Control-Max-Age': '86400'
 };
 
@@ -351,29 +241,121 @@ export default {
 
     const dbInstance = getD1Database(env);
     const isD1Bound = !!dbInstance;
+    const r2Bucket = getR2Bucket(env);
+    const isR2Bound = !!r2Bucket;
 
     // -------------------------------------------------------------------------
-    // ROUTE 0: Seed / Reset Default Blog Posts (/api/seed-blogs)
+    // ROUTE 0: Image Upload to Cloudflare R2 (/api/upload or /upload)
     // -------------------------------------------------------------------------
-    if ((pathname === '/api/seed-blogs' || pathname === '/api/blogs/seed') && (request.method === 'POST' || request.method === 'GET')) {
-      if (!isD1Bound) {
-        return jsonResponse({
-          success: true,
-          seeded: DEFAULT_BLOGS.length,
-          message: "Running in preview mode (D1 not bound). Displaying built-in default blog articles.",
-          isD1Bound: false
-        });
+    if ((pathname === '/api/upload' || pathname === '/upload') && request.method === 'POST') {
+      if (!isR2Bound) {
+        return errorResponse(
+          "Cloudflare R2 Bucket is not bound to this Worker. Please add an R2 Bucket binding in Cloudflare Dashboard: Settings > Bindings > Add R2 Bucket binding with variable name 'R2' or 'BUCKET'.",
+          500,
+          { isR2Bound: false }
+        );
       }
+
       try {
-        const count = await seedDefaultBlogs(env);
+        const contentType = request.headers.get('content-type') || '';
+        let fileData = null;
+        let originalName = '';
+        let mimeType = 'image/png';
+
+        if (contentType.includes('multipart/form-data')) {
+          const formData = await request.formData();
+          const file = formData.get('file') || formData.get('image') || formData.get('upload');
+          if (!file || typeof file === 'string') {
+            return errorResponse("No file uploaded in form field 'file' or 'image'.", 400);
+          }
+          fileData = await file.arrayBuffer();
+          originalName = file.name || 'image.png';
+          mimeType = file.type || 'image/png';
+        } else if (contentType.includes('application/json')) {
+          const body = await request.json();
+          originalName = body.filename || body.name || 'image.png';
+          mimeType = body.type || 'image/png';
+          if (body.data) {
+            const match = body.data.match(/^data:([^;]+);base64,(.+)$/);
+            if (match) {
+              mimeType = match[1];
+              const binary = atob(match[2]);
+              const bytes = new Uint8Array(binary.length);
+              for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+              fileData = bytes.buffer;
+            } else {
+              return errorResponse("Invalid base64 image data payload.", 400);
+            }
+          } else {
+            return errorResponse("Missing 'data' in JSON upload payload.", 400);
+          }
+        } else if (contentType.startsWith('image/')) {
+          fileData = await request.arrayBuffer();
+          originalName = request.headers.get('x-filename') || ('image-' + Date.now() + '.png');
+          mimeType = contentType;
+        } else {
+          return errorResponse("Unsupported Content-Type. Please upload via multipart/form-data or application/json.", 400);
+        }
+
+        if (!fileData || fileData.byteLength === 0) {
+          return errorResponse("Uploaded image is empty (0 bytes).", 400);
+        }
+
+        // Sanitize filename to clean, SEO-friendly slug
+        let ext = '';
+        const dotIdx = originalName.lastIndexOf('.');
+        if (dotIdx !== -1) {
+          ext = originalName.slice(dotIdx).toLowerCase();
+        } else {
+          if (mimeType === 'image/jpeg') ext = '.jpg';
+          else if (mimeType === 'image/webp') ext = '.webp';
+          else if (mimeType === 'image/gif') ext = '.gif';
+          else if (mimeType === 'image/svg+xml') ext = '.svg';
+          else ext = '.png';
+        }
+
+        const basePart = dotIdx !== -1 ? originalName.slice(0, dotIdx) : originalName;
+        let cleanSlug = basePart
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+
+        if (!cleanSlug) cleanSlug = 'image-' + Date.now();
+
+        let finalKey = cleanSlug + ext;
+
+        // Check if key exists; if so, append random hash to avoid overwriting unless requested
+        const allowOverwrite = request.headers.get('x-overwrite') === '1' || url.searchParams.get('overwrite') === '1';
+        if (!allowOverwrite) {
+          try {
+            const existing = await r2Bucket.head(finalKey);
+            if (existing) {
+              finalKey = cleanSlug + '-' + Math.random().toString(36).substring(2, 7) + ext;
+            }
+          } catch (e) {}
+        }
+
+        await r2Bucket.put(finalKey, fileData, {
+          httpMetadata: {
+            contentType: mimeType,
+            cacheControl: 'public, max-age=31536000, immutable'
+          }
+        });
+
+        const publicBase = getR2PublicDomain(env);
+        const fullUrl = `${publicBase}/${finalKey}`;
+
         return jsonResponse({
           success: true,
-          seeded: count,
-          message: `Successfully seeded/verified ${count} default CBT Rank blog articles in D1 database.`,
-          isD1Bound: true
-        });
+          url: fullUrl,
+          location: fullUrl,
+          filename: finalKey,
+          size: fileData.byteLength,
+          contentType: mimeType,
+          message: "Image successfully uploaded to Cloudflare R2!"
+        }, 201);
       } catch (err) {
-        return errorResponse("Seeding failed: " + err.message, 500, { isD1Bound: true });
+        return errorResponse("Failed to upload image to R2: " + err.message, 500);
       }
     }
 
@@ -388,6 +370,8 @@ export default {
         return jsonResponse({
           success: true,
           isD1Bound: true,
+          isR2Bound: isR2Bound,
+          r2Domain: getR2PublicDomain(env),
           tableExists: columns.length > 0,
           totalBlogs: countRes[0]?.total ?? 0,
           columns: columns
@@ -420,7 +404,7 @@ export default {
       if (!isD1Bound) {
         return jsonResponse({
           success: true,
-          message: "Preview Mode: Updated in memory",
+          message: "Preview Mode: Updated locally",
           isD1Bound: false
         });
       }
@@ -511,7 +495,7 @@ export default {
         const availableCols = await getTableColumns(env);
         const nowIso = new Date().toISOString();
 
-        // 1. Determine next unique ID safely to prevent 'NOT NULL constraint failed: blogs.id'
+        // Determine next unique ID safely to satisfy NOT NULL constraint
         let nextId = 1;
         try {
           const maxRes = await executeD1(env, "SELECT COALESCE(MAX(id), 0) AS max_id FROM blogs");
@@ -538,7 +522,6 @@ export default {
           views
         };
 
-        // Explicitly include id as first column to satisfy NOT NULL constraints
         let colsToInsert = ['id'];
         let placeholders = ['?'];
         let valuesToInsert = [nextId];
@@ -563,17 +546,15 @@ export default {
         }
 
         const insertSql = `INSERT INTO blogs (${colsToInsert.join(', ')}) VALUES (${placeholders.join(', ')})`;
-        const result = await executeD1(env, insertSql, valuesToInsert);
+        await executeD1(env, insertSql, valuesToInsert);
 
-        // Sync autoincrement sequence if sqlite_sequence exists
         try {
-          const dbInstance = getD1Database(env);
-          if (dbInstance) {
-            await dbInstance.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('blogs', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'blogs'), 0), ?))").bind(nextId).run();
+          const db = getD1Database(env);
+          if (db) {
+            await db.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('blogs', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'blogs'), 0), ?))").bind(nextId).run();
           }
         } catch (e) {}
 
-        // Retrieve real assigned ID directly from D1 to guarantee persistence
         let newId = nextId;
         try {
           const insertedRow = await executeD1(env, "SELECT id FROM blogs WHERE slug = ? LIMIT 1", [slug]);
@@ -755,9 +736,7 @@ export default {
     if (getSingleMatch && request.method === 'GET' && pathname !== '/api/blogs' && pathname !== '/blogs') {
       const identifier = getSingleMatch[1];
       if (!isD1Bound) {
-        const found = DEFAULT_BLOGS.find(b => b.slug === identifier || String(b.id) === identifier);
-        if (found) return jsonResponse({ success: true, data: found, isD1Bound: false });
-        return errorResponse("Blog article not found", 404, { isD1Bound: false });
+        return errorResponse("Blog article not found (D1 database not bound)", 404, { isD1Bound: false });
       }
       try {
         let sql = "SELECT * FROM blogs WHERE slug = ? LIMIT 1";
@@ -785,39 +764,25 @@ export default {
       const statusParam = url.searchParams.get('status') ? url.searchParams.get('status').trim().toLowerCase() : '';
       const rawArray = url.searchParams.get('raw') === '1' || url.searchParams.get('format') === 'array';
 
-      // If requested by external frontend Next.js app/data/blogs.ts without specific status,
-      // default behavior serves published posts or all based on parameter
       const filterPublishOnly = statusParam === 'publish' || statusParam === 'published';
       const filterDraftOnly = statusParam === 'draft';
 
       if (!isD1Bound) {
-        let rows = JSON.parse(JSON.stringify(DEFAULT_BLOGS));
-        if (filterPublishOnly) rows = rows.filter(r => r.status === 'publish' || r.status === 'published');
-        if (filterDraftOnly) rows = rows.filter(r => r.status === 'draft');
-        if (category && category !== 'All') rows = rows.filter(r => r.category === category);
-        if (search) {
-          const sLower = search.toLowerCase();
-          rows = rows.filter(r =>
-            (r.title && r.title.toLowerCase().includes(sLower)) ||
-            (r.slug && r.slug.toLowerCase().includes(sLower)) ||
-            (r.excerpt && r.excerpt.toLowerCase().includes(sLower)) ||
-            (r.author && r.author.toLowerCase().includes(sLower))
-          );
-        }
         if (rawArray) {
-          return new Response(JSON.stringify(rows), {
+          return new Response(JSON.stringify([]), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
             status: 200
           });
         }
         return jsonResponse({
           success: true,
-          count: rows.length,
-          data: rows,
-          blogs: rows,
+          count: 0,
+          data: [],
+          blogs: [],
           isD1Bound: false
         });
       }
+
       try {
         let sql = "SELECT * FROM blogs";
         let wheres = [];
@@ -847,16 +812,11 @@ export default {
         try {
           rows = await executeD1(env, sql, params);
         } catch (err) {
-          console.warn("API blogs query fallback:", err.message);
+          console.warn("API blogs query notice:", err.message);
+          rows = [];
         }
 
-        if (!rows || rows.length === 0) {
-          if (!search && !category && !statusParam) {
-            rows = JSON.parse(JSON.stringify(DEFAULT_BLOGS));
-          } else {
-            rows = [];
-          }
-        }
+        if (!rows) rows = [];
 
         if (rawArray) {
           return new Response(JSON.stringify(rows), {
@@ -887,40 +847,38 @@ export default {
 
       if (isD1Bound) {
         try {
-          // 1. Auto-create table & migrate missing columns
           tableCols = await ensureBlogsTable(env);
-
-          // 2. Fetch existing blogs
           initialBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
-
-          // 3. Auto-seed 5 default CBT Rank blogs if database table is empty
-          if (!initialBlogs || initialBlogs.length === 0) {
-            await seedDefaultBlogs(env);
-            initialBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
-          }
         } catch (e) {
           dbError = e.message;
           console.error("D1 Blogs Load Error:", e);
         }
       }
 
-      // 4. Fallback: If D1 is not bound or query returned 0 rows, use 5 built-in default blogs
-      if (!initialBlogs || initialBlogs.length === 0) {
-        initialBlogs = JSON.parse(JSON.stringify(DEFAULT_BLOGS));
-      }
+      if (!initialBlogs) initialBlogs = [];
 
-      return renderBlogsManagerPortal(isD1Bound, tableCols.length > 0, initialBlogs, dbError);
+      return renderBlogsManagerPortal(isD1Bound, isR2Bound, tableCols.length > 0, initialBlogs, dbError, getR2PublicDomain(env));
     }
 
     return errorResponse("Method or endpoint not found", 404);
   }
 };
 
+// Helper to escape HTML in server rendered strings
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // =============================================================================
 // HTML RENDERER: Professional Dark-Mode Blogs Management Portal
-// (Cards View on Mobile, Full Data Table on Tablet & Desktop)
 // =============================================================================
-function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbError) {
+function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBlogs, dbError, r2PublicDomain) {
   const initialJson = JSON.stringify(preloadedBlogs || []);
   const isD1Active = isD1Bound && !dbError;
   const initialList = preloadedBlogs || [];
@@ -933,15 +891,19 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
   const initialViews = initialList.reduce((acc, b) => acc + (parseInt(b.views, 10) || 0), 0);
 
   const d1StatusBadge = isD1Active
-    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Connected (' + preloadedBlogs.length + ' Articles)</span>'
+    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Connected (' + initialCount + ' Live)</span>'
     : (isD1Bound && dbError
       ? '<span class="badge-status-err" title="' + escapeHtml(dbError) + '">⚠️ D1 Error (Click DB Setup)</span>'
-      : '<span class="badge-status-err" title="Add binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ Preview Mode (' + preloadedBlogs.length + ' Default Blogs)</span>');
+      : '<span class="badge-status-err" title="Add D1 binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ D1 Unbound (Preview)</span>');
+
+  const r2StatusBadge = isR2Bound
+    ? '<span class="badge-status-ok" title="Cloudflare R2 Bucket Connected (' + escapeHtml(r2PublicDomain) + ')"><span class="pulse-dot"></span> R2 Uploads Ready</span>'
+    : '<span class="badge-status-neutral" title="Add R2 Bucket binding in Cloudflare Dashboard: Settings > Bindings > Variable: R2 (Domain: ' + escapeHtml(r2PublicDomain) + ')">☁️ R2 Optional</span>';
 
   const alertBox = !isD1Bound
-    ? '<div class="banner-alert"><div><b>ℹ️ Preview Mode Active (Showing ' + preloadedBlogs.length + ' Built-in CBT Articles):</b><br>To enable live database saving directly into your Cloudflare D1 Database, please add your D1 Database Binding under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Cloudflare Dashboard &gt; Workers &gt; Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px; margin-top:6px;">⚡ Connect &amp; Seed Database</button></div>'
+    ? '<div class="banner-alert"><div><b>ℹ️ D1 Database Not Bound:</b><br>To store and manage live blog articles directly into your Cloudflare D1 Database, please add your D1 Database Binding in Cloudflare:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Cloudflare Dashboard &gt; Workers &gt; Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div><button type="button" class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px; margin-top:6px;">⚙️ Setup D1 Table</button></div>'
     : (dbError
-      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>⚠️ D1 Database Initialization Notice:</b> ' + escapeHtml(dbError) + '<br>Click below to create/verify the <code>blogs</code> table or seed default articles.</div><div style="display:flex; gap:8px; margin-top:8px;"><button type="button" class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">⚙️ Run DB Setup</button><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px;">⚡ Seed 5 Articles</button></div></div>'
+      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>⚠️ D1 Database Initialization Notice:</b> ' + escapeHtml(dbError) + '<br>Click below to create/verify the <code>blogs</code> table in your D1 database.</div><div style="display:flex; gap:8px; margin-top:8px;"><button type="button" class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">⚙️ Run DB Setup</button></div></div>'
       : '');
 
   const html = `<!DOCTYPE html>
@@ -985,8 +947,8 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
-      z-index: 1000;
-      padding: 14px 24px;
+      z-index: 100;
+      padding: 12px 24px;
     }
     .navbar-container {
       max-width: 1400px;
@@ -995,7 +957,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      flex-wrap: wrap;
     }
     .navbar-left {
       display: flex;
@@ -1008,24 +969,25 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       align-items: center;
       gap: 10px;
       text-decoration: none;
-      color: #fff;
+      color: inherit;
     }
     .brand-logo {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--primary));
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      font-weight: 800;
-      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+      font-weight: 900;
+      font-size: 17px;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
     }
     .brand-title {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.02em;
     }
     .brand-title span { color: var(--primary); }
 
@@ -1033,141 +995,150 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
-      border-radius: 9999px;
       background: rgba(16, 185, 129, 0.15);
       border: 1px solid rgba(16, 185, 129, 0.3);
       color: #34d399;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
     }
     .badge-status-err {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      font-size: 11px;
+      font-weight: 700;
       padding: 4px 10px;
       border-radius: 9999px;
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #fbbf24;
-      font-size: 12px;
+    }
+    .badge-status-neutral {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #cbd5e1;
+      font-size: 11px;
       font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 9999px;
     }
     .pulse-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #10b981;
       box-shadow: 0 0 8px #10b981;
-      animation: pulse 2s infinite;
+      animation: pulse 1.8s infinite;
     }
     @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.3); opacity: 0.6; }
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     .navbar-right {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-
-    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 8px;
-      padding: 9px 16px;
-      border-radius: 9px;
+      padding: 9px 18px;
+      border-radius: 8px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.18s ease-in-out;
+      border: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
-      white-space: nowrap;
-      user-select: none;
     }
     .btn-primary {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
+      background: linear-gradient(135deg, var(--accent-blue), var(--primary));
       color: #fff;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
     }
     .btn-primary:hover {
-      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5);
       transform: translateY(-1px);
     }
     .btn-secondary {
-      background: #1e293b;
-      border-color: #334155;
-      color: #e2e8f0;
+      background: var(--card-inner);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
     }
     .btn-secondary:hover {
-      background: #334155;
-      color: #fff;
+      background: #1e293b;
+      border-color: var(--card-border-hover);
     }
     .btn-danger {
       background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.3);
+      border: 1px solid rgba(239, 68, 68, 0.3);
       color: #f87171;
     }
     .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.25);
+      background: rgba(239, 68, 68, 0.3);
       color: #fff;
     }
     .btn-icon {
       padding: 6px 10px;
-      font-size: 12px;
-      border-radius: 7px;
       background: #1e293b;
       border: 1px solid #334155;
-      color: var(--text-muted);
+      color: #cbd5e1;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       transition: all 0.15s;
     }
-    .btn-icon:hover {
-      color: #fff;
-      border-color: #64748b;
-    }
+    .btn-icon:hover { background: #334155; color: #fff; }
 
     /* Main Container */
     .main-wrapper {
       max-width: 1400px;
       width: 100%;
       margin: 0 auto;
-      padding: 24px 20px;
+      padding: 24px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
       flex: 1;
     }
 
-    /* Alerts */
     .banner-alert {
       background: rgba(56, 189, 248, 0.08);
       border: 1px solid rgba(56, 189, 248, 0.25);
-      color: #bae6fd;
       border-radius: var(--radius);
       padding: 14px 18px;
-      margin-bottom: 20px;
+      color: #bae6fd;
       font-size: 13px;
+      line-height: 1.5;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
+      gap: 16px;
       flex-wrap: wrap;
     }
 
     /* KPI Stats Grid */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 24px;
     }
     .kpi-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
-      padding: 16px 20px;
+      padding: 18px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1179,11 +1150,11 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
     }
     .kpi-info h4 {
       font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+      font-weight: 600;
       color: var(--text-muted);
-      font-weight: 700;
-      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
     }
     .kpi-info .val {
       font-size: 26px;
@@ -1194,63 +1165,56 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       width: 44px;
       height: 44px;
       border-radius: 10px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-      color: var(--primary);
     }
 
-    /* Search & Filter Bar */
+    /* Action Bar */
     .action-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      margin-bottom: 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
+      gap: 16px;
       flex-wrap: wrap;
     }
     .search-box-wrap {
-      position: relative;
       flex: 1;
       min-width: 260px;
-    }
-    .search-icon {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-muted);
-      font-size: 14px;
+      position: relative;
     }
     .search-input {
       width: 100%;
-      padding: 10px 14px 10px 38px;
-      background: var(--card-inner);
+      padding: 11px 16px 11px 40px;
+      background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 9px;
+      border-radius: 8px;
       color: #fff;
       font-size: 13px;
       outline: none;
-      transition: all 0.2s;
+      transition: border-color 0.2s;
     }
     .search-input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
     }
 
+    /* Category Filter Pills */
     .filter-pills {
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 20px;
     }
     .filter-pill {
       padding: 6px 14px;
@@ -1264,57 +1228,42 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       transition: all 0.15s;
     }
     .filter-pill:hover, .filter-pill.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #090d16;
+      background: rgba(56, 189, 248, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
     }
 
-    /* Responsive View: Cards on Mobile, Table on Desktop */
-    .mobile-cards-view {
-      display: none;
-      flex-direction: column;
-      gap: 14px;
-    }
+    /* Desktop Table View */
     .desktop-table-view {
-      display: block;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       overflow-x: auto;
     }
-
-    /* Table Styles */
     table {
       width: 100%;
       border-collapse: collapse;
       text-align: left;
       font-size: 13px;
     }
-    thead th {
+    th {
       background: #0f172a;
-      color: var(--text-muted);
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       padding: 14px 16px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
       border-bottom: 1px solid var(--card-border);
       white-space: nowrap;
     }
-    tbody tr {
-      border-bottom: 1px solid var(--card-border);
-      transition: background 0.15s;
-    }
-    tbody tr:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-    tbody tr:last-child {
-      border-bottom: none;
-    }
     td {
-      padding: 12px 16px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       vertical-align: middle;
     }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
 
     /* Table Thumbnail */
     .table-thumb {
@@ -1335,11 +1284,16 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       display: flex;
       align-items: center;
       justify-content: center;
+      color: var(--text-muted);
       font-size: 14px;
-      color: #64748b;
     }
 
-    /* Mobile Cards */
+    /* Mobile Cards View */
+    .mobile-cards-view {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
     .blog-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -1620,6 +1574,38 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       color: var(--text-muted);
     }
 
+    /* Cover Upload Input Group */
+    .cover-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn-upload {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-upload:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #0ea5e9;
+      color: #fff;
+    }
+    .btn-upload:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     /* Editor Toolbar */
     .editor-toolbar {
       display: flex;
@@ -1772,6 +1758,15 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         font-size: 10.5px;
         word-break: break-word;
       }
+      .cover-input-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-upload {
+        width: 100%;
+        justify-content: center;
+        padding: 11px;
+      }
       .editor-toolbar {
         flex-direction: column;
         align-items: flex-start;
@@ -1825,6 +1820,8 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
     /* TinyMCE Overrides */
     .tox-tinymce-aux { z-index: 2100 !important; }
     .tox.tox-tinymce {
+      max-width: 100% !important;
+      width: 100% !important;
       border-radius: 8px !important;
       border: 1px solid var(--card-border) !important;
       background: var(--card-inner) !important;
@@ -1851,6 +1848,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
           <div class="brand-title">CBT<span>RANK</span> Blogs Manager</div>
         </a>
         ${d1StatusBadge}
+        ${r2StatusBadge}
       </div>
 
       <div class="navbar-right">
@@ -1907,7 +1905,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
 
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
-        <button class="btn btn-secondary" onclick="seedDatabase()" title="Restore/Seed 5 default CBT articles">⚡ Seed 5 Articles</button>
         <button class="btn btn-secondary" onclick="exportJson()">📥 Export JSON</button>
         <button class="btn btn-secondary" onclick="setupTable()">⚙️ DB Setup</button>
       </div>
@@ -1946,7 +1943,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       </table>
     </div>
 
-    <!-- Mobile View: Cards -->
+    <!-- Mobile Cards View -->
     <div class="mobile-cards-view" id="blogsCardsGrid">
       <!-- Populated by JavaScript -->
     </div>
@@ -2012,13 +2009,23 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
               <input type="text" id="formAuthor" class="form-input" value="Team CBTRANK" placeholder="Team CBTRANK">
             </div>
 
-            <!-- Cover Image URL -->
+            <!-- Cover Image URL & Cloudflare R2 Upload -->
             <div class="form-group form-group-full">
-              <label class="form-label" for="formCoverImage">Cover Image URL</label>
-              <input type="url" id="formCoverImage" class="form-input" placeholder="https://images.unsplash.com/... or https://upload.cbtrank.com/..." oninput="onCoverImageInput(this.value)">
+              <label class="form-label" for="formCoverImage">
+                <span>Cover Image URL (Cloudflare R2)</span>
+                <span style="font-size:11px; color:#38bdf8;">Domain: upload.cbtrank.com</span>
+              </label>
+              <div class="cover-input-group">
+                <input type="url" id="formCoverImage" class="form-input" placeholder="https://upload.cbtrank.com/how-to-check-ossc-pm-pet-2025-answer-key-marks-rank.png" oninput="onCoverImageInput(this.value)">
+                <button type="button" class="btn-upload" id="uploadCoverBtn" onclick="document.getElementById('coverFileInput').click()" title="Upload image directly to Cloudflare R2">
+                  <span id="uploadCoverIcon">📤</span>
+                  <span id="uploadCoverText">Upload to R2</span>
+                </button>
+                <input type="file" id="coverFileInput" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" style="display:none;" onchange="handleCoverUpload(this.files[0])">
+              </div>
               <div class="image-preview-wrap">
-                <img id="formCoverPreview" class="preview-thumb" src="" style="display:none;" alt="Preview">
-                <span class="form-hint" id="coverImageHint">Paste image URL to preview thumbnail.</span>
+                <img id="formCoverPreview" class="preview-thumb" src="" style="display:none;" alt="Cover Preview" onerror="onThumbErr(this)">
+                <div class="form-hint" id="coverImageHint">Upload an image to Cloudflare R2 (${escapeHtml(r2PublicDomain)}) or paste an image URL directly.</div>
               </div>
             </div>
 
@@ -2096,7 +2103,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         <h3 class="modal-title" id="previewModalTitle">👁️ Article Preview</h3>
         <button type="button" class="btn-close" onclick="closeModal('previewModal')">&times;</button>
       </div>
-      <div class="modal-body" id="previewModalBody" style="line-height:1.7; color:#e2e8f0;">
+      <div class="modal-body rendered-article-content" id="previewModalBody" style="line-height:1.7; color:#e2e8f0;">
         <!-- Rendered HTML Preview -->
       </div>
       <div class="modal-footer">
@@ -2130,17 +2137,14 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
     }
 
     function initApp() {
-      // LocalStorage persistence fallback: preserve user blogs on refresh if D1 is not bound
       if (!isD1Connected) {
         try {
           var saved = localStorage.getItem('cbtrank_blogs_store');
           if (saved) {
             var parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
+            if (Array.isArray(parsed)) {
               allBlogs = parsed;
             }
-          } else {
-            localStorage.setItem('cbtrank_blogs_store', JSON.stringify(allBlogs));
           }
         } catch (e) {}
       }
@@ -2173,6 +2177,33 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
           plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
           toolbar: 'undo redo | blocks | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | table link image code | removeformat preview',
           content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; font-size: 14px; background: #0b0f19; color: #f8fafc; line-height: 1.6; padding: 12px; } a { color: #38bdf8; } h2, h3 { color: #fff; margin-top: 18px; margin-bottom: 8px; } blockquote { border-left: 4px solid #38bdf8; padding-left: 14px; color: #94a3b8; font-style: italic; }',
+          images_upload_url: '/api/upload',
+          automatic_uploads: true,
+          images_upload_handler: function(blobInfo, progress) {
+            return new Promise(function(resolve, reject) {
+              var formData = new FormData();
+              formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+              fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+              })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                if (data && data.success && data.url) {
+                  showToast('Embedded image uploaded to R2!');
+                  resolve(data.url);
+                } else if (data && data.location) {
+                  resolve(data.location);
+                } else {
+                  reject(data.error || 'Upload to R2 failed');
+                }
+              })
+              .catch(function(err) {
+                reject('Network error during upload: ' + err.message);
+              });
+            });
+          },
           setup: function(editor) {
             editor.on('init', function() {
               isTinyMceReady = true;
@@ -2267,6 +2298,52 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       showToast('Cut-off table template inserted!');
     }
 
+    // Cloudflare R2 Cover Image Upload Handler
+    async function handleCoverUpload(file) {
+      if (!file) return;
+      var btn = document.getElementById('uploadCoverBtn');
+      var icon = document.getElementById('uploadCoverIcon');
+      var text = document.getElementById('uploadCoverText');
+      var input = document.getElementById('formCoverImage');
+      var hint = document.getElementById('coverImageHint');
+
+      btn.disabled = true;
+      icon.innerText = '⏳';
+      text.innerText = 'Uploading to R2...';
+      hint.innerText = 'Uploading ' + file.name + ' to Cloudflare R2...';
+
+      try {
+        var formData = new FormData();
+        formData.append('file', file);
+
+        var res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        var data = await res.json();
+
+        btn.disabled = false;
+        icon.innerText = '📤';
+        text.innerText = 'Upload to R2';
+
+        if (data.success && data.url) {
+          input.value = data.url;
+          onCoverImageInput(data.url);
+          showToast('Uploaded to R2: ' + data.filename);
+          hint.innerHTML = '<span style="color:#34d399;">✓ Uploaded to R2:</span> <code>' + escapeHtml(data.url) + '</code>';
+        } else {
+          alert('Cloudflare R2 Upload Notice: ' + (data.error || 'Failed to upload image. Please verify R2 Bucket binding is configured in Worker Settings.'));
+          hint.innerText = 'Upload failed. You can also paste an image URL directly.';
+        }
+      } catch (err) {
+        btn.disabled = false;
+        icon.innerText = '📤';
+        text.innerText = 'Upload to R2';
+        alert('Network error during R2 upload: ' + err.message);
+      }
+      document.getElementById('coverFileInput').value = '';
+    }
+
     function previewCurrentArticle() {
       var title = document.getElementById('formTitle').value.trim() || 'Untitled Article';
       var author = document.getElementById('formAuthor').value.trim() || 'Team CBTRANK';
@@ -2277,7 +2354,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
 
       var previewHtml = '';
       if (cover) {
-        previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover">';
+        previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover" onerror="onThumbErr(this)">';
       }
       previewHtml += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">' +
         '<span class="badge-category">' + escapeHtml(category) + '</span>' +
@@ -2298,7 +2375,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       var cover = b.cover_image || b.image || '';
       var previewHtml = '';
       if (cover) {
-        previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover">';
+        previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover" onerror="onThumbErr(this)">';
       }
       previewHtml += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">' +
         '<span class="badge-category">' + escapeHtml(b.category || 'Exam Analysis') + '</span>' +
@@ -2330,19 +2407,23 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
 
     function regenerateSlug() {
       isSlugManual = false;
-      var title = document.getElementById('formTitle').value;
+      var title = document.getElementById('formTitle').value.trim();
       var generated = slugify(title);
       document.getElementById('formSlug').value = generated;
       document.getElementById('slugPreviewText').innerText = generated || 'your-slug';
-      showToast('Slug regenerated from title!');
+      showToast('Slug regenerated!');
     }
 
     function slugify(text) {
-      return String(text || '')
+      return (text || '')
+        .toString()
         .toLowerCase()
         .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+        .replace(/\s+/g, '-')
+        .replace(/[^\w\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
     }
 
     function onCategorySelect(val) {
@@ -2362,17 +2443,11 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       if (val) {
         preview.src = val;
         preview.style.display = 'block';
-        preview.onerror = function() {
-          preview.style.display = 'none';
-          hint.innerText = '⚠️ Image URL failed to load preview.';
-        };
-        preview.onload = function() {
-          preview.style.display = 'block';
-          hint.innerText = '✓ Image preview loaded successfully.';
-        };
+        hint.innerText = 'Cover image URL configured.';
       } else {
         preview.style.display = 'none';
-        hint.innerText = 'Paste image URL to preview thumbnail.';
+        preview.src = '';
+        hint.innerText = 'Upload an image to Cloudflare R2 (${escapeHtml(r2PublicDomain)}) or paste an image URL directly.';
       }
     }
 
@@ -2419,7 +2494,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       document.getElementById('slugPreviewText').innerText = blog.slug || '';
       isSlugManual = true;
 
-      // Category handling
       var stdCategories = ['Exam Analysis', 'Guides', 'Cut-Off Analysis', 'Preparation Strategy', 'Latest News', 'Answer Key'];
       var cat = blog.category || 'Exam Analysis';
       if (stdCategories.includes(cat)) {
@@ -2484,12 +2558,9 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         slug: slug,
         category: category,
         author: document.getElementById('formAuthor').value.trim() || 'Team CBTRANK',
-        author_name: document.getElementById('formAuthor').value.trim() || 'Team CBTRANK',
         cover_image: document.getElementById('formCoverImage').value.trim(),
-        image: document.getElementById('formCoverImage').value.trim(),
         excerpt: document.getElementById('formExcerpt').value.trim(),
-        content: getContentValue().trim(),
-        description: getContentValue().trim(),
+        content: getContentValue(),
         status: document.getElementById('formStatus').value,
         views: parseInt(document.getElementById('formViews').value, 10) || 0
       };
@@ -2498,7 +2569,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         try {
           var res;
           if (isEdit) {
-            payload.id = parseInt(blogId, 10);
+            payload.id = blogId;
             res = await fetch('/api/blogs/' + blogId, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -2530,7 +2601,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
           alert('Network / API Error: ' + err.message);
         }
       } else {
-        // Preview Mode Fallback (when D1 is not bound)
         var newId = isEdit ? parseInt(blogId, 10) : (allBlogs.length > 0 ? Math.max.apply(null, allBlogs.map(function(x) { return x.id || 0; })) + 1 : 1);
         payload.id = newId;
         payload.created_at = new Date().toISOString();
@@ -2543,7 +2613,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         }
         saveLocalStorage();
         saveBtn.disabled = false;
-        saveBtn.innerHTML = isEdit ? '💾 Update Article' : '💾 Create Article';
+        saveBtn.innerText = isEdit ? '💾 Update Article' : '💾 Create Article';
         closeModal('blogModal');
         showToast(isEdit ? 'Article updated & saved locally!' : 'Article added & saved locally!');
         renderAllViews();
@@ -2618,7 +2688,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         return;
       }
 
-      // Optimistic update
       blog.status = newStatus;
       renderAllViews();
       updateStats();
@@ -2630,6 +2699,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
           body: JSON.stringify({ id: id, status: newStatus })
         });
         var data = await res.json();
+
         if (!data.success) {
           blog.status = currentStatus;
           renderAllViews();
@@ -2666,33 +2736,10 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
           allBlogs = json.data;
           renderAllViews();
           updateStats();
-          showToast('Articles refreshed from D1 (' + allBlogs.length + ' articles)');
+          showToast('Articles refreshed from D1 (' + allBlogs.length + ' live)');
         }
       } catch (e) {
         console.error('Refresh error:', e);
-      }
-    }
-
-    async function seedDatabase() {
-      if (!confirm('Seed the 5 default CBT Rank blog articles into Cloudflare D1?')) return;
-      if (!isD1Connected) {
-        try { localStorage.removeItem('cbtrank_blogs_store'); } catch (e) {}
-        showToast('Reset to default 5 CBT articles!');
-        location.reload();
-        return;
-      }
-      try {
-        showToast('Seeding 5 default articles into D1...', 'info');
-        var res = await fetch('/api/seed-blogs', { method: 'POST' });
-        var data = await res.json();
-        if (data.success) {
-          showToast(data.message || 'Successfully seeded articles!');
-          await refreshData();
-        } else {
-          alert('Seed Notice: ' + (data.error || 'Could not seed database'));
-        }
-      } catch (err) {
-        alert('Network Error: ' + err.message);
       }
     }
 
@@ -2722,7 +2769,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       a.remove();
     }
 
-    // Filter & Search Controls
     function setCategoryFilter(cat) {
       currentCategoryFilter = cat;
       currentStatusFilter = 'all';
@@ -2762,7 +2808,6 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
 
     function getFilteredBlogs() {
       return allBlogs.filter(function(b) {
-        // Status filter
         if (currentStatusFilter === 'publish') {
           var st = String(b.status || '').toLowerCase();
           if (st !== 'publish' && st !== 'published') return false;
@@ -2770,12 +2815,10 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
           if (String(b.status || '').toLowerCase() !== 'draft') return false;
         }
 
-        // Category filter
         if (currentCategoryFilter !== 'All') {
           if (b.category !== currentCategoryFilter) return false;
         }
 
-        // Search query
         if (searchQuery) {
           var titleMatch = b.title && b.title.toLowerCase().includes(searchQuery);
           var slugMatch = b.slug && b.slug.toLowerCase().includes(searchQuery);
@@ -2801,7 +2844,12 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       var filtered = getFilteredBlogs();
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:36px; color:#64748b;">No blog articles match your current filter or search query.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:48px 16px; color:#64748b;">' +
+          '<div style="font-size:32px; margin-bottom:10px;">📝</div>' +
+          '<div style="font-size:15px; font-weight:700; color:#cbd5e1; margin-bottom:4px;">No Blog Articles Found</div>' +
+          '<div style="font-size:12px; margin-bottom:14px;">Your D1 database table currently has no articles. Click below to add your first post!</div>' +
+          '<button type="button" class="btn btn-primary" onclick="openAddModal()" style="display:inline-flex; align-items:center; gap:6px; margin:0 auto; padding:8px 16px;">+ Add New Article</button>' +
+        '</td></tr>';
         return;
       }
 
@@ -2851,7 +2899,12 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       var filtered = getFilteredBlogs();
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:36px; color:#64748b; background:#111827; border-radius:12px;">No articles found.</div>';
+        grid.innerHTML = '<div style="text-align:center; padding:48px 16px; color:#64748b; background:#111827; border:1px dashed #334155; border-radius:12px;">' +
+          '<div style="font-size:32px; margin-bottom:10px;">📝</div>' +
+          '<div style="font-size:15px; font-weight:700; color:#cbd5e1; margin-bottom:4px;">No Articles Found</div>' +
+          '<div style="font-size:12px; margin-bottom:14px;">Your D1 database is ready. Click below to add your first article!</div>' +
+          '<button type="button" class="btn btn-primary" onclick="openAddModal()" style="display:inline-flex; align-items:center; gap:6px; margin:0 auto; padding:8px 16px;">+ Add New Article</button>' +
+        '</div>';
         return;
       }
 
