@@ -923,6 +923,14 @@ export default {
 function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbError) {
   const initialJson = JSON.stringify(preloadedBlogs || []);
   const isD1Active = isD1Bound && !dbError;
+  const initialList = preloadedBlogs || [];
+  const initialCount = initialList.length;
+  const initialPub = initialList.filter(b => {
+    const s = String(b.status || '').toLowerCase();
+    return s === 'publish' || s === 'published';
+  }).length;
+  const initialDrafts = initialCount - initialPub;
+  const initialViews = initialList.reduce((acc, b) => acc + (parseInt(b.views, 10) || 0), 0);
 
   const d1StatusBadge = isD1Active
     ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Connected (' + preloadedBlogs.length + ' Articles)</span>'
@@ -1726,28 +1734,28 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Total Articles</h4>
-          <div class="val" id="statTotal">0</div>
+          <div class="val" id="statTotal">${initialCount}</div>
         </div>
         <div class="kpi-icon">📚</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Published Live</h4>
-          <div class="val" id="statPublished" style="color:#34d399;">0</div>
+          <div class="val" id="statPublished" style="color:#34d399;">${initialPub}</div>
         </div>
         <div class="kpi-icon" style="color:#10b981; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2);">🚀</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Drafts</h4>
-          <div class="val" id="statDrafts" style="color:#fbbf24;">0</div>
+          <div class="val" id="statDrafts" style="color:#fbbf24;">${initialDrafts}</div>
         </div>
         <div class="kpi-icon" style="color:#fbbf24; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.2);">📝</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Total Views</h4>
-          <div class="val" id="statViews" style="color:#38bdf8;">0</div>
+          <div class="val" id="statViews" style="color:#38bdf8;">${initialViews}</div>
         </div>
         <div class="kpi-icon" style="color:#38bdf8; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.2);">👁️</div>
       </div>
@@ -2081,37 +2089,43 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
     }
 
     function insertGuideTemplate() {
-      var tpl = '<h2>1. Overview & Important Dates</h2>\n' +
-        '<p>Detailed explanation of examination phases, notification release, and application procedures.</p>\n' +
-        '<h2>2. Eligibility Criteria</h2>\n' +
-        '<ul>\n' +
-        '  <li><strong>Educational Qualification:</strong> Degree or equivalent from recognized board.</li>\n' +
-        '  <li><strong>Age Limit:</strong> 18 to 30 years (category relaxations applicable).</li>\n' +
-        '</ul>\n' +
-        '<h2>3. Expected Cut-Off & Shift Analysis</h2>\n' +
-        '<p>Review previous year normalized cut-off scores on CBTRank Calculator to calibrate your target score.</p>';
-      setContentValue(getContentValue() + '\n' + tpl);
+      var tpl = [
+        '<h2>1. Overview & Important Dates</h2>',
+        '<p>Detailed explanation of examination phases, notification release, and application procedures.</p>',
+        '<h2>2. Eligibility Criteria</h2>',
+        '<ul>',
+        '  <li><strong>Educational Qualification:</strong> Degree or equivalent from recognized board.</li>',
+        '  <li><strong>Age Limit:</strong> 18 to 30 years (category relaxations applicable).</li>',
+        '</ul>',
+        '<h2>3. Expected Cut-Off & Shift Analysis</h2>',
+        '<p>Review previous year normalized cut-off scores on CBTRank Calculator to calibrate your target score.</p>'
+      ].join('<br>');
+      var cur = getContentValue();
+      setContentValue((cur ? cur + '<br><br>' : '') + tpl);
       showToast('Guide template inserted!');
     }
 
     function insertCutoffTemplate() {
-      var tpl = '<h2>Category-Wise Expected Cut-Off Marks</h2>\n' +
-        '<table style="width: 100%; border-collapse: collapse; border: 1px solid #334155;">\n' +
-        '  <thead>\n' +
-        '    <tr style="background: #1e293b; color: #fff;">\n' +
-        '      <th style="padding: 8px; border: 1px solid #334155;">Category</th>\n' +
-        '      <th style="padding: 8px; border: 1px solid #334155;">Expected Raw Score</th>\n' +
-        '      <th style="padding: 8px; border: 1px solid #334155;">Normalized Range</th>\n' +
-        '    </tr>\n' +
-        '  </thead>\n' +
-        '  <tbody>\n' +
-        '    <tr><td style="padding: 8px; border: 1px solid #334155;">UR / General</td><td style="padding: 8px; border: 1px solid #334155;">135 - 142</td><td style="padding: 8px; border: 1px solid #334155;">145 - 152</td></tr>\n' +
-        '    <tr><td style="padding: 8px; border: 1px solid #334155;">OBC</td><td style="padding: 8px; border: 1px solid #334155;">128 - 134</td><td style="padding: 8px; border: 1px solid #334155;">138 - 144</td></tr>\n' +
-        '    <tr><td style="padding: 8px; border: 1px solid #334155;">EWS</td><td style="padding: 8px; border: 1px solid #334155;">124 - 130</td><td style="padding: 8px; border: 1px solid #334155;">134 - 140</td></tr>\n' +
-        '    <tr><td style="padding: 8px; border: 1px solid #334155;">SC / ST</td><td style="padding: 8px; border: 1px solid #334155;">112 - 120</td><td style="padding: 8px; border: 1px solid #334155;">120 - 128</td></tr>\n' +
-        '  </tbody>\n' +
-        '</table>';
-      setContentValue(getContentValue() + '\n' + tpl);
+      var tpl = [
+        '<h2>Category-Wise Expected Cut-Off Marks</h2>',
+        '<table style="width: 100%; border-collapse: collapse; border: 1px solid #334155;">',
+        '  <thead>',
+        '    <tr style="background: #1e293b; color: #fff;">',
+        '      <th style="padding: 8px; border: 1px solid #334155;">Category</th>',
+        '      <th style="padding: 8px; border: 1px solid #334155;">Expected Raw Score</th>',
+        '      <th style="padding: 8px; border: 1px solid #334155;">Normalized Range</th>',
+        '    </tr>',
+        '  </thead>',
+        '  <tbody>',
+        '    <tr><td style="padding: 8px; border: 1px solid #334155;">UR / General</td><td style="padding: 8px; border: 1px solid #334155;">135 - 142</td><td style="padding: 8px; border: 1px solid #334155;">145 - 152</td></tr>',
+        '    <tr><td style="padding: 8px; border: 1px solid #334155;">OBC</td><td style="padding: 8px; border: 1px solid #334155;">128 - 134</td><td style="padding: 8px; border: 1px solid #334155;">138 - 144</td></tr>',
+        '    <tr><td style="padding: 8px; border: 1px solid #334155;">EWS</td><td style="padding: 8px; border: 1px solid #334155;">124 - 130</td><td style="padding: 8px; border: 1px solid #334155;">134 - 140</td></tr>',
+        '    <tr><td style="padding: 8px; border: 1px solid #334155;">SC / ST</td><td style="padding: 8px; border: 1px solid #334155;">112 - 120</td><td style="padding: 8px; border: 1px solid #334155;">120 - 128</td></tr>',
+        '  </tbody>',
+        '</table>'
+      ].join('');
+      var cur = getContentValue();
+      setContentValue((cur ? cur + '<br><br>' : '') + tpl);
       showToast('Cut-off table template inserted!');
     }
 
@@ -2658,7 +2672,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         var isPub = (String(b.status).toLowerCase() === 'publish' || String(b.status).toLowerCase() === 'published');
         var coverUrl = b.cover_image || b.image || '';
         var thumbHtml = coverUrl
-          ? '<img src="' + escapeHtml(coverUrl) + '" class="table-thumb" alt="Cover" onerror="this.onerror=null;this.parentElement.innerHTML=\'<div class=\\\'table-thumb-placeholder\\\'>🖼️</div>\';">'
+          ? '<img src="' + escapeHtml(coverUrl) + '" class="table-thumb" alt="Cover" onerror="onThumbErr(this)">'
           : '<div class="table-thumb-placeholder">🖼️</div>';
 
         rowsHtml += '<tr>' +
@@ -2668,7 +2682,7 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
             '<div style="font-weight:700; color:#fff; font-size:14px; max-width:340px; line-height:1.35;">' + escapeHtml(b.title) + '</div>' +
             '<div style="display:flex; align-items:center; gap:6px; margin-top:4px;">' +
               '<span class="slug-badge">' + escapeHtml(b.slug) + '</span>' +
-              '<button type="button" class="btn-icon" style="padding:1px 5px; font-size:10px;" onclick="copyText(\'' + escapeHtml(b.slug) + '\')" title="Copy Slug">📋</button>' +
+              '<button type="button" class="btn-icon" style="padding:1px 5px; font-size:10px;" data-slug="' + escapeHtml(b.slug) + '" onclick="copySlugBtn(this)" title="Copy Slug">📋</button>' +
             '</div>' +
           '</td>' +
           '<td><span class="badge-category">' + escapeHtml(b.category || 'Exam Analysis') + '</span></td>' +
@@ -2720,14 +2734,14 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
               '</div>' +
               '<div class="card-title">' + escapeHtml(b.title) + '</div>' +
             '</div>' +
-            (coverUrl ? '<div class="card-thumb-wrap"><img src="' + escapeHtml(coverUrl) + '" class="card-thumb" alt="Cover" onerror="this.style.display=\'none\'"></div>' : '') +
+            (coverUrl ? '<div class="card-thumb-wrap"><img src="' + escapeHtml(coverUrl) + '" class="card-thumb" alt="Cover" onerror="onThumbErr(this)"></div>' : '') +
           '</div>' +
 
           (b.excerpt ? '<div class="card-excerpt">' + escapeHtml(b.excerpt) + '</div>' : '') +
 
           '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' +
             '<span class="slug-badge">' + escapeHtml(b.slug) + '</span>' +
-            '<button type="button" class="btn-icon" style="padding:1px 6px; font-size:10px;" onclick="copyText(\'' + escapeHtml(b.slug) + '\')" title="Copy Slug">📋</button>' +
+            '<button type="button" class="btn-icon" style="padding:1px 6px; font-size:10px;" data-slug="' + escapeHtml(b.slug) + '" onclick="copySlugBtn(this)" title="Copy Slug">📋</button>' +
           '</div>' +
 
           '<div class="card-footer">' +
@@ -2796,6 +2810,16 @@ function renderBlogsManagerPortal(isD1Bound, tableExists, preloadedBlogs, dbErro
         t.style.transform = 'translateX(100%)';
         setTimeout(function() { t.remove(); }, 300);
       }, 3500);
+    }
+
+    function onThumbErr(img) {
+      if (img) img.style.display = 'none';
+    }
+
+    function copySlugBtn(btn) {
+      if (!btn) return;
+      var slug = btn.getAttribute('data-slug');
+      if (slug) copyText(slug);
     }
 
     function copyText(str) {
