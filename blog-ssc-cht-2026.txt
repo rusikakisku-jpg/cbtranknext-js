@@ -1,0 +1,167 @@
+<div class="ssc-cht-description-wrapper" style="font-family: Arial, Helvetica, sans-serif; color: #1e293b; line-height: 1.7; font-size: 16px; max-width: 860px; margin: 0 auto;">
+  <!-- Summary Box -->
+  <div style="background-color: #eff6ff; border-left: 4px solid #0044cc; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
+    <div style="display: inline-block; background-color: #0044cc; color: #ffffff; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;">SSC CHT / JHT 2026 OFFICIAL GUIDE</div>
+    <p style="margin: 0; font-size: 15px; color: #1e3a8a; font-weight: 500;"><strong>Official Summary:</strong> Staff Selection Commission (SSC) conducts the Combined Hindi Translators Examination, 2026 for recruitment of <strong>Junior Translation Officer (JTO)</strong>, <strong>Junior Hindi Translator (JHT)</strong>, and <strong>Senior Hindi Translator (SHT)</strong> in various Ministries, Departments, and Attached/Subordinate Offices of the Government of India. Follow this verified guide to check your official Paper-I response sheet, calculate marks with <strong>0.25 negative marking</strong>, and check your real-time <strong>Shift Rank &amp; Normalised Score on CBTRank</strong>.</p>
+  </div>
+
+  <!-- Section 1: Exam Pattern -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">1. SSC CHT 2026 Paper-I Exam Pattern &amp; Marks Distribution</h2>
+  <p style="color: #475569; margin-bottom: 16px;">According to Para 11 of the official advertisement (Notice: Combined Hindi Translators Examination, 2026), Stage-I consists of <strong>Paper-I Computer Based Examination (CBE)</strong> featuring <strong>200 Objective MCQ Questions (200 Marks)</strong> with an exam duration of <strong>120 Minutes (2 Hours)</strong>. Each correct question awards <strong>1.0 Mark</strong>, while <strong>0.25 (1/4th) Mark</strong> is deducted for every incorrect response. Note that sectional timers of 60 minutes (1 hour) each are applicable for General Hindi and General English.</p>
+
+  <!-- Responsive Exam Pattern Table -->
+  <div style="overflow-x: auto; margin: 18px 0 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background-color: #ffffff;">
+      <thead>
+        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Paper / Part</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Subject</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Questions</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Marks</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Sectional Time</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Negative Marking</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #0f172a; font-weight: bold;">Paper-I (Part-I)</td>
+          <td style="padding: 10px 14px; color: #334155; font-weight: 500;">General Hindi (Degree Level)</td>
+          <td style="padding: 10px 14px; color: #475569;">100</td>
+          <td style="padding: 10px 14px; color: #475569;">100</td>
+          <td style="padding: 10px 14px; color: #475569;">60 Minutes (1 Hr)</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #0f172a; font-weight: bold;">Paper-I (Part-II)</td>
+          <td style="padding: 10px 14px; color: #334155; font-weight: 500;">General English (Degree Level)</td>
+          <td style="padding: 10px 14px; color: #475569;">100</td>
+          <td style="padding: 10px 14px; color: #475569;">100</td>
+          <td style="padding: 10px 14px; color: #475569;">60 Minutes (1 Hr)</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="background-color: #f0fdf4; font-weight: bold;">
+          <td style="padding: 12px 14px; color: #065f46;" colspan="2">TOTAL (Paper-I Written CBE)</td>
+          <td style="padding: 12px 14px; color: #065f46;">200 Questions</td>
+          <td style="padding: 12px 14px; color: #065f46;">200 Marks</td>
+          <td style="padding: 12px 14px; color: #065f46;">120 Minutes (2 Hours)</td>
+          <td style="padding: 12px 14px; color: #059669;">0.25 Marks Deduction</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CTA Box -->
+  <div style="background-color: #0044cc; color: #ffffff; border-radius: 10px; padding: 20px; text-align: center; margin: 24px 0;">
+    <h3 style="color: #ffffff; font-size: 18px; font-weight: bold; margin: 0 0 6px 0;">Calculate Your SSC CHT 2026 Score and Shift Rank Online</h3>
+    <p style="color: #dbeafe; font-size: 14px; margin: 0 0 14px 0;">Paste your response sheet URL to check section-wise marks, negative deductions, and real-time shift rank.</p>
+    <a style="display: inline-block; background-color: #ffffff; color: #0044cc; font-weight: bold; font-size: 14px; padding: 10px 24px; border-radius: 50px; text-decoration: none;" href="https://cbtrank.com/ssc-combined-hindi-translators-examination-2026/answerkey" target="_blank" rel="noopener noreferrer"> Open SSC CHT Calculator on CBTRank </a>
+  </div>
+
+  <!-- Section 2: Step-by-Step Guide -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">2. Step-by-Step Guide: How to Check Answer Key on CBTRank</h2>
+  <div style="margin: 16px 0 24px;">
+    <!-- Step 1 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 1: Copy Official Response Sheet Link</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Log in to the official SSC candidate portal (ssc.gov.in) using your User ID and Password. Open your tentative Answer Key / Response Sheet link and copy the complete URL from your browser address bar.</p>
+    </div>
+    <!-- Step 2 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 2: Open CBTRank SSC CHT Page</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Visit the verified calculator link: <a style="color: #0044cc; font-weight: bold;" href="https://cbtrank.com/ssc-combined-hindi-translators-examination-2026/answerkey" target="_blank" rel="noopener">cbtrank.com/ssc-combined-hindi-translators-examination-2026/answerkey</a>.</p>
+    </div>
+    <!-- Step 3 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 3: Paste URL and Select Category / Shift</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Paste your copied response sheet link into the box. Select your Category (UR, EWS, OBC, SC, ST) and gender/reservation details.</p>
+    </div>
+    <!-- Step 4 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 4: View Scorecard and Real-Time Shift Rank</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Click &ldquo;Calculate Marks and Rank&rdquo;. Within seconds, CBTRank provides your verified Net Score, Sectional Marks (General Hindi &amp; General English), 0.25 Negative Marking deduction, Shift Rank, and full question-by-question review.</p>
+    </div>
+  </div>
+
+  <!-- Section 3: Paper-II & Selection Process -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">3. SSC CHT Stage-II: Paper-II (Descriptive Translation &amp; Essay) Scheme</h2>
+  <p style="color: #475569; margin-bottom: 14px;">Candidates shortlisted on the basis of marks scored in Paper-I Computer Based Examination are eligible to appear in <strong>Paper-II (Descriptive Mode)</strong>. The structure of Paper-II is as follows:</p>
+
+  <div style="overflow-x: auto; margin: 14px 0 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background-color: #ffffff;">
+      <thead>
+        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Paper Component</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Description / Content</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Maximum Marks</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Exam Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Translation Component</td>
+          <td style="padding: 10px 14px; color: #334155;">2 Passages: 1 Hindi to English translation passage + 1 English to Hindi translation passage</td>
+          <td style="padding: 10px 14px; color: #0044cc; font-weight: bold;">100 Marks</td>
+          <td style="padding: 10px 14px;" rowspan="2">2 Hours (120 Minutes)<br><span style="font-size: 12px; color: #64748b;">(2h 40m for Scribe)</span></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Essay Writing Component</td>
+          <td style="padding: 10px 14px; color: #334155;">2 Essays: 1 Essay in Hindi language + 1 Essay in English language</td>
+          <td style="padding: 10px 14px; color: #0044cc; font-weight: bold;">100 Marks</td>
+        </tr>
+        <tr style="background-color: #eff6ff; font-weight: bold;">
+          <td style="padding: 10px 14px; color: #0f172a;" colspan="2">Paper-II Total Marks &amp; Weightage</td>
+          <td style="padding: 10px 14px; color: #16a34a;">200 Marks</td>
+          <td style="padding: 10px 14px; color: #16a34a;">100% Final Weightage</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;">
+    <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 6px;">Official Mode of Selection &amp; Weightage (Para 16.1 &amp; 16.3):</strong>
+    <p style="font-size: 13px; color: #475569; margin: 0; line-height: 1.6;">
+      &bull; <strong>Minimum Qualifying Marks in Paper-I:</strong> UR: 30% (60/200) | OBC/EWS: 25% (50/200) | SC/ST/PwBD/ESM: 20% (40/200).<br>
+      &bull; <strong>Final Merit Calculation:</strong> As per Para 16.3, final merit is computed giving <strong>50% weightage of scores in Paper-I</strong> plus <strong>100% marks in Paper-II</strong>.<br>
+      &bull; <strong>Post Allocation:</strong> Made through First Round of Tentative Allocation (FRTA) based on combined merit and online post preferences.
+    </p>
+  </div>
+
+  <!-- Section 4: Formula -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">4. Official SSC CHT Negative Marking Formula</h2>
+  <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 14px 16px; margin: 14px 0 20px; font-family: monospace; font-size: 14px; color: #0f172a;">
+    Paper-I Net Raw Score = (Total Correct Answers &times; 1.0) &minus; (Total Wrong Answers &times; 0.25)<br>
+    <span style="font-size: 12px; color: #64748b;">Note: Unattempted questions receive 0 marks (no deduction). In multi-shift exams, raw scores are normalized according to the official SSC formula published on 02-06-2025 to determine final cut-offs.</span>
+  </div>
+
+  <!-- Section 5: FAQs -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">5. Frequently Asked Questions (FAQs)</h2>
+  <div style="margin: 14px 0 24px;">
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q1: What is the negative marking deduction in SSC CHT 2026 Paper-I?</strong>
+      <span style="color: #475569; font-size: 13px;">As per Para 11.3 of the official notification, 0.25 mark is deducted for each incorrect answer in Paper-I Computer Based Examination.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q2: What is the weightage of Paper-I and Paper-II in the final merit list?</strong>
+      <span style="color: #475569; font-size: 13px;">As specified in Para 16.3, the final merit weightage is 50% of the scores in Paper-I and 100% of the marks scored in Paper-II (Descriptive Paper).</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q3: Is sectional timing applicable in SSC CHT Paper-I?</strong>
+      <span style="color: #475569; font-size: 13px;">Yes, Sectional Timers are strictly applicable: 60 minutes for Part-I (General Hindi) and 60 minutes for Part-II (General English).</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q4: What is the fee to challenge an answer key question on ssc.gov.in?</strong>
+      <span style="color: #475569; font-size: 13px;">As per Para 11.5, candidates can submit online representations by paying a non-refundable fee of Rs. 50/- per question challenged within the notified timeline.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q5: How does CBTRank evaluate SSC CHT answer keys?</strong>
+      <span style="color: #475569; font-size: 13px;">CBTRank parses your response sheet to calculate exact Hindi &amp; English subject marks, applies the 0.25 penalty, and ranks you against other candidates from the exact same shift and category in real time.</span>
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="text-align: center; margin-top: 24px; padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <h3 style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Check Your SSC CHT 2026 Score and Rank Now</h3>
+    <p style="font-size: 13px; color: #64748b; margin: 0 0 12px 0;">Fast, accurate, and 100% free answer key calculator for SSC Hindi Translator candidates.</p>
+    <a style="display: inline-block; background-color: #0044cc; color: #ffffff; font-weight: bold; font-size: 13px; padding: 9px 22px; border-radius: 50px; text-decoration: none;" href="https://cbtrank.com/ssc-combined-hindi-translators-examination-2026/answerkey" target="_blank" rel="noopener noreferrer"> Calculate Marks on CBTRank </a>
+  </div>
+</div>
