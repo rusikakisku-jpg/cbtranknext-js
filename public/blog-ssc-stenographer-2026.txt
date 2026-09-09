@@ -1,0 +1,184 @@
+<div class="ssc-steno-description-wrapper" style="font-family: Arial, Helvetica, sans-serif; color: #1e293b; line-height: 1.7; font-size: 16px; max-width: 860px; margin: 0 auto;">
+  <!-- Summary Box -->
+  <div style="background-color: #eff6ff; border-left: 4px solid #0044cc; border-radius: 8px; padding: 16px 20px; margin-bottom: 24px;">
+    <div style="display: inline-block; background-color: #0044cc; color: #ffffff; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px;">SSC STENO GRADE C &amp; D 2026 GUIDE</div>
+    <p style="margin: 0; font-size: 15px; color: #1e3a8a; font-weight: 500;"><strong>Official Summary:</strong> Staff Selection Commission (SSC) conducts the Open Competitive Computer Based Examination for recruitment to the posts of <strong>Stenographer Grade &lsquo;C&rsquo; (Group &lsquo;B&rsquo; Non-Gazetted)</strong> and <strong>Stenographer Grade &lsquo;D&rsquo; (Group &lsquo;C&rsquo; Non-Gazetted)</strong> across various Central Ministries, Departments, and Attached/Subordinate Offices. Follow this verified guide to check your official response sheet, calculate marks with <strong>0.25 negative marking</strong>, and check your real-time <strong>Shift Rank &amp; Normalised Score on CBTRank</strong>.</p>
+  </div>
+
+  <!-- Section 1: Exam Pattern -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">1. SSC Stenographer 2026 Written Exam Pattern &amp; Marks Distribution</h2>
+  <p style="color: #475569; margin-bottom: 16px;">According to Para 13 of the official advertisement (F. No.: E/13/2026-C-2), the Computer Based Examination (CBE) consists of <strong>200 Objective MCQ Questions (200 Marks)</strong> with an exam duration of <strong>120 Minutes (2 Hours)</strong>. Each correct answer carries <strong>1.0 Mark</strong>, while <strong>0.25 (1/4th) Mark</strong> is deducted for every incorrect response. Sectional timers are implemented: 30 minutes each for Part I &amp; II, and 60 minutes for Part III.</p>
+
+  <!-- Responsive Exam Pattern Table -->
+  <div style="overflow-x: auto; margin: 18px 0 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background-color: #ffffff;">
+      <thead>
+        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Part / Subject Component</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Questions</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Marks</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Sectional Time</th>
+          <th style="padding: 12px 14px; font-weight: bold; color: #0f172a;">Negative Marking</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #334155; font-weight: 500;">Part-I: General Intelligence &amp; Reasoning</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">30 Minutes</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #334155; font-weight: 500;">Part-II: General Awareness</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">50</td>
+          <td style="padding: 10px 14px; color: #475569;">30 Minutes</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; color: #334155; font-weight: 500;">Part-III: English Language &amp; Comprehension</td>
+          <td style="padding: 10px 14px; color: #475569;">100</td>
+          <td style="padding: 10px 14px; color: #475569;">100</td>
+          <td style="padding: 10px 14px; color: #475569;">60 Minutes</td>
+          <td style="padding: 10px 14px; color: #dc2626; font-weight: bold;">-0.25 per wrong</td>
+        </tr>
+        <tr style="background-color: #f0fdf4; font-weight: bold;">
+          <td style="padding: 12px 14px; color: #065f46;">TOTAL (Stage-I Written Exam)</td>
+          <td style="padding: 12px 14px; color: #065f46;">200 Questions</td>
+          <td style="padding: 12px 14px; color: #065f46;">200 Marks</td>
+          <td style="padding: 12px 14px; color: #065f46;">120 Minutes (2 Hours)</td>
+          <td style="padding: 12px 14px; color: #059669;">0.25 Deduction / wrong</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- CTA Box -->
+  <div style="background-color: #0044cc; color: #ffffff; border-radius: 10px; padding: 20px; text-align: center; margin: 24px 0;">
+    <h3 style="color: #ffffff; font-size: 18px; font-weight: bold; margin: 0 0 6px 0;">Calculate Your SSC Stenographer 2026 Score and Rank Online</h3>
+    <p style="color: #dbeafe; font-size: 14px; margin: 0 0 14px 0;">Paste your response sheet URL to check section-wise marks, negative deductions, and real-time shift rank.</p>
+    <a style="display: inline-block; background-color: #ffffff; color: #0044cc; font-weight: bold; font-size: 14px; padding: 10px 24px; border-radius: 50px; text-decoration: none;" href="https://cbtrank.com/ssc-stenographer-grade-c-and-d-examination-2026/answerkey" target="_blank" rel="noopener noreferrer"> Open SSC Steno Calculator on CBTRank </a>
+  </div>
+
+  <!-- Section 2: Step-by-Step Guide -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">2. Step-by-Step Guide: How to Check Answer Key on CBTRank</h2>
+  <div style="margin: 16px 0 24px;">
+    <!-- Step 1 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 1: Copy Official Response Sheet Link</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Log in to the official SSC candidate portal (ssc.gov.in) using your User ID and Password. Open your tentative Answer Key / Response Sheet tab and copy the complete URL from your browser address bar.</p>
+    </div>
+    <!-- Step 2 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 2: Open CBTRank SSC Stenographer Page</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Visit the verified calculator link: <a style="color: #0044cc; font-weight: bold;" href="https://cbtrank.com/ssc-stenographer-grade-c-and-d-examination-2026/answerkey" target="_blank" rel="noopener">cbtrank.com/ssc-stenographer-grade-c-and-d-examination-2026/answerkey</a>.</p>
+    </div>
+    <!-- Step 3 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 3: Paste URL and Select Category &amp; Shift</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Paste your copied response sheet link into the URL input box. Select your Category (UR, EWS, OBC, SC, ST) and gender/reservation details.</p>
+    </div>
+    <!-- Step 4 -->
+    <div style="margin-bottom: 12px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+      <h4 style="font-size: 15px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Step 4: View Scorecard, Normalised Marks &amp; Shift Rank</h4>
+      <p style="font-size: 14px; color: #475569; margin: 0;">Click &ldquo;Calculate Marks and Rank&rdquo;. In just 2 seconds, CBTRank generates your verified Net Raw Score, Correct/Wrong counts, -0.25 Negative Marking breakdown, Shift Rank, and full question-by-question review.</p>
+    </div>
+  </div>
+
+  <!-- Section 3: Stenography Skill Test Standards -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">3. SSC Stage-II: Skill Test in Stenography (Grade &lsquo;C&rsquo; &amp; Grade &lsquo;D&rsquo;)</h2>
+  <p style="color: #475569; margin-bottom: 14px;">Candidates shortlisted on the basis of Computer Based Examination marks appear for the mandatory Stenography Skill Test (Qualifying in nature). One dictation of <strong>10 minutes</strong> is given in English or Hindi as opted by the candidate:</p>
+
+  <div style="overflow-x: auto; margin: 14px 0 24px; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; background-color: #ffffff;">
+      <thead>
+        <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Post</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Shorthand Speed (w.p.m.)</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Language</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Transcription Time (Computer)</th>
+          <th style="padding: 10px 14px; font-weight: bold; color: #0f172a;">For Scribe Candidates</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Stenographer Grade &lsquo;D&rsquo;</td>
+          <td style="padding: 10px 14px; color: #0044cc; font-weight: bold;">80 w.p.m. (10 mins)</td>
+          <td style="padding: 10px 14px;">English</td>
+          <td style="padding: 10px 14px; font-weight: 500;">50 Minutes</td>
+          <td style="padding: 10px 14px; color: #64748b;">70 Minutes</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Stenographer Grade &lsquo;D&rsquo;</td>
+          <td style="padding: 10px 14px; color: #0044cc; font-weight: bold;">80 w.p.m. (10 mins)</td>
+          <td style="padding: 10px 14px;">Hindi</td>
+          <td style="padding: 10px 14px; font-weight: 500;">65 Minutes</td>
+          <td style="padding: 10px 14px; color: #64748b;">90 Minutes</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Stenographer Grade &lsquo;C&rsquo;</td>
+          <td style="padding: 10px 14px; color: #16a34a; font-weight: bold;">100 w.p.m. (10 mins)</td>
+          <td style="padding: 10px 14px;">English</td>
+          <td style="padding: 10px 14px; font-weight: 500;">40 Minutes</td>
+          <td style="padding: 10px 14px; color: #64748b;">55 Minutes</td>
+        </tr>
+        <tr style="background-color: #eff6ff;">
+          <td style="padding: 10px 14px; font-weight: bold; color: #0f172a;">Stenographer Grade &lsquo;C&rsquo;</td>
+          <td style="padding: 10px 14px; color: #16a34a; font-weight: bold;">100 w.p.m. (10 mins)</td>
+          <td style="padding: 10px 14px;">Hindi</td>
+          <td style="padding: 10px 14px; font-weight: 500;">55 Minutes</td>
+          <td style="padding: 10px 14px; color: #64748b;">75 Minutes</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 20px;">
+    <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 6px;">Official Minimum Qualifying Marks in Written Exam (Para 19.1):</strong>
+    <p style="font-size: 13px; color: #475569; margin: 0; line-height: 1.6;">
+      &bull; <strong>Unreserved (UR):</strong> 30% (Minimum 60 Marks out of 200)<br>
+      &bull; <strong>OBC / EWS:</strong> 25% (Minimum 50 Marks out of 200)<br>
+      &bull; <strong>All Other Categories (SC/ST/PwBD/ESM):</strong> 20% (Minimum 40 Marks out of 200)
+    </p>
+  </div>
+
+  <!-- Section 4: Formula -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">4. Official SSC Negative Marking &amp; Raw Score Formula</h2>
+  <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 14px 16px; margin: 14px 0 20px; font-family: monospace; font-size: 14px; color: #0f172a;">
+    Net Raw Score = (Total Correct Answers &times; 1.0) &minus; (Total Wrong Answers &times; 0.25)<br>
+    <span style="font-size: 12px; color: #64748b;">Note: Unattempted questions carry zero marks (no negative penalty). Since the exam is conducted across multiple shifts, your final result is based on normalized marks as per the official SSC normalization formula.</span>
+  </div>
+
+  <!-- Section 5: FAQs -->
+  <h2 style="font-size: 20px; font-weight: bold; color: #0f172a; margin: 28px 0 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">5. Frequently Asked Questions (FAQs)</h2>
+  <div style="margin: 14px 0 24px;">
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q1: What is the negative marking deduction in SSC Stenographer 2026?</strong>
+      <span style="color: #475569; font-size: 13px;">As per official Para 13.3, 0.25 (1/4th) mark is deducted for each incorrect answer in the Computer Based Examination.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q2: What is the shorthand dictation speed for Grade &lsquo;C&rsquo; and Grade &lsquo;D&rsquo;?</strong>
+      <span style="color: #475569; font-size: 13px;">For Stenographer Grade &lsquo;C&rsquo;, the shorthand speed is 100 words per minute (w.p.m.). For Stenographer Grade &lsquo;D&rsquo;, the speed is 80 words per minute (w.p.m.). Both dictations last for 10 minutes.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q3: Is sectional timing applicable in SSC Steno 2026 written exam?</strong>
+      <span style="color: #475569; font-size: 13px;">Yes, Sectional Timers are applicable: 30 minutes for Part-I (Reasoning), 30 minutes for Part-II (General Awareness), and 60 minutes for Part-III (English Language).</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q4: What is the official fee to challenge a question in the Answer Key?</strong>
+      <span style="color: #475569; font-size: 13px;">As per Para 13.5 of the notice, candidates can submit online representations on payment of Rs. 50/- per question challenged within the stipulated time limit.</span>
+    </div>
+    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+      <strong style="color: #0f172a; font-size: 14px; display: block; margin-bottom: 4px;">Q5: How is Shift Rank calculated on CBTRank?</strong>
+      <span style="color: #475569; font-size: 13px;">CBTRank groups candidates who appeared in your exact exam shift and category to provide a real-time, highly accurate Shift Rank and comparative score analysis.</span>
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="text-align: center; margin-top: 24px; padding: 20px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <h3 style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 0 0 4px 0;">Check Your SSC Stenographer 2026 Score and Rank Now</h3>
+    <p style="font-size: 13px; color: #64748b; margin: 0 0 12px 0;">Fast, accurate, and 100% free answer key calculator for SSC candidates.</p>
+    <a style="display: inline-block; background-color: #0044cc; color: #ffffff; font-weight: bold; font-size: 13px; padding: 9px 22px; border-radius: 50px; text-decoration: none;" href="https://cbtrank.com/ssc-stenographer-grade-c-and-d-examination-2026/answerkey" target="_blank" rel="noopener noreferrer"> Calculate Marks on CBTRank </a>
+  </div>
+</div>
