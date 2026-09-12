@@ -181,7 +181,7 @@ function getR2Bucket(env) {
   if (env.IMAGES && typeof env.IMAGES.put === 'function') return env.IMAGES;
   for (const key of Object.keys(env)) {
     const val = env[key];
-    if (val && typeof val === 'object' && typeof val.put === 'function' && typeof val.get === 'function') {
+    if (val && typeof val === 'object' && typeof val.put === 'function' && typeof val.head === 'function') {
       return val;
     }
   }
@@ -235,12 +235,21 @@ async function getTableColumns(env) {
   try {
     const info = await executeD1(env, "PRAGMA table_info(blogs)");
     if (Array.isArray(info) && info.length > 0) {
-      return info.map(c => c.name);
+      const names = info.map(c => {
+        if (!c) return '';
+        if (typeof c === 'string') return c;
+        return c.name || c.NAME || c.Name || (Object.values(c)[1]) || '';
+      }).filter(Boolean);
+      if (names.length > 0) return names;
     }
   } catch (e) {
     // Table may not exist yet
   }
-  return [];
+  return [
+    'id', 'title', 'slug', 'excerpt', 'category', 'author', 'author_name',
+    'cover_image', 'image', 'content', 'description', 'status', 'views',
+    'published_at', 'publish_date', 'created_at', 'updated_at'
+  ];
 }
 
 // Case-insensitive column resolver with alias fallback
@@ -258,7 +267,7 @@ function resolveColumnName(availableCols, primaryName, aliases = []) {
 }
 
 function hasColumn(availableCols, columnName, aliases = []) {
-  if (!Array.isArray(availableCols) || availableCols.length === 0) return true;
+  if (!Array.isArray(availableCols) || availableCols.length === 0) return false;
   const targetNames = [columnName, ...aliases].map(s => s.toLowerCase());
   return availableCols.some(c => targetNames.includes(String(c).toLowerCase()));
 }
@@ -367,10 +376,13 @@ async function ensureBlogsTable(env) {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
   `;
-  await db.prepare(createSql).run();
+  try {
+    await db.prepare(createSql).run();
+  } catch (e) {
+    console.warn("Table create notice:", e.message);
+  }
 
   // Self-healing: verify all required columns exist, add if missing safely
-  const cols = await getTableColumns(env);
   const requiredCols = [
     { name: 'excerpt', type: "TEXT DEFAULT ''" },
     { name: 'category', type: "TEXT DEFAULT 'Exam Analysis'" },
@@ -389,12 +401,10 @@ async function ensureBlogsTable(env) {
   ];
 
   for (const col of requiredCols) {
-    if (!hasColumn(cols, col.name)) {
-      try {
-        await db.prepare(`ALTER TABLE blogs ADD COLUMN ${col.name} ${col.type}`).run();
-      } catch (e) {
-        // Handled safely
-      }
+    try {
+      await db.prepare(`ALTER TABLE blogs ADD COLUMN ${col.name} ${col.type}`).run();
+    } catch (e) {
+      // Column already exists or table locked, safely ignored
     }
   }
 
@@ -833,11 +843,11 @@ export default {
       }
       try {
         await ensureBlogsTable(env);
-        const body = await request.json();
+        const body = await request.json().catch(() => ({}));
         const id = parseInt(body.id, 10);
         if (isNaN(id)) return errorResponse("Invalid or missing Blog ID.", 400, { isD1Bound: true });
 
-        const currentBlog = await executeD1(env, "SELECT id, status, published_at, publish_date FROM blogs WHERE id = ?", [id]);
+        const currentBlog = await executeD1(env, "SELECT * FROM blogs WHERE id = ?", [id]);
         if (!currentBlog || currentBlog.length === 0) {
           return errorResponse("Blog post not found with ID: #" + id, 404, { isD1Bound: true });
         }
@@ -871,7 +881,11 @@ export default {
         updateSql += " WHERE id = ?";
         updateParams.push(id);
 
-        await executeD1(env, updateSql, updateParams);
+        try {
+          await executeD1(env, updateSql, updateParams);
+        } catch (updateErr) {
+          await executeD1(env, "UPDATE blogs SET status = ? WHERE id = ?", [newStatus, id]);
+        }
 
         return jsonResponse({
           success: true,
@@ -906,7 +920,7 @@ export default {
       }
       try {
         await ensureBlogsTable(env);
-        const body = await request.json();
+        const body = await request.json().catch(() => ({}));
         const title = String(body.title || '').trim();
         let slug = String(body.slug || '').trim().toLowerCase();
 
@@ -1058,11 +1072,11 @@ export default {
       }
       try {
         await ensureBlogsTable(env);
-        const body = await request.json();
+        const body = await request.json().catch(() => ({}));
         const blogId = updateMatch ? parseInt(updateMatch[1], 10) : parseInt(body.id, 10);
         if (isNaN(blogId)) return errorResponse("Invalid or missing Blog ID for update.", 400, { isD1Bound: true });
 
-        const existing = await executeD1(env, "SELECT id, slug, published_at, publish_date FROM blogs WHERE id = ?", [blogId]);
+        const existing = await executeD1(env, "SELECT * FROM blogs WHERE id = ?", [blogId]);
         if (!existing || existing.length === 0) {
           return errorResponse(`No blog article found with ID: #${blogId}`, 404, { isD1Bound: true });
         }
@@ -1181,7 +1195,7 @@ export default {
 
         if (isNaN(blogId)) return errorResponse("Invalid or missing Blog ID for deletion.", 400, { isD1Bound: true });
 
-        const existing = await executeD1(env, "SELECT id, title FROM blogs WHERE id = ?", [blogId]);
+        const existing = await executeD1(env, "SELECT * FROM blogs WHERE id = ?", [blogId]);
         if (!existing || existing.length === 0) {
           return errorResponse(`No blog article found with ID: #${blogId}`, 404, { isD1Bound: true });
         }
@@ -1237,6 +1251,7 @@ export default {
         return errorResponse("Blog article not found (D1 database not bound)", 404, { isD1Bound: false });
       }
       try {
+        await ensureBlogsTable(env);
         let sql = "SELECT * FROM blogs WHERE slug = ? LIMIT 1";
         let params = [identifier];
         if (/^\d+$/.test(identifier)) {
@@ -1305,6 +1320,7 @@ export default {
       }
 
       try {
+        await ensureBlogsTable(env);
         let sql = "SELECT * FROM blogs";
         let wheres = [];
         let params = [];
@@ -3009,12 +3025,21 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       }
     }
 
+    var tinyMceRetries = 0;
     function initTinyMce() {
       if (typeof tinymce === 'undefined') {
-        console.warn('TinyMCE not loaded.');
+        if (tinyMceRetries < 20) {
+          tinyMceRetries++;
+          setTimeout(initTinyMce, 500);
+        } else {
+          console.warn('TinyMCE CDN loading delayed or blocked.');
+        }
         return;
       }
       try {
+        if (tinymce.get('formContent')) {
+          tinymce.get('formContent').remove();
+        }
         tinymce.init({
           selector: '#formContent',
           height: (window.innerWidth <= 768 ? 280 : 380),
@@ -3055,6 +3080,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
           setup: function(editor) {
             editor.on('init', function() {
               isTinyMceReady = true;
+              var curVal = document.getElementById('formContent').value;
+              if (curVal) {
+                try { editor.setContent(curVal); } catch (e) {}
+              }
             });
             editor.on('change keyup input', function() {
               document.getElementById('formContent').value = editor.getContent();
@@ -3068,19 +3097,29 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
 
     function setContentValue(val) {
       val = val || '';
-      document.getElementById('formContent').value = val;
-      if (isTinyMceReady && typeof tinymce !== 'undefined') {
+      var el = document.getElementById('formContent');
+      if (el) el.value = val;
+      if (typeof tinymce !== 'undefined') {
         var ed = tinymce.get('formContent');
-        if (ed) ed.setContent(val);
+        if (ed) {
+          try {
+            ed.setContent(val);
+          } catch (e) {}
+        }
       }
     }
 
     function getContentValue() {
-      if (isTinyMceReady && typeof tinymce !== 'undefined' && !isRawHtmlMode) {
+      if (typeof tinymce !== 'undefined' && !isRawHtmlMode) {
         var ed = tinymce.get('formContent');
-        if (ed) return ed.getContent();
+        if (ed) {
+          try {
+            return ed.getContent();
+          } catch (e) {}
+        }
       }
-      return document.getElementById('formContent').value || '';
+      var el = document.getElementById('formContent');
+      return el ? el.value : '';
     }
 
     function toggleEditorMode() {
@@ -3340,6 +3379,9 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       isSlugManual = false;
       onCoverImageInput('');
       onExcerptInput('');
+      if (typeof tinymce !== 'undefined' && !tinymce.get('formContent')) {
+        initTinyMce();
+      }
       setContentValue('');
       openModal('blogModal');
     }
@@ -3391,6 +3433,9 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
 
       document.getElementById('formViews').value = blog.views || 0;
 
+      if (typeof tinymce !== 'undefined' && !tinymce.get('formContent')) {
+        initTinyMce();
+      }
       setContentValue(blog.content || blog.description || '');
 
       openModal('blogModal');
@@ -3614,6 +3659,7 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
           if (data.published_at) blog.published_at = data.published_at;
           if (data.publish_date) blog.publish_date = data.publish_date;
           renderAllViews();
+          updateStats();
           showToast('Article #' + id + ' status updated to ' + newStatus + (newStatus === 'publish' ? ' (Publish Date: ' + formatDisplayDate(blog.publish_date || todayStr) + ')' : '') + ' in D1');
         }
       } catch (err) {
