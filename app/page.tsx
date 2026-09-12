@@ -75,9 +75,17 @@ async function getExams(): Promise<Exam[]> {
   return rawList
     .filter((exam) => exam && exam.slug && exam.is_visible !== 0 && (exam as any).is_visible !== false)
     .sort((a, b) => {
+      // 1. Pinned to top (set_on_top = 1) - by default latest
       const topA = Number(a.set_on_top) === 1 ? 1 : 0;
       const topB = Number(b.set_on_top) === 1 ? 1 : 0;
       if (topB !== topA) return topB - topA;
+
+      // 2. All latest exams (is_latest = 1) always right below set_on_top
+      const latestA = Number(a.is_latest) === 1 || (a as any).is_latest === true ? 1 : 0;
+      const latestB = Number(b.is_latest) === 1 || (b as any).is_latest === true ? 1 : 0;
+      if (latestB !== latestA) return latestB - latestA;
+
+      // 3. All remaining exams by ID DESC (newest first)
       const idA = Number(a.id) || 0;
       const idB = Number(b.id) || 0;
       return idB - idA;
