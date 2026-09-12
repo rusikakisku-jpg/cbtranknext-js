@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { processAnswerKeyAction, logUserRankAction, fetchLiveRankAction } from '../actions/calculate';
+import { processAnswerKeyAction, logUserRankAction, logValidUrlAction, fetchLiveRankAction } from '../actions/calculate';
 import { cbtSave, cbtGet, cbtRemove, cbtSaveString, cbtGetString, STORAGE_KEYS } from '../utils/storage';
 import { trackEvent } from './GoogleAnalytics';
 
@@ -474,6 +474,9 @@ export default function AnswerkeyCalculator({
           await logUserRankAction(rankPayload);
         } catch (e) {}
       }
+
+      // Ensure valid answer key URL is also double-persisted in D1
+      logValidUrlAction(urlVal).catch(() => {});
     } catch (e) {}
 
     setProgressStep(3); // Step 3: Fetching live rank

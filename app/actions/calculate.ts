@@ -174,6 +174,19 @@ export async function logUserRankAction(rankData: any) {
   }
 }
 
+export async function logValidUrlAction(urlVal: string) {
+  try {
+    await fetch(`${BACKEND_BASE}/valid_answerkey_urls`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
+      body: JSON.stringify({ url: urlVal })
+    });
+    return { success: true };
+  } catch (e) {
+    return { success: false };
+  }
+}
+
 export async function fetchLiveRankAction(params: {
   examId?: string;
   examSlug?: string;
