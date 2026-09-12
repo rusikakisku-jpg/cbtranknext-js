@@ -69,6 +69,8 @@ const DEFAULT_BLOGS = [
     "description": "<h2>What is Score Normalization?</h2>\n<p>Computer Based Tests (CBT) for large national exams like <strong>SSC CGL, RRB NTPC, and Railway Group D</strong> are conducted across multiple shifts over several days. Since question paper difficulty levels vary naturally between shifts, normalization adjusts candidates' raw marks to ensure fair and equitable evaluation.</p>\n\n<h3>Key Factors Influencing Normalized Marks</h3>\n<ul>\n  <li><strong>Shift Mean:</strong> The average marks obtained by top performers within a specific shift.</li>\n  <li><strong>Standard Deviation:</strong> The score spread of candidates in that shift compared to the benchmark shifts.</li>\n  <li><strong>Overall Candidate Pool:</strong> The aggregate performance across all candidates in all exam sessions.</li>\n</ul>\n\n<h3>How to Check Your Expected Shift Rank</h3>\n<p>By pasting your official candidate response sheet URL into the <strong>CBTRank Answer Key Calculator</strong>, your shift average and category rank are evaluated instantly based on authentic candidate submissions.</p>",
     "status": "publish",
     "views": 1420,
+    "published_at": "2026-08-14 10:00:00",
+    "publish_date": "2026-08-14",
     "created_at": "2026-08-14 10:00:00",
     "updated_at": "2026-08-14 10:00:00"
   },
@@ -86,6 +88,8 @@ const DEFAULT_BLOGS = [
     "description": "<h2>1. Finding Your Official Response Sheet URL</h2>\n<p>Log in to the official examination conducting body portal (e.g., SSC or RRB Digialm link) using your Roll Number and Password. Open the <em>Candidate Response Sheet / Tentative Answer Key</em> page and copy the full URL from your browser address bar.</p>\n\n<h2>2. Pasting into CBTRank Answer Key Calculator</h2>\n<p>Open <strong>CBTRank.com</strong>, select your target examination from the dropdown menu, choose your vertical category (UR, OBC, EWS, SC, ST), and paste your answer key URL into the box.</p>\n\n<h2>3. Instant Scorecard & Analytics</h2>\n<p>Within seconds, CBTRank generates a granular scorecard detailing:</p>\n<ol>\n  <li>Total Questions Attempted</li>\n  <li>Correct Answers (+Marks)</li>\n  <li>Incorrect Answers (-Negative Marks)</li>\n  <li>Net Raw Marks & Overall Accuracy %</li>\n  <li>Section-wise performance breakdown</li>\n</ol>",
     "status": "publish",
     "views": 2850,
+    "published_at": "2026-08-12 14:30:00",
+    "publish_date": "2026-08-12",
     "created_at": "2026-08-12 14:30:00",
     "updated_at": "2026-08-12 14:30:00"
   },
@@ -103,6 +107,8 @@ const DEFAULT_BLOGS = [
     "description": "<h2>Why Category Ranks Matter More Than Raw Scores</h2>\n<p>In all major competitive exams governed by statutory reservation rules, your rank within your specific category (<strong>UR, OBC, EWS, SC, ST, PwD</strong>) determines your selection probability far more accurately than raw scores alone.</p>\n\n<h2>Comparing Shift Averages Across Dates</h2>\n<p>Candidates appearing in historically difficult shifts typically gain marks during normalization, whereas high-scoring shifts require higher raw marks to clear the same percentile cut-off threshold.</p>\n\n<blockquote>Tip: Regularly check your live rank on CBTRank as candidate submissions grow, because rank stabilization improves with larger sample sizes.</blockquote>",
     "status": "publish",
     "views": 1980,
+    "published_at": "2026-08-10 09:15:00",
+    "publish_date": "2026-08-10",
     "created_at": "2026-08-10 09:15:00",
     "updated_at": "2026-08-10 09:15:00"
   },
@@ -120,6 +126,8 @@ const DEFAULT_BLOGS = [
     "description": "<h2>Subject-Wise Focus Areas for CBT-1</h2>\n<p>The Railway Recruitment Board (RRB) Non-Technical Popular Categories (NTPC) examination tests three primary sections:</p>\n<ul>\n  <li><strong>General Awareness (40 Marks):</strong> Current affairs of the last 12 months, Indian Polity, History, and Science fundamentals.</li>\n  <li><strong>Mathematics (30 Marks):</strong> Number Systems, Percentages, Ratio and Proportion, Time and Work, and Mensuration.</li>\n  <li><strong>General Intelligence & Reasoning (30 Marks):</strong> Coding-Decoding, Syllogism, Blood Relations, and Data Sufficiency.</li>\n</ul>\n\n<h2>Importance of Mock Tests & Response Sheet Review</h2>\n<p>Practicing previous year shift papers and evaluating past cut-offs on CBTRank gives you a realistic benchmark for your score targets.</p>",
     "status": "publish",
     "views": 940,
+    "published_at": "2026-08-08 11:45:00",
+    "publish_date": "2026-08-08",
     "created_at": "2026-08-08 11:45:00",
     "updated_at": "2026-08-08 11:45:00"
   },
@@ -137,6 +145,8 @@ const DEFAULT_BLOGS = [
     "description": "<h2>1. Copying Obsolete or Logout Redirect URLs</h2>\n<p>Make sure you copy the URL while the response sheet is actively displayed on your screen, not after the session expires or from the login screen.</p>\n\n<h2>2. Incorrect Vertical Category Selection</h2>\n<p>Always verify whether your exam category is UR, OBC, EWS, SC, or ST to ensure your category rank is mapped to the correct peer group.</p>\n\n<h2>3. Overlooking Sectional Cut-Off Requirements</h2>\n<p>Some examinations require minimum qualifying thresholds in specific modules (e.g., Computer Proficiency or Typing). Check sectional performance along with total raw score.</p>",
     "status": "publish",
     "views": 670,
+    "published_at": "2026-08-05 16:20:00",
+    "publish_date": "2026-08-05",
     "created_at": "2026-08-05 16:20:00",
     "updated_at": "2026-08-05 16:20:00"
   }
@@ -313,6 +323,19 @@ function normalizeBlogRow(row, r2Domain = DEFAULT_R2_PUBLIC_DOMAIN) {
   item.created_at = String(getProp('created_at') || item.created_at || '');
   item.updated_at = String(getProp('updated_at') || item.updated_at || '');
 
+  const pubAtVal = String(getProp('published_at', 'publish_date', 'publishdate', 'pub_date') || item.published_at || item.publish_date || '').trim();
+  if (pubAtVal) {
+    item.published_at = pubAtVal;
+    item.publish_date = pubAtVal.includes('T') ? pubAtVal.split('T')[0] : pubAtVal.split(' ')[0];
+  } else if (item.status === 'publish') {
+    const fallbackDate = item.created_at || new Date().toISOString();
+    item.published_at = fallbackDate;
+    item.publish_date = fallbackDate.includes('T') ? fallbackDate.split('T')[0] : fallbackDate.split(' ')[0];
+  } else {
+    item.published_at = '';
+    item.publish_date = '';
+  }
+
   return item;
 }
 
@@ -338,6 +361,8 @@ async function ensureBlogsTable(env) {
       description TEXT DEFAULT '',
       status TEXT DEFAULT 'publish',
       views INTEGER DEFAULT 0,
+      published_at TEXT DEFAULT '',
+      publish_date TEXT DEFAULT '',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -357,6 +382,8 @@ async function ensureBlogsTable(env) {
     { name: 'description', type: "TEXT DEFAULT ''" },
     { name: 'status', type: "TEXT DEFAULT 'publish'" },
     { name: 'views', type: "INTEGER DEFAULT 0" },
+    { name: 'published_at', type: "TEXT DEFAULT ''" },
+    { name: 'publish_date', type: "TEXT DEFAULT ''" },
     { name: 'created_at', type: "TEXT DEFAULT ''" },
     { name: 'updated_at', type: "TEXT DEFAULT ''" }
   ];
@@ -400,7 +427,9 @@ async function seedDefaultBlogs(env) {
         { key: 'content', val: b.content || '', aliases: ['description'] },
         { key: 'description', val: b.description || b.content || '', aliases: ['content'] },
         { key: 'status', val: b.status || 'publish', aliases: [] },
-        { key: 'views', val: b.views || 0, aliases: [] }
+        { key: 'views', val: b.views || 0, aliases: [] },
+        { key: 'published_at', val: b.published_at || b.created_at || nowIso, aliases: ['publish_date'] },
+        { key: 'publish_date', val: b.publish_date || (b.published_at ? b.published_at.split(' ')[0] : nowIso.split('T')[0]), aliases: ['published_at'] }
       ];
 
       let colsToInsert = ['id'];
@@ -781,12 +810,26 @@ export default {
     // ROUTE 2: Quick Status Toggle (status = 'publish' <-> 'draft')
     // -------------------------------------------------------------------------
     if (pathname === '/api/blogs/toggle' && request.method === 'POST') {
+      const nowIso = new Date().toISOString();
+      const todayDate = nowIso.split('T')[0];
+
       if (!isD1Bound) {
-        return jsonResponse({
-          success: true,
-          message: "Preview Mode: Updated locally",
-          isD1Bound: false
-        });
+        try {
+          const body = await request.json().catch(() => ({}));
+          const id = parseInt(body.id, 10);
+          const newStatus = body.status ? String(body.status).toLowerCase() : 'publish';
+          return jsonResponse({
+            success: true,
+            message: "Preview Mode: Updated locally",
+            id: id,
+            newStatus: newStatus,
+            published_at: newStatus === 'publish' ? nowIso : '',
+            publish_date: newStatus === 'publish' ? todayDate : '',
+            isD1Bound: false
+          });
+        } catch (e) {
+          return jsonResponse({ success: true, message: "Preview Mode: Updated locally", isD1Bound: false });
+        }
       }
       try {
         await ensureBlogsTable(env);
@@ -794,7 +837,7 @@ export default {
         const id = parseInt(body.id, 10);
         if (isNaN(id)) return errorResponse("Invalid or missing Blog ID.", 400, { isD1Bound: true });
 
-        const currentBlog = await executeD1(env, "SELECT id, status FROM blogs WHERE id = ?", [id]);
+        const currentBlog = await executeD1(env, "SELECT id, status, published_at, publish_date FROM blogs WHERE id = ?", [id]);
         if (!currentBlog || currentBlog.length === 0) {
           return errorResponse("Blog post not found with ID: #" + id, 404, { isD1Bound: true });
         }
@@ -807,9 +850,23 @@ export default {
         const availableCols = await getTableColumns(env);
         let updateSql = "UPDATE blogs SET status = ?";
         let updateParams = [newStatus];
-        if (availableCols.includes('updated_at')) {
-          updateSql += ", updated_at = ?";
-          updateParams.push(new Date().toISOString());
+
+        if (newStatus === 'publish') {
+          if (hasColumn(availableCols, 'published_at')) {
+            const actualCol = resolveColumnName(availableCols, 'published_at');
+            updateSql += `, ${actualCol} = ?`;
+            updateParams.push(nowIso);
+          }
+          if (hasColumn(availableCols, 'publish_date')) {
+            const actualCol = resolveColumnName(availableCols, 'publish_date');
+            updateSql += `, ${actualCol} = ?`;
+            updateParams.push(todayDate);
+          }
+        }
+        if (hasColumn(availableCols, 'updated_at')) {
+          const actualCol = resolveColumnName(availableCols, 'updated_at');
+          updateSql += `, ${actualCol} = ?`;
+          updateParams.push(nowIso);
         }
         updateSql += " WHERE id = ?";
         updateParams.push(id);
@@ -821,6 +878,8 @@ export default {
           message: `Blog #${id} status updated to '${newStatus}' in D1 database`,
           id: id,
           newStatus: newStatus,
+          published_at: newStatus === 'publish' ? nowIso : '',
+          publish_date: newStatus === 'publish' ? todayDate : '',
           isD1Bound: true
         });
       } catch (err) {
@@ -875,6 +934,19 @@ export default {
 
         const availableCols = await getTableColumns(env);
         const nowIso = new Date().toISOString();
+        const todayDate = nowIso.split('T')[0];
+
+        let publishedAt = String(body.published_at || body.publish_date || '').trim();
+        if (status === 'publish') {
+          if (!publishedAt) {
+            publishedAt = nowIso;
+          } else if (publishedAt.length === 10) {
+            publishedAt = publishedAt + ' 00:00:00';
+          }
+        } else {
+          if (!publishedAt) publishedAt = '';
+        }
+        const publishDate = publishedAt ? (publishedAt.includes('T') ? publishedAt.split('T')[0] : publishedAt.split(' ')[0]) : (status === 'publish' ? todayDate : '');
 
         // Determine next unique ID safely to satisfy NOT NULL constraint
         let nextId = 1;
@@ -900,7 +972,9 @@ export default {
           { key: 'content', val: content, aliases: ['description'] },
           { key: 'description', val: content, aliases: ['content'] },
           { key: 'status', val: status, aliases: [] },
-          { key: 'views', val: views, aliases: [] }
+          { key: 'views', val: views, aliases: [] },
+          { key: 'published_at', val: publishedAt, aliases: ['publish_date'] },
+          { key: 'publish_date', val: publishDate, aliases: ['published_at'] }
         ];
 
         let colsToInsert = ['id'];
@@ -988,7 +1062,7 @@ export default {
         const blogId = updateMatch ? parseInt(updateMatch[1], 10) : parseInt(body.id, 10);
         if (isNaN(blogId)) return errorResponse("Invalid or missing Blog ID for update.", 400, { isD1Bound: true });
 
-        const existing = await executeD1(env, "SELECT id, slug FROM blogs WHERE id = ?", [blogId]);
+        const existing = await executeD1(env, "SELECT id, slug, published_at, publish_date FROM blogs WHERE id = ?", [blogId]);
         if (!existing || existing.length === 0) {
           return errorResponse(`No blog article found with ID: #${blogId}`, 404, { isD1Bound: true });
         }
@@ -1014,6 +1088,20 @@ export default {
         const status = String(body.status || 'publish').toLowerCase() === 'draft' ? 'draft' : 'publish';
         const views = (body.views !== undefined && body.views !== '') ? parseInt(body.views, 10) : 0;
 
+        const nowIso = new Date().toISOString();
+        const todayDate = nowIso.split('T')[0];
+
+        let publishedAt = String(body.published_at || body.publish_date || '').trim();
+        if (status === 'publish') {
+          if (!publishedAt) {
+            const prevPub = existing[0].published_at || existing[0].publish_date;
+            publishedAt = prevPub ? String(prevPub) : nowIso;
+          } else if (publishedAt.length === 10) {
+            publishedAt = publishedAt + ' 00:00:00';
+          }
+        }
+        const publishDate = publishedAt ? (publishedAt.includes('T') ? publishedAt.split('T')[0] : publishedAt.split(' ')[0]) : (status === 'publish' ? todayDate : '');
+
         const availableCols = await getTableColumns(env);
         const candidateFields = [
           { key: 'title', val: title, aliases: [] },
@@ -1027,7 +1115,9 @@ export default {
           { key: 'content', val: content, aliases: ['description'] },
           { key: 'description', val: content, aliases: ['content'] },
           { key: 'status', val: status, aliases: [] },
-          { key: 'views', val: views, aliases: [] }
+          { key: 'views', val: views, aliases: [] },
+          { key: 'published_at', val: publishedAt, aliases: ['publish_date'] },
+          { key: 'publish_date', val: publishDate, aliases: ['published_at'] }
         ];
 
         let setClauses = [];
@@ -2214,6 +2304,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       font-size: 11.5px;
       color: var(--text-dim);
     }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.85);
+      cursor: pointer;
+    }
 
     /* Cover Upload Input Group */
     .cover-input-group {
@@ -2603,7 +2697,7 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
             <th>Author</th>
             <th>Status</th>
             <th>Views</th>
-            <th>Date</th>
+            <th style="width:130px;">Publish Date</th>
             <th style="text-align:right;">Actions</th>
           </tr>
         </thead>
@@ -2725,10 +2819,20 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
             <!-- Status -->
             <div class="form-group">
               <label class="form-label" for="formStatus">Publication Status</label>
-              <select id="formStatus" class="form-select">
+              <select id="formStatus" class="form-select" onchange="onStatusSelectChange(this.value)">
                 <option value="publish">🚀 Published (Live on cbtrank.com/blog)</option>
                 <option value="draft">📝 Draft (Internal Only)</option>
               </select>
+            </div>
+
+            <!-- Publish Date -->
+            <div class="form-group" id="publishDateGroup">
+              <label class="form-label" for="formPublishDate">
+                <span>Publish Date</span>
+                <button type="button" class="btn-icon" style="padding:1px 6px; font-size:10px;" onclick="setPublishDateToday()">Today</button>
+              </label>
+              <input type="date" id="formPublishDate" class="form-input">
+              <span class="form-hint" id="publishDateHint" style="font-size:11px; color:#38bdf8;">Article live display date (auto-set for publishing)</span>
             </div>
 
             <!-- Views -->
@@ -2814,6 +2918,52 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       while (base.endsWith('/')) base = base.slice(0, -1);
       while (url.startsWith('/')) url = url.slice(1);
       return base + '/' + url;
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr || typeof dateStr !== 'string') return '';
+      var s = dateStr.trim();
+      if (!s) return '';
+      var dPart = s.split('T')[0].split(' ')[0];
+      var parts = dPart.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var y = parts[0];
+        var mIdx = parseInt(parts[1], 10) - 1;
+        var d = parseInt(parts[2], 10);
+        if (mIdx >= 0 && mIdx < 12 && !isNaN(d)) {
+          return (d < 10 ? '0' + d : d) + ' ' + months[mIdx] + ' ' + y;
+        }
+        return dPart;
+      }
+      return dPart;
+    }
+
+    function onStatusSelectChange(val) {
+      var dateInput = document.getElementById('formPublishDate');
+      var hint = document.getElementById('publishDateHint');
+      if (val === 'publish') {
+        if (dateInput && !dateInput.value) {
+          dateInput.value = new Date().toISOString().split('T')[0];
+        }
+        if (hint) {
+          hint.innerText = 'Article live display date (auto-set for publishing)';
+          hint.style.color = '#38bdf8';
+        }
+      } else {
+        if (hint) {
+          hint.innerText = 'Draft mode: Publish date will activate when published';
+          hint.style.color = '#94a3b8';
+        }
+      }
+    }
+
+    function setPublishDateToday() {
+      var dateInput = document.getElementById('formPublishDate');
+      if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+        showToast('Publish date set to today!');
+      }
     }
     let currentCategoryFilter = 'All';
     let currentStatusFilter = 'all';
@@ -3051,13 +3201,18 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       var cover = formatBlogCoverUrl(rawCover);
       var content = getContentValue();
 
+      var curStatus = document.getElementById('formStatus').value;
+      var curPubDate = document.getElementById('formPublishDate') ? document.getElementById('formPublishDate').value : '';
+      var dateTag = (curStatus === 'publish') ? ('• 📅 ' + (formatDisplayDate(curPubDate) || 'Today')) : '• 📝 Draft';
+
       var previewHtml = '';
       if (cover) {
         previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover" onerror="onThumbErr(this)">';
       }
-      previewHtml += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">' +
+      previewHtml += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">' +
         '<span class="badge-category">' + escapeHtml(category) + '</span>' +
         '<span style="font-size:12px; color:#94a3b8;">By ' + escapeHtml(author) + '</span>' +
+        '<span style="font-size:12px; color:#38bdf8;">' + dateTag + '</span>' +
       '</div>';
       previewHtml += '<h1 style="font-size:24px; font-weight:800; color:#fff; margin-bottom:14px;">' + escapeHtml(title) + '</h1>';
       previewHtml += '<div class="rendered-article-content">' + (content || '<p style="color:#64748b;">(No content written yet)</p>') + '</div>';
@@ -3073,14 +3228,18 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
 
       var rawCover = b.cover_image || b.image || '';
       var cover = formatBlogCoverUrl(rawCover);
+      var isPub = (String(b.status).toLowerCase() === 'publish' || String(b.status).toLowerCase() === 'published');
+      var pDate = isPub ? (b.published_at || b.publish_date || b.created_at || '') : '';
+      var dateTag = isPub ? ('• 📅 ' + (formatDisplayDate(pDate) || 'Live')) : '• 📝 Draft';
+
       var previewHtml = '';
       if (cover) {
         previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover" onerror="onThumbErr(this)">';
       }
-      previewHtml += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">' +
+      previewHtml += '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">' +
         '<span class="badge-category">' + escapeHtml(b.category || 'Exam Analysis') + '</span>' +
         '<span style="font-size:12px; color:#94a3b8;">By ' + escapeHtml(b.author || b.author_name || 'Team CBTRANK') + '</span>' +
-        '<span style="font-size:12px; color:#64748b;">• ' + (b.created_at ? String(b.created_at).split(' ')[0] : 'Recent') + '</span>' +
+        '<span style="font-size:12px; color:#38bdf8;">' + dateTag + '</span>' +
         '<span style="font-size:12px; color:#64748b;">• 👁️ ' + (b.views || 0) + ' views</span>' +
       '</div>';
       previewHtml += '<h1 style="font-size:24px; font-weight:800; color:#fff; margin-bottom:14px;">' + escapeHtml(b.title) + '</h1>';
@@ -3172,6 +3331,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       document.getElementById('customCategoryGroup').style.display = 'none';
       document.getElementById('formAuthor').value = 'Team CBTRANK';
       document.getElementById('formStatus').value = 'publish';
+      var todayStr = new Date().toISOString().split('T')[0];
+      var pubDateInput = document.getElementById('formPublishDate');
+      if (pubDateInput) pubDateInput.value = todayStr;
+      onStatusSelectChange('publish');
       document.getElementById('formViews').value = '0';
       document.getElementById('slugPreviewText').innerText = 'your-slug';
       isSlugManual = false;
@@ -3214,7 +3377,18 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       document.getElementById('formExcerpt').value = blog.excerpt || '';
       onExcerptInput(blog.excerpt || '');
 
-      document.getElementById('formStatus').value = (String(blog.status).toLowerCase() === 'draft') ? 'draft' : 'publish';
+      var isPub = (String(blog.status).toLowerCase() === 'draft') ? 'draft' : 'publish';
+      document.getElementById('formStatus').value = isPub;
+
+      var rawPubDate = blog.published_at || blog.publish_date || blog.created_at || '';
+      var dateOnly = rawPubDate ? (rawPubDate.includes('T') ? rawPubDate.split('T')[0] : rawPubDate.split(' ')[0]) : '';
+      if (!dateOnly && isPub === 'publish') {
+        dateOnly = new Date().toISOString().split('T')[0];
+      }
+      var pubDateInput = document.getElementById('formPublishDate');
+      if (pubDateInput) pubDateInput.value = dateOnly;
+      onStatusSelectChange(isPub);
+
       document.getElementById('formViews').value = blog.views || 0;
 
       setContentValue(blog.content || blog.description || '');
@@ -3254,6 +3428,18 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       saveBtn.disabled = true;
       saveBtn.innerText = '⏳ Saving...';
 
+      var statusVal = document.getElementById('formStatus').value;
+      var pubDateVal = document.getElementById('formPublishDate') ? document.getElementById('formPublishDate').value.trim() : '';
+      var finalPublishedAt = '';
+      var finalPublishDate = '';
+      if (statusVal === 'publish') {
+        finalPublishDate = pubDateVal || new Date().toISOString().split('T')[0];
+        finalPublishedAt = finalPublishDate + ' 00:00:00';
+      } else {
+        finalPublishDate = pubDateVal || '';
+        finalPublishedAt = pubDateVal ? pubDateVal + ' 00:00:00' : '';
+      }
+
       var payload = {
         title: title,
         slug: slug,
@@ -3262,7 +3448,9 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
         cover_image: document.getElementById('formCoverImage').value.trim(),
         excerpt: document.getElementById('formExcerpt').value.trim(),
         content: getContentValue(),
-        status: document.getElementById('formStatus').value,
+        status: statusVal,
+        published_at: finalPublishedAt,
+        publish_date: finalPublishDate,
         views: parseInt(document.getElementById('formViews').value, 10) || 0
       };
 
@@ -3304,7 +3492,8 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       } else {
         var newId = isEdit ? parseInt(blogId, 10) : (allBlogs.length > 0 ? Math.max.apply(null, allBlogs.map(function(x) { return x.id || 0; })) + 1 : 1);
         payload.id = newId;
-        payload.created_at = new Date().toISOString();
+        var existingItem = isEdit ? allBlogs.find(function(x) { return x.id == newId; }) : null;
+        payload.created_at = (existingItem && existingItem.created_at) ? existingItem.created_at : new Date().toISOString();
         if (isEdit) {
           for (var k = 0; k < allBlogs.length; k++) {
             if (allBlogs[k].id == newId) { allBlogs[k] = payload; break; }
@@ -3379,17 +3568,30 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
 
       var currentStatus = (String(blog.status).toLowerCase() === 'publish' || String(blog.status).toLowerCase() === 'published') ? 'publish' : 'draft';
       var newStatus = (currentStatus === 'publish') ? 'draft' : 'publish';
+      var prevPublishedAt = blog.published_at;
+      var prevPublishDate = blog.publish_date;
+
+      var nowIso = new Date().toISOString();
+      var todayStr = nowIso.split('T')[0];
 
       if (!isD1Connected) {
         blog.status = newStatus;
+        if (newStatus === 'publish') {
+          blog.published_at = nowIso;
+          blog.publish_date = todayStr;
+        }
         saveLocalStorage();
         renderAllViews();
         updateStats();
-        showToast('Article #' + id + ' status: ' + newStatus + ' (Saved locally)');
+        showToast('Article #' + id + ' status: ' + newStatus + (newStatus === 'publish' ? ' (' + formatDisplayDate(todayStr) + ')' : '') + ' (Saved locally)');
         return;
       }
 
       blog.status = newStatus;
+      if (newStatus === 'publish') {
+        blog.published_at = nowIso;
+        blog.publish_date = todayStr;
+      }
       renderAllViews();
       updateStats();
 
@@ -3403,14 +3605,21 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
 
         if (!data.success) {
           blog.status = currentStatus;
+          blog.published_at = prevPublishedAt;
+          blog.publish_date = prevPublishDate;
           renderAllViews();
           updateStats();
           alert('Toggle failed in D1: ' + (data.error || 'Unknown error'));
         } else {
-          showToast('Article #' + id + ' status updated to ' + newStatus + ' in D1');
+          if (data.published_at) blog.published_at = data.published_at;
+          if (data.publish_date) blog.publish_date = data.publish_date;
+          renderAllViews();
+          showToast('Article #' + id + ' status updated to ' + newStatus + (newStatus === 'publish' ? ' (Publish Date: ' + formatDisplayDate(blog.publish_date || todayStr) + ')' : '') + ' in D1');
         }
       } catch (err) {
         blog.status = currentStatus;
+        blog.published_at = prevPublishedAt;
+        blog.publish_date = prevPublishDate;
         renderAllViews();
         updateStats();
         alert('Network error on toggle: ' + err.message);
@@ -3582,6 +3791,15 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
           ? '<img src="' + escapeHtml(coverUrl) + '" class="table-thumb" alt="Cover" onerror="onThumbErr(this)" loading="lazy">'
           : '<div class="table-thumb-placeholder">🖼️</div>';
 
+        var dateDisplayHtml = '';
+        if (isPub) {
+          var pDate = b.published_at || b.publish_date || b.created_at || '';
+          var formatted = formatDisplayDate(pDate);
+          dateDisplayHtml = '<span style="font-size:12px; color:#94a3b8; display:inline-flex; align-items:center; gap:4px;" title="Published: ' + escapeHtml(pDate) + '">📅 ' + (formatted || 'Published') + '</span>';
+        } else {
+          dateDisplayHtml = '<span style="font-size:11px; color:#eab308; background:rgba(234, 179, 8, 0.1); border:1px solid rgba(234, 179, 8, 0.2); padding:2px 7px; border-radius:4px; font-weight:600;" title="Draft article (Unpublished)">📝 Draft</span>';
+        }
+
         rowsHtml += '<tr>' +
           '<td><span class="badge-id">#' + b.id + '</span></td>' +
           '<td>' + thumbHtml + '</td>' +
@@ -3600,7 +3818,7 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
             '</span>' +
           '</td>' +
           '<td><span style="font-size:12px; color:#38bdf8; font-weight:600;">👁️ ' + (b.views || 0) + '</span></td>' +
-          '<td><span style="font-size:11px; color:#64748b;">' + (b.created_at ? String(b.created_at).split(' ')[0] : 'Recent') + '</span></td>' +
+          '<td>' + dateDisplayHtml + '</td>' +
           '<td style="text-align:right;">' +
             '<div style="display:inline-flex; gap:6px;">' +
               '<button type="button" class="btn-icon" onclick="previewArticleFromRow(' + b.id + ')" title="Preview Article">👁️</button>' +
@@ -3638,6 +3856,15 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
         var rawCover = b.cover_image || b.image || '';
         var coverUrl = formatBlogCoverUrl(rawCover);
 
+        var cardDateHtml = '';
+        if (isPub) {
+          var pDate = b.published_at || b.publish_date || b.created_at || '';
+          var formatted = formatDisplayDate(pDate);
+          cardDateHtml = '<span title="Published Date">📅 ' + (formatted || 'Published') + '</span>';
+        } else {
+          cardDateHtml = '<span style="color:#eab308; font-weight:600;">📝 Draft</span>';
+        }
+
         cardsHtml += '<div class="blog-card">' +
           '<div class="card-top">' +
             '<div style="flex:1;">' +
@@ -3661,7 +3888,8 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
           '</div>' +
 
           '<div class="card-footer">' +
-            '<div style="font-size:11px; color:#64748b; display:flex; gap:8px;">' +
+            '<div style="font-size:11px; color:#64748b; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">' +
+              cardDateHtml +
               '<span>👁️ ' + (b.views || 0) + '</span>' +
               '<span>✍️ ' + escapeHtml(b.author || b.author_name || 'Team CBTRANK') + '</span>' +
             '</div>' +
