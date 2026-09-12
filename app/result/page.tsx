@@ -8,7 +8,13 @@ import { APP_FEATURE_FLAGS } from '../config/features';
 import { getBase64ImageAction } from '../actions/calculate';
 import { cbtGet, cbtSave, cbtRemove, cbtGetString, cbtSaveString, STORAGE_KEYS } from '../utils/storage';
 
-function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
+interface TelegramPortalModalProps {
+  onJoin: () => void;
+  onClose?: () => void;
+  showCloseButton?: boolean;
+}
+
+function TelegramPortalModal({ onJoin, onClose, showCloseButton = true }: TelegramPortalModalProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -20,6 +26,11 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
   return createPortal(
     <div
       id="cbtrank-tg-portal-overlay"
+      onClick={(e) => {
+        if (showCloseButton && e.target === e.currentTarget && onClose) {
+          onClose();
+        }
+      }}
       style={{
         position: 'fixed',
         top: 0,
@@ -38,6 +49,7 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
       }}
     >
       <div style={{
+        position: 'relative',
         background: '#ffffff',
         borderRadius: '24px',
         maxWidth: '400px',
@@ -48,6 +60,44 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
         fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
         boxSizing: 'border-box',
       }}>
+        {showCloseButton && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: '#f1f5f9',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#64748b',
+              padding: 0,
+              transition: 'all 0.2s ease',
+              zIndex: 10,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#e2e8f0';
+              e.currentTarget.style.color = '#0f172a';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#f1f5f9';
+              e.currentTarget.style.color = '#64748b';
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        )}
         <div style={{
           width: '72px',
           height: '72px',
@@ -185,6 +235,7 @@ interface FormData {
 }
 
 const ENABLE_TELEGRAM_DIALOG = true;
+const SHOW_TELEGRAM_DIALOG_CLOSE_ICON = true; // Set to `true` to show cross (close) icon on dialogue, or `false` to hide it
 
 export default function ResultPage() {
   const router = useRouter();
@@ -197,6 +248,18 @@ export default function ResultPage() {
   const pendingRedirect = useRef(false);
 
   function handleTelegramJoinClick() {
+    try {
+      localStorage.setItem('cbtrank_tg_popup_last_time', Date.now().toString());
+      cbtRemove(STORAGE_KEYS.SHOW_TG_POPUP);
+    } catch (e) {}
+    setShowTelegramModal(false);
+    if (pendingRedirect.current) {
+      pendingRedirect.current = false;
+      router.push('/');
+    }
+  }
+
+  function handleTelegramCloseClick() {
     try {
       localStorage.setItem('cbtrank_tg_popup_last_time', Date.now().toString());
       cbtRemove(STORAGE_KEYS.SHOW_TG_POPUP);
@@ -359,7 +422,13 @@ export default function ResultPage() {
   }
 
   if (!resultData) {
-    return (ENABLE_TELEGRAM_DIALOG && showTelegramModal) ? <TelegramPortalModal onJoin={handleTelegramJoinClick} /> : null;
+    return (ENABLE_TELEGRAM_DIALOG && showTelegramModal) ? (
+      <TelegramPortalModal
+        onJoin={handleTelegramJoinClick}
+        onClose={handleTelegramCloseClick}
+        showCloseButton={SHOW_TELEGRAM_DIALOG_CLOSE_ICON}
+      />
+    ) : null;
   }
 
   const bonusCountFromData = Number(resultData.bonusCount || resultData.rawBonusQuestions || 0);
@@ -424,7 +493,13 @@ export default function ResultPage() {
 
   return (
     <>
-      {ENABLE_TELEGRAM_DIALOG && showTelegramModal && <TelegramPortalModal onJoin={handleTelegramJoinClick} />}
+      {ENABLE_TELEGRAM_DIALOG && showTelegramModal && (
+        <TelegramPortalModal
+          onJoin={handleTelegramJoinClick}
+          onClose={handleTelegramCloseClick}
+          showCloseButton={SHOW_TELEGRAM_DIALOG_CLOSE_ICON}
+        />
+      )}
 
       <main>
       <div className="result-main">
