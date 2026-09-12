@@ -75,13 +75,13 @@ function TelegramPortalModal({ onJoin }: { onJoin: () => void }) {
           padding: '3px 12px',
           borderRadius: '999px',
           marginBottom: '12px',
-        }}>Official Channel</div>
+        }}>Official Telegram Channel</div>
 
         <h3 style={{ fontSize: '1.22rem', fontWeight: 900, color: '#0a1228', margin: '0 0 10px', lineHeight: 1.3 }}>
-          Get Instant Exam &amp; Rank Updates!
+          Get  Exam &amp; Rank Updates!
         </h3>
         <p style={{ fontSize: '0.875rem', color: '#475569', margin: '0 0 26px', lineHeight: 1.6 }}>
-          Join our official Telegram Channel to get instant notifications about upcoming <strong>Answer Keys</strong>, <strong>Ranks</strong> &amp; <strong>Cut-offs</strong> updates!
+          Join our official Telegram Channel to get instant notifications about  <strong>Answer Keys</strong>, <strong>Ranks</strong> &amp; <strong>Cut-off Marks</strong> updates!
         </p>
 
         <a
