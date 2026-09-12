@@ -187,7 +187,7 @@ interface FormData {
   exam_id?: string;
 }
 
-const ENABLE_TELEGRAM_DIALOG = false;
+const ENABLE_TELEGRAM_DIALOG = true;
 
 export default function ResultPage() {
   const router = useRouter();
