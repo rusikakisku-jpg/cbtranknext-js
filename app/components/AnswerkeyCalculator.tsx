@@ -462,13 +462,18 @@ export default function AnswerkeyCalculator({
         domain: domainHost
       };
 
-      fetch('/api/log-rank', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rankPayload)
-      }).catch(() => {
-        logUserRankAction(rankPayload).catch(() => {});
-      });
+      try {
+        await fetch('/api/log-rank', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          keepalive: true,
+          body: JSON.stringify(rankPayload)
+        });
+      } catch (err) {
+        try {
+          await logUserRankAction(rankPayload);
+        } catch (e) {}
+      }
     } catch (e) {}
 
     setProgressStep(3); // Step 3: Fetching live rank
