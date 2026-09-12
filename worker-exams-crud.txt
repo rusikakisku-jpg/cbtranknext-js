@@ -25,525 +25,6 @@
  */
 
 // =============================================================================
-// 27 DEFAULT CBT EXAMS DATA (Preloaded Fallback & Auto-Seed Dataset)
-// =============================================================================
-const DEFAULT_EXAMS = [
-  {
-    "id": 47,
-    "title": "OSSC Physical Measurement and Physical EfficiencyTest - 2025",
-    "subtitle": "Check Your Answer Key of OSSC Physical Measurement and Physical EfficiencyTest - 2025",
-    "slug": "ossc-physical-measurement-and-physical-efficiencytest-2025",
-    "is_latest": 1,
-    "is_visible": 1,
-    "set_on_top": 1,
-    "location_type_id": "States/UT",
-    "location_id": [
-      "Odisha"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.25,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 46,
-    "title": "RRB Group D 2026 Answer Key",
-    "subtitle": "Check Your Answer Key of RRB Group D 2026 Answer Key",
-    "slug": "rrb-group-d-2026-answer-key",
-    "is_latest": 1,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 45,
-    "title": "OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
-    "subtitle": "Check Your Answer Key of OSSSC RI,ARI,AMIN,ICDS,SFS,Junior Assistant",
-    "slug": "osssc-ri-ari-amin-icds-sfs-junior-assistant",
-    "is_latest": 1,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "States/UT",
-    "location_id": [
-      "Odisha"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 44,
-    "title": "RRB NTPC UG 2026 CBT-1",
-    "subtitle": "Check Your Answer Key of RRB NTPC UG 2026 CBT-1",
-    "slug": "rrb-ntpc-ug-2026-cbt-1",
-    "is_latest": 1,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 43,
-    "title": "SSC CHSL Mains 2025",
-    "subtitle": "Check Your Answer Key of SSC CHSL Mains 2025",
-    "slug": "ssc-chsl-mains-2025",
-    "is_latest": 1,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 3.0,
-    "marks_wrong": 1.0,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 42,
-    "title": "SSC JE Mains 2025",
-    "subtitle": "Check Your Answer Key of SSC JE Mains 2025",
-    "slug": "ssc-je-mains-2025",
-    "is_latest": 1,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 3.0,
-    "marks_wrong": 1.0,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 41,
-    "title": "RRB NTPC CBT-I Graduate Level 2025-26",
-    "subtitle": "Check Your Answer Key of RRB NTPC CBT-I Graduate Level 2025-26",
-    "slug": "rrb-ntpc-cbt-i-graduate-level-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 40,
-    "title": "RRB Technician Grade-I 2025-26",
-    "subtitle": "Check Your Answer Key of RRB Technician Grade-I 2025-26",
-    "slug": "rrb-technician-grade-i-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 39,
-    "title": "RRB Paramedical Exam 2025-26",
-    "subtitle": "Check Your Answer Key of RRB Paramedical Exam 2025-26",
-    "slug": "rrb-paramedical-exam-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 38,
-    "title": "RRB Technician Grade-3 2025-26",
-    "subtitle": "Check Your Answer Key of RRB Technician Grade-3 2025-26",
-    "slug": "rrb-technician-grade-3-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 37,
-    "title": "RRB ALP CBT-1 2025-26",
-    "subtitle": "Check Your Answer Key of RRB ALP CBT-1 2025-26",
-    "slug": "rrb-alp-cbt-1-2025-26-2",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 36,
-    "title": "RRB Section Controller CBT-I 2026",
-    "subtitle": "Check Your Answer Key of RRB Section Controller CBT-I 2026",
-    "slug": "rrb-section-controller-cbt-i-2026",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 35,
-    "title": "SSC MTS 2025-26",
-    "subtitle": "Check Your Answer Key of SSC MTS 2025-26",
-    "slug": "ssc-mts-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 3.0,
-    "marks_wrong": 1.0,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 34,
-    "title": "RRB Group-D 2024-25",
-    "subtitle": "Check Your Answer Key of RRB Group-D 2024-25",
-    "slug": "rrb-group-d-2024-25-2",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 33,
-    "title": "RRB ALP CBT-1 2025-26",
-    "subtitle": "Check Your Answer Key of RRB ALP CBT-1 2025-26",
-    "slug": "rrb-alp-cbt-1-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 32,
-    "title": "RRB JE CBT-1 2025-26",
-    "subtitle": "Check Your Answer Key of RRB JE CBT-1 2025-26",
-    "slug": "rrb-je-cbt-1-2025-26",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 31,
-    "title": "RRB Section Controller CBT-1",
-    "subtitle": "Check Your Answer Key of RRB Section Controller CBT-1",
-    "slug": "rrb-section-controller-cbt-1",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 30,
-    "title": "RRB Group-D 2024-25",
-    "subtitle": "Check Your Answer Key of RRB Group-D 2024-25",
-    "slug": "rrb-group-d-2024-25",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 29,
-    "title": "SSC Delhi Police AWO/TPO 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police AWO/TPO 2025",
-    "slug": "ssc-delhi-police-awo-tpo-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "Delhi"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.25,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 28,
-    "title": "SSC Delhi Police Head Constable 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police Head Constable 2025",
-    "slug": "ssc-delhi-police-head-constable-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "Delhi"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.5,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 27,
-    "title": "SSC CGL Mains 2025",
-    "subtitle": "Check Your Answer Key of SSC CGL Mains 2025",
-    "slug": "ssc-cgl-mains-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 3.0,
-    "marks_wrong": 1.0,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 26,
-    "title": "SSC Delhi Police Constable 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police Constable 2025",
-    "slug": "ssc-delhi-police-constable-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "Delhi"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.25,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 25,
-    "title": "SSC Delhi Police Driver 2025",
-    "subtitle": "Check Your Answer Key of SSC Delhi Police Driver 2025",
-    "slug": "ssc-delhi-police-driver-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "Delhi"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.25,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 23,
-    "title": "RRB NTPC UG CBT-II  2024-25",
-    "subtitle": "Check Your Answer Key of RRB NTPC UG CBT-II  2024-25",
-    "slug": "rrb-ntpc-ug-cbt-ii-2024-25",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 22,
-    "title": "RRB NTPC 2025 CBT 2",
-    "subtitle": "Check Your Answer Key of RRB NTPC 2025 CBT 2.",
-    "slug": "rrb-ntpc-2025-cbt-2",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 21,
-    "title": "RRB Ministerial & Isolated Categories 2025",
-    "subtitle": "Check Your Answer Key of RRB Ministerial & Isolated Categories 2025",
-    "slug": "rrb-ministerial-isolated-categories-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  },
-  {
-    "id": 20,
-    "title": "RRB NTPC UG (Under Graduate) 2025",
-    "subtitle": "Check Your Answer Key of RRB NTPC UG (Under Graduate) 2025",
-    "slug": "rrb-ntpc-ug-under-graduate-2025",
-    "is_latest": 0,
-    "is_visible": 1,
-    "set_on_top": 0,
-    "location_type_id": "All India",
-    "location_id": [
-      "All India"
-    ],
-    "marks_right": 1.0,
-    "marks_wrong": 0.33,
-    "answerkey_login_link": "",
-    "description": "",
-    "external_exam_id": "",
-    "youtube_link": ""
-  }
-];
-
-// =============================================================================
 // Helper: Discover Cloudflare D1 Database Binding in 'env'
 // =============================================================================
 function getD1Database(env) {
@@ -573,6 +54,7 @@ async function executeD1(env, sql, params = []) {
   const cleanParams = params.map(p => {
     if (p === undefined || p === null) return null;
     if (typeof p === 'boolean') return p ? 1 : 0;
+    if (typeof p === 'number' && isNaN(p)) return 0;
     return p;
   });
 
@@ -607,6 +89,77 @@ async function getTableColumns(env) {
     // Table may not exist yet
   }
   return [];
+}
+
+// Case-insensitive column resolver with alias fallback
+function resolveColumnName(availableCols, primaryName, aliases = []) {
+  if (!Array.isArray(availableCols) || availableCols.length === 0) return primaryName;
+  const targetNames = [primaryName, ...aliases].map(s => s.toLowerCase());
+  for (const target of targetNames) {
+    for (const col of availableCols) {
+      if (String(col).toLowerCase() === target) {
+        return col; // Returns exact case from database
+      }
+    }
+  }
+  return primaryName;
+}
+
+function hasColumn(availableCols, columnName, aliases = []) {
+  if (!Array.isArray(availableCols) || availableCols.length === 0) return true;
+  const targetNames = [columnName, ...aliases].map(s => s.toLowerCase());
+  return availableCols.some(c => targetNames.includes(String(c).toLowerCase()));
+}
+
+// Normalize row properties from D1 (case-insensitive + aliases + types)
+function normalizeExamRow(row) {
+  if (!row || typeof row !== 'object') return row;
+  const item = { ...row };
+
+  const getProp = (...keys) => {
+    const rowKeys = Object.keys(row);
+    for (const k of keys) {
+      const target = k.toLowerCase();
+      for (const rk of rowKeys) {
+        if (rk.toLowerCase() === target && row[rk] !== undefined && row[rk] !== null) {
+          return row[rk];
+        }
+      }
+    }
+    return undefined;
+  };
+
+  const rVal = getProp('marks_right', 'mark_right', 'positive_marks', 'right_marks');
+  if (rVal !== undefined && rVal !== null && rVal !== '') {
+    const n = Number(rVal);
+    item.marks_right = !isNaN(n) ? n : 1.0;
+  } else {
+    item.marks_right = 1.0;
+  }
+
+  const wVal = getProp('marks_wrong', 'mark_wrong', 'negative_marks', 'wrong_marks');
+  if (wVal !== undefined && wVal !== null && wVal !== '') {
+    const n = Number(wVal);
+    item.marks_wrong = !isNaN(n) ? Math.abs(n) : 0.25;
+  } else {
+    item.marks_wrong = 0.25;
+  }
+
+  const locVal = getProp('location_id');
+  if (typeof locVal === 'string') {
+    try { item.location_id = JSON.parse(locVal); } catch (e) { item.location_id = [locVal]; }
+  } else if (locVal !== undefined) {
+    item.location_id = locVal;
+  }
+
+  const vis = getProp('is_visible');
+  if (vis !== undefined) item.is_visible = (vis == 1 || vis === true || vis === 'true' || vis === '1') ? 1 : 0;
+  const top = getProp('set_on_top');
+  if (top !== undefined) item.set_on_top = (top == 1 || top === true || top === 'true' || top === '1') ? 1 : 0;
+  const lat = getProp('is_latest');
+  if (lat !== undefined) item.is_latest = (lat == 1 || lat === true || lat === 'true' || lat === '1') ? 1 : 0;
+
+  return item;
 }
 
 // =============================================================================
@@ -648,8 +201,8 @@ async function ensureExamsTable(env) {
     { name: 'set_on_top', type: "INTEGER DEFAULT 0" },
     { name: 'location_type_id', type: "TEXT DEFAULT 'States/UT'" },
     { name: 'location_id', type: "TEXT DEFAULT '[\"All India\"]'" },
-    { name: 'marks_right', type: "REAL DEFAULT 1.0" },
-    { name: 'marks_wrong', type: "REAL DEFAULT 0.25" },
+    { name: 'marks_right', type: "REAL DEFAULT 1.0", aliases: ['mark_right', 'positive_marks', 'right_marks'] },
+    { name: 'marks_wrong', type: "REAL DEFAULT 0.25", aliases: ['mark_wrong', 'negative_marks', 'wrong_marks'] },
     { name: 'answerkey_login_link', type: "TEXT DEFAULT ''" },
     { name: 'description', type: "TEXT DEFAULT ''" },
     { name: 'external_exam_id', type: "TEXT DEFAULT ''" },
@@ -659,7 +212,13 @@ async function ensureExamsTable(env) {
   ];
 
   for (const col of requiredCols) {
-    if (!cols.includes(col.name)) {
+    const colExists = cols.some(c => {
+      const cLower = String(c).toLowerCase();
+      if (cLower === col.name.toLowerCase()) return true;
+      if (col.aliases && col.aliases.some(a => a.toLowerCase() === cLower)) return true;
+      return false;
+    });
+    if (!colExists) {
       try {
         await db.prepare(`ALTER TABLE exams ADD COLUMN ${col.name} ${col.type}`).run();
       } catch (e) {
@@ -669,44 +228,6 @@ async function ensureExamsTable(env) {
   }
 
   return await getTableColumns(env);
-}
-
-// =============================================================================
-// Helper: Seed Default 27 CBT Exams into D1 Table
-// =============================================================================
-async function seedDefaultExams(env) {
-  const db = getD1Database(env);
-  if (!db) return 0;
-  await ensureExamsTable(env);
-
-  let insertedCount = 0;
-  let maxId = 0;
-  for (const ex of DEFAULT_EXAMS) {
-    try {
-      const locStr = Array.isArray(ex.location_id) ? JSON.stringify(ex.location_id) : JSON.stringify([ex.location_id || 'All India']);
-      await db.prepare(`
-        INSERT OR IGNORE INTO exams (id, title, subtitle, slug, is_latest, is_visible, set_on_top, location_type_id, location_id, marks_right, marks_wrong, answerkey_login_link, description, external_exam_id, youtube_link)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).bind(
-        ex.id, ex.title, ex.subtitle || '', ex.slug,
-        ex.is_latest ? 1 : 0, ex.is_visible ? 1 : 0, ex.set_on_top ? 1 : 0,
-        ex.location_type_id || 'States/UT', locStr,
-        ex.marks_right || 1.0, ex.marks_wrong || 0.25,
-        ex.answerkey_login_link || '', ex.description || '', ex.external_exam_id || '', ex.youtube_link || ''
-      ).run();
-      insertedCount++;
-      if (ex.id > maxId) maxId = ex.id;
-    } catch (err) {
-      console.warn("Seed row notice:", ex.slug, err.message);
-    }
-  }
-  // Sync autoincrement sequence so subsequent inserts do not collide with IDs
-  if (maxId > 0) {
-    try {
-      await db.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('exams', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'exams'), 0), ?))").bind(maxId).run();
-    } catch (e) {}
-  }
-  return insertedCount;
 }
 
 // =============================================================================
@@ -775,27 +296,21 @@ export default {
     const isD1Bound = !!dbInstance;
 
     // -------------------------------------------------------------------------
-    // ROUTE 0: Seed / Reset Default 27 CBT Exams (/api/seed-exams)
+    // ROUTE 0: Seed / Table Setup Notice (/api/seed-exams)
     // -------------------------------------------------------------------------
     if ((pathname === '/api/seed-exams' || pathname === '/api/exams/seed') && (request.method === 'POST' || request.method === 'GET')) {
-      if (!isD1Bound) {
-        return jsonResponse({
-          success: true,
-          seeded: DEFAULT_EXAMS.length,
-          message: "Running in preview mode (D1 not bound). Showing 27 built-in default exams.",
-          isD1Bound: false
-        });
-      }
+      if (!isD1Bound) return errorResponse("D1 database 'DB' is not bound. Please bind D1 in Cloudflare Settings.", 500);
       try {
-        const count = await seedDefaultExams(env);
+        await ensureExamsTable(env);
+        const countRes = await executeD1(env, "SELECT COUNT(*) as total FROM exams");
         return jsonResponse({
           success: true,
-          seeded: count,
-          message: `Successfully seeded/verified ${count} default CBT exams into D1 database.`,
+          totalExams: countRes[0]?.total ?? 0,
+          message: "Database 'exams' table is active and 100% dynamic. You can add or manage exams via '+ Add New Exam'.",
           isD1Bound: true
         });
       } catch (err) {
-        return errorResponse("Seeding failed: " + err.message, 500);
+        return errorResponse("Notice: " + err.message, 500);
       }
     }
 
@@ -839,11 +354,7 @@ export default {
     // -------------------------------------------------------------------------
     if (pathname === '/api/exams/toggle' && request.method === 'POST') {
       if (!isD1Bound) {
-        return jsonResponse({
-          success: true,
-          message: "Preview Mode: Updated in memory",
-          isD1Bound: false
-        });
+        return errorResponse("Cloudflare D1 database binding 'DB' is missing.", 500, { isD1Bound: false });
       }
       try {
         await ensureExamsTable(env);
@@ -865,11 +376,49 @@ export default {
         const newValue = (body.value !== undefined) ? (body.value ? 1 : 0) : (currentValue ? 0 : 1);
 
         const availableCols = await getTableColumns(env);
+        const nowIso = new Date().toISOString();
+
+        // EXCLUSIVE TOP RULE:
+        // Only 1 exam can be on top. Setting set_on_top = 1 automatically removes top
+        // from all other exams AND forces this exam to be Visible = 1 and Latest = 1.
+        if (field === 'set_on_top' && newValue === 1) {
+          await executeD1(env, "UPDATE exams SET set_on_top = 0 WHERE id != ?", [id]);
+
+          let updateSql = "UPDATE exams SET set_on_top = 1";
+          let updateParams = [];
+
+          if (hasColumn(availableCols, 'is_visible')) {
+            updateSql += ", " + resolveColumnName(availableCols, 'is_visible') + " = 1";
+          }
+          if (hasColumn(availableCols, 'is_latest')) {
+            updateSql += ", " + resolveColumnName(availableCols, 'is_latest') + " = 1";
+          }
+          if (hasColumn(availableCols, 'updated_at')) {
+            updateSql += ", " + resolveColumnName(availableCols, 'updated_at') + " = ?";
+            updateParams.push(nowIso);
+          }
+          updateSql += " WHERE id = ?";
+          updateParams.push(id);
+
+          await executeD1(env, updateSql, updateParams);
+
+          return jsonResponse({
+            success: true,
+            message: `Exam #${id} set as sole Top exam (auto-marked Visible & Latest)`,
+            id: id,
+            field: field,
+            newValue: 1,
+            is_visible: 1,
+            is_latest: 1,
+            isD1Bound: true
+          });
+        }
+
         let updateSql = `UPDATE exams SET ${field} = ?`;
         let updateParams = [newValue];
-        if (availableCols.includes('updated_at')) {
-          updateSql += ", updated_at = ?";
-          updateParams.push(new Date().toISOString());
+        if (hasColumn(availableCols, 'updated_at')) {
+          updateSql += ", " + resolveColumnName(availableCols, 'updated_at') + " = ?";
+          updateParams.push(nowIso);
         }
         updateSql += " WHERE id = ?";
         updateParams.push(id);
@@ -894,17 +443,7 @@ export default {
     // -------------------------------------------------------------------------
     if ((pathname === '/api/exams' || pathname === '/api/exams/add') && request.method === 'POST') {
       if (!isD1Bound) {
-        try {
-          const body = await request.json();
-          return jsonResponse({
-            success: true,
-            message: "Exam added in Preview Mode (bind D1 in Cloudflare to persist).",
-            id: Date.now(),
-            isD1Bound: false
-          });
-        } catch (e) {
-          return errorResponse("Invalid JSON payload", 400);
-        }
+        return errorResponse("Cloudflare D1 database binding 'DB' is missing. Please bind your D1 database under Worker Settings -> Bindings -> D1 Database Bindings with variable name DB.", 500, { isD1Bound: false });
       }
       try {
         await ensureExamsTable(env);
@@ -926,13 +465,31 @@ export default {
         }
 
         const subtitle = String(body.subtitle || '').trim();
-        const isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 0;
-        const isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 0;
-        const setOnTop = body.set_on_top ? 1 : 0;
+        let setOnTop = body.set_on_top ? 1 : 0;
+        let isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 0;
+        let isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 0;
+
+        // EXCLUSIVE TOP RULE:
+        // If this new exam is set on top, it MUST be visible and latest, and all other exams lose top status.
+        if (setOnTop === 1) {
+          isVisible = 1;
+          isLatest = 1;
+          await executeD1(env, "UPDATE exams SET set_on_top = 0");
+        }
         const locTypeId = String(body.location_type_id || 'States/UT').trim();
         const locId = normalizeLocationId(body.location_id);
-        const marksRight = (body.marks_right !== undefined && body.marks_right !== '') ? parseFloat(body.marks_right) : 1.0;
-        const marksWrong = (body.marks_wrong !== undefined && body.marks_wrong !== '') ? parseFloat(body.marks_wrong) : 0.25;
+        let marksRight = 1.0;
+        if (body.marks_right !== undefined && body.marks_right !== null && body.marks_right !== '') {
+          const parsedR = parseFloat(body.marks_right);
+          if (!isNaN(parsedR)) marksRight = parsedR;
+        }
+
+        let marksWrong = 0.25;
+        if (body.marks_wrong !== undefined && body.marks_wrong !== null && body.marks_wrong !== '') {
+          const parsedW = parseFloat(body.marks_wrong);
+          if (!isNaN(parsedW)) marksWrong = Math.abs(parsedW);
+        }
+
         const answerLink = String(body.answerkey_login_link || '').trim();
         const description = String(body.description || '').trim();
         const externalExamId = String(body.external_exam_id || '').trim();
@@ -953,9 +510,14 @@ export default {
           nextId = Date.now();
         }
 
+        const rightColName = resolveColumnName(availableCols, 'marks_right', ['mark_right', 'positive_marks', 'right_marks']);
+        const wrongColName = resolveColumnName(availableCols, 'marks_wrong', ['mark_wrong', 'negative_marks', 'wrong_marks']);
+
         const dataMap = {
           title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
-          location_type_id: locTypeId, location_id: locId, marks_right: marksRight, marks_wrong: marksWrong,
+          location_type_id: locTypeId, location_id: locId,
+          [rightColName]: marksRight,
+          [wrongColName]: marksWrong,
           answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
         };
 
@@ -965,8 +527,9 @@ export default {
         let valuesToInsert = [nextId];
 
         Object.keys(dataMap).forEach(col => {
-          if (availableCols.length === 0 || availableCols.includes(col)) {
-            colsToInsert.push(col);
+          if (availableCols.length === 0 || hasColumn(availableCols, col)) {
+            const actualCol = resolveColumnName(availableCols, col);
+            colsToInsert.push(actualCol);
             placeholders.push('?');
             valuesToInsert.push(dataMap[col]);
           }
@@ -1021,11 +584,7 @@ export default {
     const updateMatch = pathname.match(/^\/api\/exams\/(\d+)$/);
     if ((updateMatch && (request.method === 'PUT' || request.method === 'POST')) || (pathname === '/api/exams/update' && request.method === 'POST')) {
       if (!isD1Bound) {
-        return jsonResponse({
-          success: true,
-          message: "Exam updated in Preview Mode.",
-          isD1Bound: false
-        });
+        return errorResponse("Cloudflare D1 database binding 'DB' is missing.", 500, { isD1Bound: false });
       }
       try {
         await ensureExamsTable(env);
@@ -1051,22 +610,45 @@ export default {
         }
 
         const subtitle = String(body.subtitle || '').trim();
-        const isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 1;
-        const isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 1;
-        const setOnTop = body.set_on_top ? 1 : 0;
+        let setOnTop = body.set_on_top ? 1 : 0;
+        let isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 1;
+        let isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 1;
+
+        // EXCLUSIVE TOP RULE:
+        // If this exam is set on top, it MUST be visible and latest, and all other exams lose top status.
+        if (setOnTop === 1) {
+          isVisible = 1;
+          isLatest = 1;
+          await executeD1(env, "UPDATE exams SET set_on_top = 0 WHERE id != ?", [examId]);
+        }
         const locTypeId = String(body.location_type_id || 'States/UT').trim();
         const locId = normalizeLocationId(body.location_id);
-        const marksRight = (body.marks_right !== undefined && body.marks_right !== '') ? parseFloat(body.marks_right) : 1.0;
-        const marksWrong = (body.marks_wrong !== undefined && body.marks_wrong !== '') ? parseFloat(body.marks_wrong) : 0.25;
+        let marksRight = 1.0;
+        if (body.marks_right !== undefined && body.marks_right !== null && body.marks_right !== '') {
+          const parsedR = parseFloat(body.marks_right);
+          if (!isNaN(parsedR)) marksRight = parsedR;
+        }
+
+        let marksWrong = 0.25;
+        if (body.marks_wrong !== undefined && body.marks_wrong !== null && body.marks_wrong !== '') {
+          const parsedW = parseFloat(body.marks_wrong);
+          if (!isNaN(parsedW)) marksWrong = Math.abs(parsedW);
+        }
+
         const answerLink = String(body.answerkey_login_link || '').trim();
         const description = String(body.description || '').trim();
         const externalExamId = String(body.external_exam_id || '').trim();
         const youtubeLink = String(body.youtube_link || '').trim();
 
         const availableCols = await getTableColumns(env);
+        const rightColName = resolveColumnName(availableCols, 'marks_right', ['mark_right', 'positive_marks', 'right_marks']);
+        const wrongColName = resolveColumnName(availableCols, 'marks_wrong', ['mark_wrong', 'negative_marks', 'wrong_marks']);
+
         const dataMap = {
           title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
-          location_type_id: locTypeId, location_id: locId, marks_right: marksRight, marks_wrong: marksWrong,
+          location_type_id: locTypeId, location_id: locId,
+          [rightColName]: marksRight,
+          [wrongColName]: marksWrong,
           answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
         };
 
@@ -1074,14 +656,16 @@ export default {
         let setValues = [];
 
         Object.keys(dataMap).forEach(col => {
-          if (availableCols.length === 0 || availableCols.includes(col)) {
-            setClauses.push(`${col} = ?`);
+          if (availableCols.length === 0 || hasColumn(availableCols, col)) {
+            const actualCol = resolveColumnName(availableCols, col);
+            setClauses.push(`${actualCol} = ?`);
             setValues.push(dataMap[col]);
           }
         });
 
-        if (availableCols.includes('updated_at')) {
-          setClauses.push("updated_at = ?");
+        if (availableCols.length === 0 || hasColumn(availableCols, 'updated_at')) {
+          const actualCol = resolveColumnName(availableCols, 'updated_at');
+          setClauses.push(`${actualCol} = ?`);
           setValues.push(new Date().toISOString());
         }
 
@@ -1106,11 +690,7 @@ export default {
     const deleteMatch = pathname.match(/^\/api\/exams\/(\d+)$/);
     if ((deleteMatch && request.method === 'DELETE') || (pathname === '/api/exams/delete' && (request.method === 'POST' || request.method === 'DELETE'))) {
       if (!isD1Bound) {
-        return jsonResponse({
-          success: true,
-          message: "Exam deleted in Preview Mode.",
-          isD1Bound: false
-        });
+        return errorResponse("Cloudflare D1 database binding 'DB' is missing.", 500, { isD1Bound: false });
       }
       try {
         await ensureExamsTable(env);
@@ -1149,9 +729,7 @@ export default {
     if (getSingleMatch && request.method === 'GET') {
       const identifier = getSingleMatch[1];
       if (!isD1Bound) {
-        const found = DEFAULT_EXAMS.find(e => e.slug === identifier || String(e.id) === identifier);
-        if (found) return jsonResponse({ success: true, data: found, isD1Bound: false });
-        return errorResponse("Exam not found", 404);
+        return errorResponse("Cloudflare D1 database binding 'DB' is missing.", 500, { isD1Bound: false });
       }
       try {
         const identifier = getSingleMatch[1];
@@ -1164,10 +742,7 @@ export default {
         const rows = await executeD1(env, sql, params);
         if (rows && rows.length > 0) {
           const item = rows[0];
-          if (typeof item.location_id === 'string') {
-            try { item.location_id = JSON.parse(item.location_id); } catch (e) {}
-          }
-          return jsonResponse({ success: true, data: item });
+          return jsonResponse({ success: true, data: normalizeExamRow(item) });
         }
         return errorResponse("Exam not found", 404);
       } catch (err) {
@@ -1184,30 +759,10 @@ export default {
       const rawArray = url.searchParams.get('raw') === '1' || url.searchParams.get('format') === 'array';
 
       if (!isD1Bound) {
-        let rows = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
-        if (visibleOnly) rows = rows.filter(r => r.is_visible);
-        if (search) {
-          const sLower = search.toLowerCase();
-          rows = rows.filter(r => (r.title && r.title.toLowerCase().includes(sLower)) || (r.slug && r.slug.toLowerCase().includes(sLower)));
-        }
-        if (rawArray) {
-          return new Response(JSON.stringify(rows), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
-            status: 200
-          });
-        }
-        return jsonResponse({
-          success: true,
-          count: rows.length,
-          data: rows,
-          isD1Bound: false
-        });
+        return errorResponse("Cloudflare D1 database binding 'DB' is missing. Please bind your D1 database under Worker Settings -> Bindings -> D1 Database Bindings with variable name DB.", 500, { isD1Bound: false });
       }
       try {
-        const search = url.searchParams.get('search') ? url.searchParams.get('search').trim() : '';
-        const visibleOnly = url.searchParams.get('visible_only') === '1' || url.searchParams.get('active') === '1';
-        const rawArray = url.searchParams.get('raw') === '1' || url.searchParams.get('format') === 'array';
-
+        await ensureExamsTable(env);
         let sql = "SELECT * FROM exams";
         let wheres = [];
         let params = [];
@@ -1226,27 +781,14 @@ export default {
         }
         sql += " ORDER BY set_on_top DESC, id DESC";
 
-        let rows = [];
+        let rawRows = [];
         try {
-          rows = await executeD1(env, sql, params);
+          rawRows = await executeD1(env, sql, params);
         } catch (err) {
-          console.warn("API query fallback:", err.message);
+          console.warn("API query notice:", err.message);
         }
 
-        if (!rows || rows.length === 0) {
-          rows = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
-          if (visibleOnly) rows = rows.filter(r => r.is_visible);
-          if (search) {
-            const sLower = search.toLowerCase();
-            rows = rows.filter(r => (r.title && r.title.toLowerCase().includes(sLower)) || (r.slug && r.slug.toLowerCase().includes(sLower)));
-          }
-        } else if (Array.isArray(rows)) {
-          rows.forEach(r => {
-            if (typeof r.location_id === 'string') {
-              try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
-            }
-          });
-        }
+        const rows = Array.isArray(rawRows) ? rawRows.map(normalizeExamRow) : [];
 
         if (rawArray) {
           return new Response(JSON.stringify(rows), {
@@ -1278,34 +820,18 @@ export default {
         try {
           // 1. Auto-create table & migrate missing columns
           tableCols = await ensureExamsTable(env);
-          const hasSetOnTop = tableCols.includes('set_on_top');
+          const hasSetOnTop = hasColumn(tableCols, 'set_on_top');
           const orderSql = hasSetOnTop ? "ORDER BY set_on_top DESC, id DESC" : "ORDER BY id DESC";
 
-          // 2. Fetch existing exams
-          initialExams = await executeD1(env, "SELECT * FROM exams " + orderSql);
-
-          // 3. Auto-seed 27 default CBT exams if database table is empty!
-          if (!initialExams || initialExams.length === 0) {
-            await seedDefaultExams(env);
-            initialExams = await executeD1(env, "SELECT * FROM exams " + orderSql);
-          }
-
-          if (Array.isArray(initialExams)) {
-            initialExams.forEach(r => {
-              if (typeof r.location_id === 'string') {
-                try { r.location_id = JSON.parse(r.location_id); } catch (e) {}
-              }
-            });
+          // 2. Fetch real exams directly from D1
+          const rawRows = await executeD1(env, "SELECT * FROM exams " + orderSql);
+          if (Array.isArray(rawRows)) {
+            initialExams = rawRows.map(normalizeExamRow);
           }
         } catch (e) {
           dbError = e.message;
           console.error("D1 Load Error:", e);
         }
-      }
-
-      // 4. Fallback: If D1 is not bound or query returned 0 rows, use 27 built-in default exams!
-      if (!initialExams || initialExams.length === 0) {
-        initialExams = JSON.parse(JSON.stringify(DEFAULT_EXAMS));
       }
 
       return renderExamsManagerPortal(isD1Bound, tableCols.length > 0, initialExams, dbError);
@@ -1324,15 +850,15 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
   const isD1Active = isD1Bound && !dbError;
 
   const d1StatusBadge = isD1Active
-    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Connected (' + preloadedExams.length + ' Exams)</span>'
+    ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Database Connected (' + preloadedExams.length + ' Exams)</span>'
     : (isD1Bound && dbError
       ? '<span class="badge-status-err" title="' + escapeHtml(dbError) + '">⚠️ D1 Error (Click DB Setup)</span>'
-      : '<span class="badge-status-err" title="Add binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ Preview Mode (27 Default Exams)</span>');
+      : '<span class="badge-status-err" title="Add binding in Cloudflare Dashboard: Settings > Bindings > Variable: DB">⚠️ D1 Not Bound (Variable: DB)</span>');
 
   const alertBox = !isD1Bound
-    ? '<div class="banner-alert"><div><b>ℹ️ Preview Mode Active (Showing 27 Built-in CBT Exams):</b><br>To enable live database saving directly into your Cloudflare D1 Database, please add your D1 Database Binding under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Cloudflare Dashboard &gt; Workers &gt; Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px; margin-top:6px;">⚡ Connect &amp; Seed Database</button></div>'
+    ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>⚠️ Cloudflare D1 Database Binding Required:</b><br>To connect directly to your live database, please bind your D1 Database under:<br><code style="font-size:12px; background:#00000044; padding:2px 6px; border-radius:4px;">Cloudflare Dashboard &gt; Workers &gt; Settings &gt; Bindings &gt; D1 Database Bindings &gt; Variable Name: <b>DB</b></code></div></div>'
     : (dbError
-      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>⚠️ D1 Database Initialization Notice:</b> ' + escapeHtml(dbError) + '<br>Click below to create/verify the <code>exams</code> table or seed default exams.</div><div style="display:flex; gap:8px; margin-top:8px;"><button type="button" class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">⚙️ Run DB Setup</button><button type="button" class="btn btn-secondary" onclick="seedDatabase()" style="font-size:12px; padding:6px 12px;">⚡ Seed 27 Exams</button></div></div>'
+      ? '<div class="banner-alert" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#f87171;"><div><b>⚠️ D1 Database Notice:</b> ' + escapeHtml(dbError) + '<br>Click below to create or verify the <code>exams</code> table in your D1 database.</div><div style="display:flex; gap:8px; margin-top:8px;"><button type="button" class="btn btn-secondary" onclick="setupTable()" style="font-size:12px; padding:6px 12px;">⚙️ Run DB Setup</button></div></div>'
       : '');
 
   const html = `<!DOCTYPE html>
@@ -2365,8 +1891,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
       <div class="btn-group">
         <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
-        <button class="btn btn-secondary" onclick="seedDatabase()" title="Seed or restore 27 default CBT exams">⚡ Seed 27 Exams</button>
-        <button class="btn btn-secondary" onclick="exportJson()">📥 Export</button>
+        <button class="btn btn-secondary" onclick="exportJson()">📥 Export JSON</button>
         <button class="btn btn-secondary" onclick="setupTable()">⚙️ DB Setup</button>
       </div>
     </div>
@@ -2459,19 +1984,20 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             <!-- Marks Right -->
             <div class="form-group">
               <label class="form-label">Marks for Correct (+)</label>
-              <input type="number" step="0.01" id="formMarksRight" class="form-input" value="1.0" required>
+              <input type="number" step="any" id="formMarksRight" class="form-input" value="1.0" required>
               <div class="preset-chips">
                 <span class="preset-chip" onclick="setMarks(1.0, 0.25)">+1 / -0.25 (SSC)</span>
                 <span class="preset-chip" onclick="setMarks(1.0, 0.33)">+1 / -0.33 (Railway)</span>
                 <span class="preset-chip" onclick="setMarks(2.0, 0.5)">+2 / -0.5 (CGL)</span>
                 <span class="preset-chip" onclick="setMarks(3.0, 1.0)">+3 / -1.0 (CHSL)</span>
+                <span class="preset-chip" onclick="setMarks(1.0, 0.0)">+1 / 0 (No Neg)</span>
               </div>
             </div>
 
             <!-- Marks Wrong -->
             <div class="form-group">
               <label class="form-label">Marks for Negative (-)</label>
-              <input type="number" step="0.01" id="formMarksWrong" class="form-input" value="0.25" required>
+              <input type="number" step="any" id="formMarksWrong" class="form-input" value="0.25" required>
             </div>
 
             <!-- External Exam ID -->
@@ -2554,7 +2080,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                   <span class="name">📌 Set On Top</span>
                   <span class="hint">Pin to top of website</span>
                 </div>
-                <input type="checkbox" id="formSetOnTop">
+                <input type="checkbox" id="formSetOnTop" onchange="onSetOnTopChange(this.checked)">
               </label>
 
               <label class="status-toggle-card">
@@ -2652,31 +2178,9 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
 
     function initApp() {
-      // LocalStorage persistence fallback: preserve user exams on refresh even if D1 is not bound yet!
-      if (!isD1Connected) {
-        try {
-          var saved = localStorage.getItem('cbtrank_exams_store');
-          if (saved) {
-            var parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              allExams = parsed;
-            }
-          } else {
-            localStorage.setItem('cbtrank_exams_store', JSON.stringify(allExams));
-          }
-        } catch (e) {}
-      }
       renderAllViews();
       updateStats();
       initTinyMce();
-    }
-
-    function saveLocalStorage() {
-      if (!isD1Connected) {
-        try {
-          localStorage.setItem('cbtrank_exams_store', JSON.stringify(allExams));
-        } catch (e) {}
-      }
     }
 
     function copyExamSlug(id) {
@@ -2776,7 +2280,11 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       if (!grid) return;
 
       if (filtered.length === 0) {
-        grid.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b; grid-column: 1 / -1;">No exams match your current filters.</div>';
+        if (allExams.length === 0) {
+          grid.innerHTML = '<div style="text-align:center; padding:50px 20px; color:#94a3b8; grid-column: 1 / -1;"><div style="font-size:36px; margin-bottom:12px;">📭</div><div style="font-size:16px; font-weight:700; color:#f8fafc;">No exams found in D1 database</div><div style="font-size:13px; margin-top:6px; color:#64748b;">Click <b>+ Add New Exam</b> above to create your first exam.</div></div>';
+        } else {
+          grid.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#64748b; grid-column: 1 / -1;">No exams match your current filters.</div>';
+        }
         return;
       }
 
@@ -2835,8 +2343,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             '<div class="card-detail-item">' +
               '<span class="card-detail-label">Marking</span>' +
               '<span class="card-detail-value marks-chip">' +
-                '<span class="marks-plus">+' + (exam.marks_right !== undefined ? exam.marks_right : 1) + '</span> / ' +
-                '<span class="marks-minus">-' + (exam.marks_wrong !== undefined ? exam.marks_wrong : 0.25) + '</span>' +
+                '<span class="marks-plus">+' + ((exam.marks_right !== undefined && exam.marks_right !== null && exam.marks_right !== "") ? exam.marks_right : 1) + '</span> / ' +
+                '<span class="marks-minus">-' + ((exam.marks_wrong !== undefined && exam.marks_wrong !== null && exam.marks_wrong !== "") ? exam.marks_wrong : (exam.marks_wrong === 0 ? 0 : 0.25)) + '</span>' +
               '</span>' +
             '</div>' +
             '<div class="card-detail-item">' +
@@ -2869,7 +2377,11 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       if (!tbody) return;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px 20px; color:#64748b;">No exams match your current filters.</td></tr>';
+        if (allExams.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:50px 20px; color:#94a3b8;"><div style="font-size:36px; margin-bottom:12px;">📭</div><div style="font-size:16px; font-weight:700; color:#f8fafc;">No exams found in D1 database</div><div style="font-size:13px; margin-top:6px; color:#64748b;">Click <b>+ Add New Exam</b> above to create your first exam.</div></td></tr>';
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px 20px; color:#64748b;">No exams match your current filters.</td></tr>';
+        }
         return;
       }
 
@@ -2912,8 +2424,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           '</td>' +
           '<td>' +
             '<div class="marks-chip">' +
-              '<span class="marks-plus">+' + (exam.marks_right !== undefined ? exam.marks_right : 1) + '</span> / ' +
-              '<span class="marks-minus">-' + (exam.marks_wrong !== undefined ? exam.marks_wrong : 0.25) + '</span>' +
+              '<span class="marks-plus">+' + ((exam.marks_right !== undefined && exam.marks_right !== null && exam.marks_right !== "") ? exam.marks_right : 1) + '</span> / ' +
+              '<span class="marks-minus">-' + ((exam.marks_wrong !== undefined && exam.marks_wrong !== null && exam.marks_wrong !== "") ? exam.marks_wrong : (exam.marks_wrong === 0 ? 0 : 0.25)) + '</span>' +
             '</div>' +
           '</td>' +
           '<td>' +
@@ -3190,8 +2702,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('formTitle').value = exam.title || '';
       document.getElementById('formSlug').value = exam.slug || '';
       document.getElementById('formSubtitle').value = exam.subtitle || '';
-      document.getElementById('formMarksRight').value = (exam.marks_right !== undefined && exam.marks_right !== null) ? exam.marks_right : 1.0;
-      document.getElementById('formMarksWrong').value = (exam.marks_wrong !== undefined && exam.marks_wrong !== null) ? exam.marks_wrong : 0.25;
+      var curRight = (exam.marks_right !== undefined && exam.marks_right !== null && exam.marks_right !== '') ? exam.marks_right : 1.0;
+      var curWrong = (exam.marks_wrong !== undefined && exam.marks_wrong !== null && exam.marks_wrong !== '') ? exam.marks_wrong : (exam.marks_wrong === 0 ? 0 : 0.25);
+      document.getElementById('formMarksRight').value = curRight;
+      document.getElementById('formMarksWrong').value = curWrong;
 
       var standardTypes = ['States/UT', 'RRB Zones', 'All India', 'General'];
       var locType = exam.location_type_id || 'States/UT';
@@ -3321,6 +2835,13 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       }
     }
 
+    function onSetOnTopChange(isChecked) {
+      if (isChecked) {
+        document.getElementById('formIsVisible').checked = true;
+        document.getElementById('formIsLatest').checked = true;
+      }
+    }
+
     async function handleFormSubmit(e) {
       e.preventDefault();
       var saveBtn = document.getElementById('saveExamBtn');
@@ -3361,72 +2882,52 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         title: title,
         slug: slug,
         subtitle: document.getElementById('formSubtitle').value.trim(),
-        marks_right: parseFloat(document.getElementById('formMarksRight').value) || 1.0,
-        marks_wrong: parseFloat(document.getElementById('formMarksWrong').value) || 0.25,
+        marks_right: !isNaN(parseFloat(document.getElementById('formMarksRight').value)) ? parseFloat(document.getElementById('formMarksRight').value) : 1.0,
+        marks_wrong: !isNaN(parseFloat(document.getElementById('formMarksWrong').value)) ? Math.abs(parseFloat(document.getElementById('formMarksWrong').value)) : 0.25,
         location_type_id: finalLocationType,
         location_id: document.getElementById('formLocationId').value.trim() || 'All India',
         external_exam_id: document.getElementById('formExternalExamId').value.trim(),
         answerkey_login_link: document.getElementById('formAnswerLink').value.trim(),
         youtube_link: document.getElementById('formYoutubeLink').value.trim(),
         description: getDescriptionContent().trim(),
-        is_visible: document.getElementById('formIsVisible').checked ? 1 : 0,
+        is_visible: (document.getElementById('formSetOnTop').checked || document.getElementById('formIsVisible').checked) ? 1 : 0,
         set_on_top: document.getElementById('formSetOnTop').checked ? 1 : 0,
-        is_latest: document.getElementById('formIsLatest').checked ? 1 : 0
+        is_latest: (document.getElementById('formSetOnTop').checked || document.getElementById('formIsLatest').checked) ? 1 : 0
       };
 
-      if (isD1Connected) {
-        try {
-          var res;
-          if (isEdit) {
-            payload.id = parseInt(examId, 10);
-            res = await fetch('/api/exams/' + examId, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-          } else {
-            res = await fetch('/api/exams', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-          }
-
-          var data = await res.json();
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
-
-          if (!data.success) {
-            alert('Database Error: ' + (data.error || 'Failed to save exam to D1 database'));
-            return;
-          }
-
-          closeModal('examModal');
-          showToast(isEdit ? 'Exam updated in D1 Database!' : 'Exam added to D1 Database!');
-          await refreshData();
-        } catch (err) {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
-          alert('Network / API Error: ' + err.message);
-        }
-      } else {
-        // Preview Mode Fallback (when Cloudflare D1 is not bound)
-        var newId = isEdit ? parseInt(examId, 10) : (allExams.length > 0 ? Math.max.apply(null, allExams.map(function(x) { return x.id || 0; })) + 1 : 1);
-        payload.id = newId;
+      try {
+        var res;
         if (isEdit) {
-          for (var k = 0; k < allExams.length; k++) {
-            if (allExams[k].id == newId) { allExams[k] = payload; break; }
-          }
+          payload.id = parseInt(examId, 10);
+          res = await fetch('/api/exams/' + examId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
         } else {
-          allExams.unshift(payload);
+          res = await fetch('/api/exams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
         }
-        saveLocalStorage();
+
+        var data = await res.json();
         saveBtn.disabled = false;
         saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
+
+        if (!data.success) {
+          alert('Database Error: ' + (data.error || 'Failed to save exam to D1 database'));
+          return;
+        }
+
         closeModal('examModal');
-        showToast(isEdit ? 'Exam updated & saved locally!' : 'Exam added & saved locally!');
-        renderAllViews();
-        updateStats();
+        showToast(isEdit ? 'Exam updated in D1 Database!' : 'Exam added to D1 Database!');
+        await refreshData();
+      } catch (err) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = isEdit ? '💾 Update Exam' : '💾 Create Exam';
+        alert('Network / API Error: ' + err.message);
       }
     }
 
@@ -3452,35 +2953,24 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       confirmBtn.disabled = true;
       confirmBtn.innerText = 'Deleting...';
 
-      if (isD1Connected) {
-        try {
-          var res = await fetch('/api/exams/' + id, { method: 'DELETE' });
-          var data = await res.json();
-          confirmBtn.disabled = false;
-          confirmBtn.innerText = 'Yes, Delete Exam';
-
-          if (!data.success) {
-            alert('Delete Error: ' + (data.error || 'Failed to delete exam from D1'));
-            return;
-          }
-
-          closeModal('deleteModal');
-          showToast('Exam #' + id + ' deleted from D1 Database!');
-          await refreshData();
-        } catch (err) {
-          confirmBtn.disabled = false;
-          confirmBtn.innerText = 'Yes, Delete Exam';
-          alert('Network Error: ' + err.message);
-        }
-      } else {
-        allExams = allExams.filter(function(x) { return x.id != id; });
-        saveLocalStorage();
+      try {
+        var res = await fetch('/api/exams/' + id, { method: 'DELETE' });
+        var data = await res.json();
         confirmBtn.disabled = false;
         confirmBtn.innerText = 'Yes, Delete Exam';
+
+        if (!data.success) {
+          alert('Delete Error: ' + (data.error || 'Failed to delete exam from D1'));
+          return;
+        }
+
         closeModal('deleteModal');
-        showToast('Exam #' + id + ' deleted (Saved locally)!');
-        renderAllViews();
-        updateStats();
+        showToast('Exam #' + id + ' deleted from D1 Database!');
+        await refreshData();
+      } catch (err) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerText = 'Yes, Delete Exam';
+        alert('Network Error: ' + err.message);
       }
     }
 
@@ -3494,17 +2984,28 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       var currentVal = exam[field] == 1 ? 1 : 0;
       var newVal = currentVal ? 0 : 1;
 
-      if (!isD1Connected) {
+      // Backup previous state for rollback on error
+      var prevSnapshots = allExams.map(function(e) {
+        return { id: e.id, set_on_top: e.set_on_top, is_visible: e.is_visible, is_latest: e.is_latest };
+      });
+
+      // EXCLUSIVE TOP RULE:
+      // If setting this exam on top, all other exams must be unset from top (set_on_top = 0),
+      // and this exam MUST automatically become Visible (is_visible = 1) and Latest (is_latest = 1).
+      if (field === 'set_on_top' && newVal === 1) {
+        for (var j = 0; j < allExams.length; j++) {
+          if (allExams[j].id == id) {
+            allExams[j].set_on_top = 1;
+            allExams[j].is_visible = 1;
+            allExams[j].is_latest = 1;
+          } else {
+            allExams[j].set_on_top = 0;
+          }
+        }
+      } else {
         exam[field] = newVal;
-        saveLocalStorage();
-        renderAllViews();
-        updateStats();
-        showToast('Updated ' + field + ' for Exam #' + id + ' (Saved locally)');
-        return;
       }
 
-      // Optimistic update with automatic rollback on server failure
-      exam[field] = newVal;
       renderAllViews();
       updateStats();
 
@@ -3516,15 +3017,40 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         });
         var data = await res.json();
         if (!data.success) {
-          exam[field] = currentVal;
+          // Rollback on server failure
+          for (var k = 0; k < allExams.length; k++) {
+            for (var p = 0; p < prevSnapshots.length; p++) {
+              if (allExams[k].id == prevSnapshots[p].id) {
+                allExams[k].set_on_top = prevSnapshots[p].set_on_top;
+                allExams[k].is_visible = prevSnapshots[p].is_visible;
+                allExams[k].is_latest = prevSnapshots[p].is_latest;
+                break;
+              }
+            }
+          }
           renderAllViews();
           updateStats();
           alert('Toggle failed in D1: ' + (data.error || 'Unknown error'));
         } else {
-          showToast('Updated ' + field + ' for Exam #' + id + ' in D1');
+          if (field === 'set_on_top' && newVal === 1) {
+            showToast('Exam #' + id + ' set as the sole Top exam (also Visible & Latest)!');
+          } else {
+            showToast('Updated ' + field + ' for Exam #' + id + ' in D1');
+          }
+          await refreshData();
         }
       } catch (err) {
-        exam[field] = currentVal;
+        // Rollback on network error
+        for (var k = 0; k < allExams.length; k++) {
+          for (var p = 0; p < prevSnapshots.length; p++) {
+            if (allExams[k].id == prevSnapshots[p].id) {
+              allExams[k].set_on_top = prevSnapshots[p].set_on_top;
+              allExams[k].is_visible = prevSnapshots[p].is_visible;
+              allExams[k].is_latest = prevSnapshots[p].is_latest;
+              break;
+            }
+          }
+        }
         renderAllViews();
         updateStats();
         alert('Network error on toggle: ' + err.message);
@@ -3532,20 +3058,6 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
 
     async function refreshData() {
-      if (!isD1Connected) {
-        try {
-          var saved = localStorage.getItem('cbtrank_exams_store');
-          if (saved) {
-            var parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              allExams = parsed;
-            }
-          }
-        } catch (e) {}
-        renderAllViews();
-        updateStats();
-        return;
-      }
       try {
         var res = await fetch('/api/exams');
         var json = await res.json();
@@ -3553,34 +3065,12 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           allExams = json.data;
           renderAllViews();
           updateStats();
+        } else if (!json.success) {
+          showToast(json.error || 'Failed to fetch exams from D1', 'error');
         }
       } catch (e) {
         console.error('Refresh error:', e);
-      }
-    }
-
-    async function seedDatabase() {
-      if (!confirm('Do you want to seed/import the 27 default CBT exams (RRB NTPC, SSC CHSL, OSSC, Group D, etc.)?')) return;
-      if (!isD1Connected) {
-        try {
-          localStorage.removeItem('cbtrank_exams_store');
-        } catch (e) {}
-        showToast('Reset to default 27 CBT exams!');
-        location.reload();
-        return;
-      }
-      try {
-        showToast('Seeding 27 default exams into D1...', 'info');
-        var res = await fetch('/api/seed-exams', { method: 'POST' });
-        var data = await res.json();
-        if (data.success) {
-          showToast(data.message || 'Successfully seeded exams!');
-          await refreshData();
-        } else {
-          alert('Seed Notice: ' + (data.error || 'Could not seed database'));
-        }
-      } catch (err) {
-        alert('Network Error: ' + err.message);
+        showToast('Network error fetching from D1', 'error');
       }
     }
 
