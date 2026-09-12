@@ -2603,9 +2603,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
         return url;
       }
-      var base = (r2PublicBase || 'https://upload.cbtrank.com').replace(/\/+$/, '');
-      var clean = url.replace(/^\/+/, '');
-      return base + '/' + clean;
+      var base = (r2PublicBase || 'https://upload.cbtrank.com');
+      while (base.endsWith('/')) base = base.slice(0, -1);
+      while (url.startsWith('/')) url = url.slice(1);
+      return base + '/' + url;
     }
     let currentCategoryFilter = 'All';
     let currentStatusFilter = 'all';
