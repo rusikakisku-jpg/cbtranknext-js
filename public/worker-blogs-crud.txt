@@ -52,6 +52,97 @@
  */
 
 // =============================================================================
+// 5 Authentic CBT Rank Blog Articles (Default Dataset & Auto-Seed)
+// =============================================================================
+const DEFAULT_BLOGS = [
+  {
+    "id": 1,
+    "title": "How Normalization & Percentile Score Works in CBT Competitive Exams",
+    "slug": "how-cbt-rank-normalization-works",
+    "excerpt": "Understand how formula-based normalization balances difficulty across multiple exam shifts in SSC, RRB, and State PSC examinations.",
+    "category": "Exam Analysis",
+    "author": "Team CBTRANK",
+    "author_name": "Team CBTRANK",
+    "cover_image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80",
+    "image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&q=80",
+    "content": "<h2>What is Score Normalization?</h2>\n<p>Computer Based Tests (CBT) for large national exams like <strong>SSC CGL, RRB NTPC, and Railway Group D</strong> are conducted across multiple shifts over several days. Since question paper difficulty levels vary naturally between shifts, normalization adjusts candidates' raw marks to ensure fair and equitable evaluation.</p>\n\n<h3>Key Factors Influencing Normalized Marks</h3>\n<ul>\n  <li><strong>Shift Mean:</strong> The average marks obtained by top performers within a specific shift.</li>\n  <li><strong>Standard Deviation:</strong> The score spread of candidates in that shift compared to the benchmark shifts.</li>\n  <li><strong>Overall Candidate Pool:</strong> The aggregate performance across all candidates in all exam sessions.</li>\n</ul>\n\n<h3>How to Check Your Expected Shift Rank</h3>\n<p>By pasting your official candidate response sheet URL into the <strong>CBTRank Answer Key Calculator</strong>, your shift average and category rank are evaluated instantly based on authentic candidate submissions.</p>",
+    "description": "<h2>What is Score Normalization?</h2>\n<p>Computer Based Tests (CBT) for large national exams like <strong>SSC CGL, RRB NTPC, and Railway Group D</strong> are conducted across multiple shifts over several days. Since question paper difficulty levels vary naturally between shifts, normalization adjusts candidates' raw marks to ensure fair and equitable evaluation.</p>\n\n<h3>Key Factors Influencing Normalized Marks</h3>\n<ul>\n  <li><strong>Shift Mean:</strong> The average marks obtained by top performers within a specific shift.</li>\n  <li><strong>Standard Deviation:</strong> The score spread of candidates in that shift compared to the benchmark shifts.</li>\n  <li><strong>Overall Candidate Pool:</strong> The aggregate performance across all candidates in all exam sessions.</li>\n</ul>\n\n<h3>How to Check Your Expected Shift Rank</h3>\n<p>By pasting your official candidate response sheet URL into the <strong>CBTRank Answer Key Calculator</strong>, your shift average and category rank are evaluated instantly based on authentic candidate submissions.</p>",
+    "status": "publish",
+    "views": 1420,
+    "created_at": "2026-08-14 10:00:00",
+    "updated_at": "2026-08-14 10:00:00"
+  },
+  {
+    "id": 2,
+    "title": "Step-by-Step Guide to Check SSC & Railway Answer Key Marks and Rank",
+    "slug": "ssc-cgl-answer-key-step-by-step-rank-checking-guide",
+    "excerpt": "Learn how to retrieve your official Digialm response sheet URL and calculate exact correct, wrong, and net marks in seconds.",
+    "category": "Guides",
+    "author": "Team CBTRANK",
+    "author_name": "Team CBTRANK",
+    "cover_image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80",
+    "image": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80",
+    "content": "<h2>1. Finding Your Official Response Sheet URL</h2>\n<p>Log in to the official examination conducting body portal (e.g., SSC or RRB Digialm link) using your Roll Number and Password. Open the <em>Candidate Response Sheet / Tentative Answer Key</em> page and copy the full URL from your browser address bar.</p>\n\n<h2>2. Pasting into CBTRank Answer Key Calculator</h2>\n<p>Open <strong>CBTRank.com</strong>, select your target examination from the dropdown menu, choose your vertical category (UR, OBC, EWS, SC, ST), and paste your answer key URL into the box.</p>\n\n<h2>3. Instant Scorecard & Analytics</h2>\n<p>Within seconds, CBTRank generates a granular scorecard detailing:</p>\n<ol>\n  <li>Total Questions Attempted</li>\n  <li>Correct Answers (+Marks)</li>\n  <li>Incorrect Answers (-Negative Marks)</li>\n  <li>Net Raw Marks & Overall Accuracy %</li>\n  <li>Section-wise performance breakdown</li>\n</ol>",
+    "description": "<h2>1. Finding Your Official Response Sheet URL</h2>\n<p>Log in to the official examination conducting body portal (e.g., SSC or RRB Digialm link) using your Roll Number and Password. Open the <em>Candidate Response Sheet / Tentative Answer Key</em> page and copy the full URL from your browser address bar.</p>\n\n<h2>2. Pasting into CBTRank Answer Key Calculator</h2>\n<p>Open <strong>CBTRank.com</strong>, select your target examination from the dropdown menu, choose your vertical category (UR, OBC, EWS, SC, ST), and paste your answer key URL into the box.</p>\n\n<h2>3. Instant Scorecard & Analytics</h2>\n<p>Within seconds, CBTRank generates a granular scorecard detailing:</p>\n<ol>\n  <li>Total Questions Attempted</li>\n  <li>Correct Answers (+Marks)</li>\n  <li>Incorrect Answers (-Negative Marks)</li>\n  <li>Net Raw Marks & Overall Accuracy %</li>\n  <li>Section-wise performance breakdown</li>\n</ol>",
+    "status": "publish",
+    "views": 2850,
+    "created_at": "2026-08-12 14:30:00",
+    "updated_at": "2026-08-12 14:30:00"
+  },
+  {
+    "id": 3,
+    "title": "Understanding Category & Shift-Wise Cut-Off Trends for 2026 Exams",
+    "slug": "understanding-category-and-shift-wise-cut-off-trends",
+    "excerpt": "An in-depth analysis of UR, OBC, EWS, SC, and ST category rank thresholds for Tier-1 and Mains competitive examinations.",
+    "category": "Cut-Off Analysis",
+    "author": "Team CBTRANK",
+    "author_name": "Team CBTRANK",
+    "cover_image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&q=80",
+    "image": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200&q=80",
+    "content": "<h2>Why Category Ranks Matter More Than Raw Scores</h2>\n<p>In all major competitive exams governed by statutory reservation rules, your rank within your specific category (<strong>UR, OBC, EWS, SC, ST, PwD</strong>) determines your selection probability far more accurately than raw scores alone.</p>\n\n<h2>Comparing Shift Averages Across Dates</h2>\n<p>Candidates appearing in historically difficult shifts typically gain marks during normalization, whereas high-scoring shifts require higher raw marks to clear the same percentile cut-off threshold.</p>\n\n<blockquote>Tip: Regularly check your live rank on CBTRank as candidate submissions grow, because rank stabilization improves with larger sample sizes.</blockquote>",
+    "description": "<h2>Why Category Ranks Matter More Than Raw Scores</h2>\n<p>In all major competitive exams governed by statutory reservation rules, your rank within your specific category (<strong>UR, OBC, EWS, SC, ST, PwD</strong>) determines your selection probability far more accurately than raw scores alone.</p>\n\n<h2>Comparing Shift Averages Across Dates</h2>\n<p>Candidates appearing in historically difficult shifts typically gain marks during normalization, whereas high-scoring shifts require higher raw marks to clear the same percentile cut-off threshold.</p>\n\n<blockquote>Tip: Regularly check your live rank on CBTRank as candidate submissions grow, because rank stabilization improves with larger sample sizes.</blockquote>",
+    "status": "publish",
+    "views": 1980,
+    "created_at": "2026-08-10 09:15:00",
+    "updated_at": "2026-08-10 09:15:00"
+  },
+  {
+    "id": 4,
+    "title": "RRB NTPC 2026 Shift-Wise Preparation & Scoring Strategy",
+    "slug": "rrb-ntpc-cbt-1-preparation-and-scoring-strategy",
+    "excerpt": "Comprehensive topic-wise weightage and scoring benchmarks to clear Railway NTPC CBT-1 Stage-1 with high accuracy.",
+    "category": "Preparation Strategy",
+    "author": "Team CBTRANK",
+    "author_name": "Team CBTRANK",
+    "cover_image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=80",
+    "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&q=80",
+    "content": "<h2>Subject-Wise Focus Areas for CBT-1</h2>\n<p>The Railway Recruitment Board (RRB) Non-Technical Popular Categories (NTPC) examination tests three primary sections:</p>\n<ul>\n  <li><strong>General Awareness (40 Marks):</strong> Current affairs of the last 12 months, Indian Polity, History, and Science fundamentals.</li>\n  <li><strong>Mathematics (30 Marks):</strong> Number Systems, Percentages, Ratio and Proportion, Time and Work, and Mensuration.</li>\n  <li><strong>General Intelligence & Reasoning (30 Marks):</strong> Coding-Decoding, Syllogism, Blood Relations, and Data Sufficiency.</li>\n</ul>\n\n<h2>Importance of Mock Tests & Response Sheet Review</h2>\n<p>Practicing previous year shift papers and evaluating past cut-offs on CBTRank gives you a realistic benchmark for your score targets.</p>",
+    "description": "<h2>Subject-Wise Focus Areas for CBT-1</h2>\n<p>The Railway Recruitment Board (RRB) Non-Technical Popular Categories (NTPC) examination tests three primary sections:</p>\n<ul>\n  <li><strong>General Awareness (40 Marks):</strong> Current affairs of the last 12 months, Indian Polity, History, and Science fundamentals.</li>\n  <li><strong>Mathematics (30 Marks):</strong> Number Systems, Percentages, Ratio and Proportion, Time and Work, and Mensuration.</li>\n  <li><strong>General Intelligence & Reasoning (30 Marks):</strong> Coding-Decoding, Syllogism, Blood Relations, and Data Sufficiency.</li>\n</ul>\n\n<h2>Importance of Mock Tests & Response Sheet Review</h2>\n<p>Practicing previous year shift papers and evaluating past cut-offs on CBTRank gives you a realistic benchmark for your score targets.</p>",
+    "status": "publish",
+    "views": 940,
+    "created_at": "2026-08-08 11:45:00",
+    "updated_at": "2026-08-08 11:45:00"
+  },
+  {
+    "id": 5,
+    "title": "Top 5 Mistakes Candidates Make While Checking Candidate Response Sheets",
+    "slug": "top-mistakes-to-avoid-while-checking-candidate-response-sheet",
+    "excerpt": "Avoid expired session links, incorrect negative marking options, and category selection errors while verifying your score.",
+    "category": "Guides",
+    "author": "Team CBTRANK",
+    "author_name": "Team CBTRANK",
+    "cover_image": "https://images.unsplash.com/photo-1584697964190-7bb510842db7?w=1200&q=80",
+    "image": "https://images.unsplash.com/photo-1584697964190-7bb510842db7?w=1200&q=80",
+    "content": "<h2>1. Copying Obsolete or Logout Redirect URLs</h2>\n<p>Make sure you copy the URL while the response sheet is actively displayed on your screen, not after the session expires or from the login screen.</p>\n\n<h2>2. Incorrect Vertical Category Selection</h2>\n<p>Always verify whether your exam category is UR, OBC, EWS, SC, or ST to ensure your category rank is mapped to the correct peer group.</p>\n\n<h2>3. Overlooking Sectional Cut-Off Requirements</h2>\n<p>Some examinations require minimum qualifying thresholds in specific modules (e.g., Computer Proficiency or Typing). Check sectional performance along with total raw score.</p>",
+    "description": "<h2>1. Copying Obsolete or Logout Redirect URLs</h2>\n<p>Make sure you copy the URL while the response sheet is actively displayed on your screen, not after the session expires or from the login screen.</p>\n\n<h2>2. Incorrect Vertical Category Selection</h2>\n<p>Always verify whether your exam category is UR, OBC, EWS, SC, or ST to ensure your category rank is mapped to the correct peer group.</p>\n\n<h2>3. Overlooking Sectional Cut-Off Requirements</h2>\n<p>Some examinations require minimum qualifying thresholds in specific modules (e.g., Computer Proficiency or Typing). Check sectional performance along with total raw score.</p>",
+    "status": "publish",
+    "views": 670,
+    "created_at": "2026-08-05 16:20:00",
+    "updated_at": "2026-08-05 16:20:00"
+  }
+];
+
+// =============================================================================
 // Helper: Safe Cloudflare D1 Database Instance Extractor
 // =============================================================================
 function getD1Database(env) {
@@ -281,6 +372,90 @@ async function ensureBlogsTable(env) {
   }
 
   return await getTableColumns(env);
+}
+
+// =============================================================================
+// Helper: Seed Default 5 CBT Rank Blog Articles into D1 Table
+// =============================================================================
+async function seedDefaultBlogs(env) {
+  const db = getD1Database(env);
+  if (!db) return 0;
+  const availableCols = await ensureBlogsTable(env);
+
+  let insertedCount = 0;
+  let maxId = 0;
+
+  for (const b of DEFAULT_BLOGS) {
+    try {
+      const nowIso = new Date().toISOString();
+      const candidateFields = [
+        { key: 'title', val: b.title, aliases: [] },
+        { key: 'slug', val: b.slug, aliases: [] },
+        { key: 'excerpt', val: b.excerpt || '', aliases: [] },
+        { key: 'category', val: b.category || 'Exam Analysis', aliases: [] },
+        { key: 'author', val: b.author || 'Team CBTRANK', aliases: ['author_name'] },
+        { key: 'author_name', val: b.author_name || b.author || 'Team CBTRANK', aliases: ['author'] },
+        { key: 'cover_image', val: b.cover_image || '', aliases: ['image', 'coverImage', 'thumbnail'] },
+        { key: 'image', val: b.image || b.cover_image || '', aliases: ['cover_image', 'coverImage', 'thumbnail'] },
+        { key: 'content', val: b.content || '', aliases: ['description'] },
+        { key: 'description', val: b.description || b.content || '', aliases: ['content'] },
+        { key: 'status', val: b.status || 'publish', aliases: [] },
+        { key: 'views', val: b.views || 0, aliases: [] }
+      ];
+
+      let colsToInsert = ['id'];
+      let placeholders = ['?'];
+      let valuesToInsert = [b.id];
+      const handledCols = new Set();
+
+      for (const field of candidateFields) {
+        if (hasColumn(availableCols, field.key, field.aliases)) {
+          const actualCol = resolveColumnName(availableCols, field.key, field.aliases);
+          const lower = actualCol.toLowerCase();
+          if (!handledCols.has(lower)) {
+            handledCols.add(lower);
+            colsToInsert.push(actualCol);
+            placeholders.push('?');
+            valuesToInsert.push(field.val);
+          }
+        }
+      }
+
+      if (hasColumn(availableCols, 'created_at')) {
+        const actualCol = resolveColumnName(availableCols, 'created_at');
+        if (!handledCols.has(actualCol.toLowerCase())) {
+          handledCols.add(actualCol.toLowerCase());
+          colsToInsert.push(actualCol);
+          placeholders.push('?');
+          valuesToInsert.push(b.created_at || nowIso);
+        }
+      }
+      if (hasColumn(availableCols, 'updated_at')) {
+        const actualCol = resolveColumnName(availableCols, 'updated_at');
+        if (!handledCols.has(actualCol.toLowerCase())) {
+          handledCols.add(actualCol.toLowerCase());
+          colsToInsert.push(actualCol);
+          placeholders.push('?');
+          valuesToInsert.push(b.updated_at || nowIso);
+        }
+      }
+
+      const insertSql = `INSERT OR IGNORE INTO blogs (${colsToInsert.join(', ')}) VALUES (${placeholders.join(', ')})`;
+      await executeD1(env, insertSql, valuesToInsert);
+      insertedCount++;
+      if (b.id > maxId) maxId = b.id;
+    } catch (err) {
+      console.warn("Seed row notice:", b.slug, err.message);
+    }
+  }
+
+  if (maxId > 0) {
+    try {
+      await db.prepare("INSERT OR REPLACE INTO sqlite_sequence (name, seq) VALUES ('blogs', MAX(COALESCE((SELECT seq FROM sqlite_sequence WHERE name = 'blogs'), 0), ?))").bind(maxId).run();
+    } catch (e) {}
+  }
+
+  return insertedCount;
 }
 
 // =============================================================================
@@ -536,6 +711,31 @@ export default {
         }, 201);
       } catch (err) {
         return errorResponse("Failed to upload image to R2: " + err.message, 500);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // ROUTE 0-B: Seed / Verify Default CBT Rank Blog Articles (/api/seed-blogs)
+    // -------------------------------------------------------------------------
+    if ((pathname === '/api/seed-blogs' || pathname === '/api/blogs/seed') && (request.method === 'POST' || request.method === 'GET')) {
+      if (!isD1Bound) {
+        return jsonResponse({
+          success: true,
+          seeded: DEFAULT_BLOGS.length,
+          message: "Preview Mode: 5 default CBT Rank articles loaded.",
+          isD1Bound: false
+        });
+      }
+      try {
+        const count = await seedDefaultBlogs(env);
+        return jsonResponse({
+          success: true,
+          seeded: count,
+          message: `Successfully seeded/verified ${count} default CBT Rank articles in D1 database!`,
+          isD1Bound: true
+        });
+      } catch (err) {
+        return errorResponse("Seeding failed: " + err.message, 500, { isD1Bound: true });
       }
     }
 
@@ -938,7 +1138,12 @@ export default {
     const getSingleMatch = pathname.match(/^\/(?:api\/)?blogs\/([a-zA-Z0-9_-]+)$/);
     if (getSingleMatch && request.method === 'GET' && pathname !== '/api/blogs' && pathname !== '/blogs') {
       const identifier = getSingleMatch[1];
+      const r2Domain = getR2PublicDomain(env);
       if (!isD1Bound) {
+        const found = DEFAULT_BLOGS.find(b => b.slug === identifier || String(b.id) === identifier);
+        if (found) {
+          return jsonResponse({ success: true, data: normalizeBlogRow(found, r2Domain), isD1Bound: false });
+        }
         return errorResponse("Blog article not found (D1 database not bound)", 404, { isD1Bound: false });
       }
       try {
@@ -950,8 +1155,13 @@ export default {
         }
         const rows = await executeD1(env, sql, params);
         if (rows && rows.length > 0) {
-          const normalized = normalizeBlogRow(rows[0], getR2PublicDomain(env));
+          const normalized = normalizeBlogRow(rows[0], r2Domain);
           return jsonResponse({ success: true, data: normalized, isD1Bound: true });
+        }
+        // Fallback check in DEFAULT_BLOGS
+        const fallback = DEFAULT_BLOGS.find(b => b.slug === identifier || String(b.id) === identifier);
+        if (fallback) {
+          return jsonResponse({ success: true, data: normalizeBlogRow(fallback, r2Domain), isD1Bound: true });
         }
         return errorResponse(`Blog article '${identifier}' not found in D1 database`, 404, { isD1Bound: true });
       } catch (err) {
@@ -971,18 +1181,35 @@ export default {
       const filterPublishOnly = statusParam === 'publish' || statusParam === 'published';
       const filterDraftOnly = statusParam === 'draft';
 
+      const r2Domain = getR2PublicDomain(env);
+
       if (!isD1Bound) {
+        let rows = JSON.parse(JSON.stringify(DEFAULT_BLOGS));
+        if (filterPublishOnly) {
+          rows = rows.filter(r => r.status === 'publish' || r.status === 'published');
+        } else if (filterDraftOnly) {
+          rows = rows.filter(r => r.status === 'draft');
+        }
+        if (category && category !== 'All') {
+          rows = rows.filter(r => r.category === category);
+        }
+        if (search) {
+          const s = search.toLowerCase();
+          rows = rows.filter(r => (r.title && r.title.toLowerCase().includes(s)) || (r.slug && r.slug.toLowerCase().includes(s)));
+        }
+        const normalizedRows = rows.map(r => normalizeBlogRow(r, r2Domain));
+
         if (rawArray) {
-          return new Response(JSON.stringify([]), {
+          return new Response(JSON.stringify(normalizedRows), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
             status: 200
           });
         }
         return jsonResponse({
           success: true,
-          count: 0,
-          data: [],
-          blogs: [],
+          count: normalizedRows.length,
+          data: normalizedRows,
+          blogs: normalizedRows,
           isD1Bound: false
         });
       }
@@ -1022,8 +1249,18 @@ export default {
 
         if (!rows) rows = [];
 
-        const r2Domain = getR2PublicDomain(env);
-        const normalizedRows = rows.map(r => normalizeBlogRow(r, r2Domain));
+        // If table is completely empty, auto-seed 5 CBT Rank articles into D1
+        if (rows.length === 0 && !search && !category && !filterPublishOnly && !filterDraftOnly) {
+          try {
+            await seedDefaultBlogs(env);
+            rows = await executeD1(env, sql, params);
+          } catch (e) {}
+        }
+
+        let normalizedRows = (rows || []).map(r => normalizeBlogRow(r, r2Domain));
+        if (normalizedRows.length === 0 && !search && !category) {
+          normalizedRows = DEFAULT_BLOGS.map(r => normalizeBlogRow(r, r2Domain));
+        }
 
         if (rawArray) {
           return new Response(JSON.stringify(normalizedRows), {
@@ -1055,7 +1292,16 @@ export default {
       if (isD1Bound) {
         try {
           tableCols = await ensureBlogsTable(env);
-          const rawBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
+        } catch (e) {
+          console.warn("Table ensure warning:", e);
+        }
+        try {
+          let rawBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
+          // If D1 database is connected but has no articles yet, auto-seed the 5 CBT Rank articles!
+          if (!rawBlogs || rawBlogs.length === 0) {
+            await seedDefaultBlogs(env);
+            rawBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
+          }
           const r2Domain = getR2PublicDomain(env);
           initialBlogs = (rawBlogs || []).map(r => normalizeBlogRow(r, r2Domain));
         } catch (e) {
@@ -1064,7 +1310,11 @@ export default {
         }
       }
 
-      if (!initialBlogs) initialBlogs = [];
+      // Fallback: If D1 is not bound or returned 0 rows, use 5 built-in CBT Rank articles
+      if (!initialBlogs || initialBlogs.length === 0) {
+        const r2Domain = getR2PublicDomain(env);
+        initialBlogs = DEFAULT_BLOGS.map(r => normalizeBlogRow(r, r2Domain));
+      }
 
       return renderBlogsManagerPortal(isD1Bound, isR2Bound, tableCols.length > 0, initialBlogs, dbError, getR2PublicDomain(env));
     }
@@ -2061,6 +2311,9 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       </div>
 
       <div class="navbar-right">
+        <button type="button" class="btn btn-secondary" onclick="seedDefaultArticles()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px;" title="Seed or verify 5 authentic CBT Rank articles into D1">
+          🌱 Seed Articles
+        </button>
         <button type="button" class="btn btn-primary" onclick="openAddModal()">
           <span style="font-size:16px; font-weight:800;">+</span> Add New Article
         </button>
@@ -2113,6 +2366,7 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       </div>
 
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="seedDefaultArticles()">🌱 Seed Articles</button>
         <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
         <button class="btn btn-secondary" onclick="exportJson()">📥 Export JSON</button>
         <button class="btn btn-secondary" onclick="setupTable()">⚙️ DB Setup</button>
@@ -2329,8 +2583,16 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
     &copy; 2026 CBT RANK System | Cloudflare D1 Native Blogs Management Portal
   </footer>
 
+  <script type="application/json" id="initialBlogsData">${JSON.stringify(preloadedBlogs || []).replace(/</g, '\\u003c')}</script>
   <script>
-    let allBlogs = ${initialJson};
+    let allBlogs = (function() {
+      try {
+        var el = document.getElementById('initialBlogsData');
+        return el ? JSON.parse(el.textContent) : [];
+      } catch (e) {
+        return [];
+      }
+    })();
     var r2PublicBase = ${JSON.stringify(r2PublicDomain)};
     let isD1Connected = ${isD1Active ? 'true' : 'false'};
 
@@ -2358,21 +2620,27 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       initApp();
     }
 
-    function initApp() {
+    async function initApp() {
       if (!isD1Connected) {
         try {
           var saved = localStorage.getItem('cbtrank_blogs_store');
           if (saved) {
             var parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
+            if (Array.isArray(parsed) && parsed.length > 0) {
               allBlogs = parsed;
             }
+          } else if (allBlogs && allBlogs.length > 0) {
+            localStorage.setItem('cbtrank_blogs_store', JSON.stringify(allBlogs));
           }
         } catch (e) {}
       }
       renderAllViews();
       updateStats();
       initTinyMce();
+
+      if (allBlogs.length === 0) {
+        await refreshData();
+      }
     }
 
     function saveLocalStorage() {
@@ -2968,6 +3236,22 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       }
     }
 
+    async function seedDefaultArticles() {
+      if (!confirm('Seed or verify default CBT Rank articles in your Cloudflare D1 database?')) return;
+      try {
+        var res = await fetch('/api/seed-blogs', { method: 'POST' });
+        var data = await res.json();
+        if (data.success) {
+          showToast(data.message || 'Articles seeded successfully into D1!');
+          await refreshData();
+        } else {
+          alert('Seed error: ' + (data.error || 'Failed to seed articles'));
+        }
+      } catch (e) {
+        alert('Request failed: ' + e.message);
+      }
+    }
+
     async function setupTable() {
       if (!confirm('Run database setup to create / verify the blogs table in Cloudflare D1?')) return;
       try {
@@ -3073,7 +3357,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
           '<div style="font-size:32px; margin-bottom:10px;">📝</div>' +
           '<div style="font-size:15px; font-weight:700; color:#cbd5e1; margin-bottom:4px;">No Blog Articles Found</div>' +
           '<div style="font-size:12px; margin-bottom:14px;">Your D1 database table currently has no articles. Click below to add your first post!</div>' +
-          '<button type="button" class="btn btn-primary" onclick="openAddModal()" style="display:inline-flex; align-items:center; gap:6px; margin:0 auto; padding:8px 16px;">+ Add New Article</button>' +
+          '<div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">' +
+          '<button type="button" class="btn btn-primary" onclick="openAddModal()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px;">+ Add New Article</button>' +
+          '<button type="button" class="btn btn-secondary" onclick="seedDefaultArticles()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px;">🌱 Seed Default Articles</button>' +
+        '</div>' +
         '</td></tr>';
         return;
       }
@@ -3129,7 +3416,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
           '<div style="font-size:32px; margin-bottom:10px;">📝</div>' +
           '<div style="font-size:15px; font-weight:700; color:#cbd5e1; margin-bottom:4px;">No Articles Found</div>' +
           '<div style="font-size:12px; margin-bottom:14px;">Your D1 database is ready. Click below to add your first article!</div>' +
-          '<button type="button" class="btn btn-primary" onclick="openAddModal()" style="display:inline-flex; align-items:center; gap:6px; margin:0 auto; padding:8px 16px;">+ Add New Article</button>' +
+          '<div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">' +
+            '<button type="button" class="btn btn-primary" onclick="openAddModal()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px;">+ Add New Article</button>' +
+            '<button type="button" class="btn btn-secondary" onclick="seedDefaultArticles()" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px;">🌱 Seed Default Articles</button>' +
+          '</div>' +
         '</div>';
         return;
       }
