@@ -444,7 +444,8 @@ async function seedDefaultBlogs(env) {
 
       let colsToInsert = ['id'];
       let placeholders = ['?'];
-      let valuesToInsert = [b.id];
+      let valuesToInsert = [];
+      valuesToInsert.push(b.id);
       const handledCols = new Set();
 
       for (const field of candidateFields) {
@@ -859,7 +860,8 @@ export default {
 
         const availableCols = await getTableColumns(env);
         let updateSql = "UPDATE blogs SET status = ?";
-        let updateParams = [newStatus];
+        let updateParams = [];
+        updateParams.push(newStatus);
 
         if (newStatus === 'publish') {
           if (hasColumn(availableCols, 'published_at')) {
@@ -993,7 +995,8 @@ export default {
 
         let colsToInsert = ['id'];
         let placeholders = ['?'];
-        let valuesToInsert = [nextId];
+        let valuesToInsert = [];
+        valuesToInsert.push(nextId);
         const handledCols = new Set();
 
         for (const field of candidateFields) {
@@ -1253,10 +1256,12 @@ export default {
       try {
         await ensureBlogsTable(env);
         let sql = "SELECT * FROM blogs WHERE slug = ? LIMIT 1";
-        let params = [identifier];
+        let params = [];
         if (/^\d+$/.test(identifier)) {
           sql = "SELECT * FROM blogs WHERE id = ? OR slug = ? LIMIT 1";
           params = [parseInt(identifier, 10), identifier];
+        } else {
+          params = [identifier];
         }
         const rows = await executeD1(env, sql, params);
         if (rows && rows.length > 0) {
