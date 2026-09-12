@@ -155,7 +155,7 @@ export default {
         }
       }
 
-      const sql = "SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link FROM exams WHERE is_visible = 1 ORDER BY set_on_top DESC, id DESC";
+      const sql = "SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link FROM exams WHERE is_visible = 1 ORDER BY set_on_top DESC, is_latest DESC, id DESC";
       const results = await queryD1(env, sql);
       if (results && Array.isArray(results)) {
         results.forEach(examRow => {

@@ -781,7 +781,7 @@ export default {
         if (wheres.length > 0) {
           sql += " WHERE " + wheres.join(" AND ");
         }
-        sql += " ORDER BY set_on_top DESC, id DESC";
+        sql += " ORDER BY set_on_top DESC, is_latest DESC, id DESC";
 
         let rawRows = [];
         try {
@@ -823,7 +823,7 @@ export default {
           // 1. Auto-create table & migrate missing columns
           tableCols = await ensureExamsTable(env);
           const hasSetOnTop = hasColumn(tableCols, 'set_on_top');
-          const orderSql = hasSetOnTop ? "ORDER BY set_on_top DESC, id DESC" : "ORDER BY id DESC";
+          const orderSql = hasSetOnTop ? "ORDER BY set_on_top DESC, is_latest DESC, id DESC" : "ORDER BY is_latest DESC, id DESC";
 
           // 2. Fetch real exams directly from D1
           const rawRows = await executeD1(env, "SELECT * FROM exams " + orderSql);
