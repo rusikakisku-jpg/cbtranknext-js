@@ -142,6 +142,89 @@ async function getTableColumns(env) {
   return [];
 }
 
+// Case-insensitive column resolver with alias fallback
+function resolveColumnName(availableCols, primaryName, aliases = []) {
+  if (!Array.isArray(availableCols) || availableCols.length === 0) return primaryName;
+  const targetNames = [primaryName, ...aliases].map(s => s.toLowerCase());
+  for (const target of targetNames) {
+    for (const col of availableCols) {
+      if (String(col).toLowerCase() === target) {
+        return col; // Returns exact casing from database schema
+      }
+    }
+  }
+  return primaryName;
+}
+
+function hasColumn(availableCols, columnName, aliases = []) {
+  if (!Array.isArray(availableCols) || availableCols.length === 0) return true;
+  const targetNames = [columnName, ...aliases].map(s => s.toLowerCase());
+  return availableCols.some(c => targetNames.includes(String(c).toLowerCase()));
+}
+
+// Helper: Normalize Cover Image URL to full public URL
+function formatBlogCoverUrl(rawImage, domain = DEFAULT_R2_PUBLIC_DOMAIN) {
+  if (!rawImage || typeof rawImage !== 'string') return '';
+  const trimmed = rawImage.trim();
+  if (!trimmed) return '';
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+  const cleanPath = trimmed.replace(/^\/+/, '');
+  const cleanDomain = (domain || DEFAULT_R2_PUBLIC_DOMAIN).replace(/\/+$/, '');
+  return `${cleanDomain}/${cleanPath}`;
+}
+
+// Case-insensitive Blog Row Normalizer with R2 Cover Image Resolution
+function normalizeBlogRow(row, r2Domain = DEFAULT_R2_PUBLIC_DOMAIN) {
+  if (!row || typeof row !== 'object') return row;
+  const item = { ...row };
+
+  const getProp = (...keys) => {
+    const rowKeys = Object.keys(row);
+    for (const k of keys) {
+      const target = k.toLowerCase();
+      for (const rk of rowKeys) {
+        if (rk.toLowerCase() === target && row[rk] !== undefined && row[rk] !== null) {
+          return row[rk];
+        }
+      }
+    }
+    return undefined;
+  };
+
+  const idVal = getProp('id');
+  item.id = (idVal !== undefined && idVal !== null) ? Number(idVal) : item.id;
+  item.title = String(getProp('title') || item.title || '').trim();
+  item.slug = String(getProp('slug') || item.slug || '').trim();
+  item.excerpt = String(getProp('excerpt') || item.excerpt || '').trim();
+  item.category = String(getProp('category') || item.category || 'Exam Analysis').trim();
+
+  const authorVal = String(getProp('author', 'author_name') || item.author || item.author_name || 'Team CBTRANK').trim();
+  item.author = authorVal;
+  item.author_name = authorVal;
+
+  const rawCover = String(getProp('cover_image', 'image', 'coverimage', 'thumbnail', 'cover', 'img') || item.cover_image || item.image || '').trim();
+  const formattedCover = formatBlogCoverUrl(rawCover, r2Domain);
+  item.cover_image = formattedCover;
+  item.image = formattedCover;
+
+  const contentVal = String(getProp('content', 'description', 'body') || item.content || item.description || '').trim();
+  item.content = contentVal;
+  item.description = contentVal;
+
+  const statusVal = String(getProp('status') || item.status || 'publish').toLowerCase();
+  item.status = (statusVal === 'draft') ? 'draft' : 'publish';
+
+  const viewsVal = getProp('views');
+  item.views = (viewsVal !== undefined && viewsVal !== null && !isNaN(Number(viewsVal))) ? Number(viewsVal) : 0;
+
+  item.created_at = String(getProp('created_at') || item.created_at || '');
+  item.updated_at = String(getProp('updated_at') || item.updated_at || '');
+
+  return item;
+}
+
 // =============================================================================
 // Helper: Auto-create & Self-Healing Migration for 'blogs' Table
 // =============================================================================
@@ -188,7 +271,7 @@ async function ensureBlogsTable(env) {
   ];
 
   for (const col of requiredCols) {
-    if (!cols.includes(col.name)) {
+    if (!hasColumn(cols, col.name)) {
       try {
         await db.prepare(`ALTER TABLE blogs ADD COLUMN ${col.name} ${col.type}`).run();
       } catch (e) {
@@ -243,6 +326,103 @@ export default {
     const isD1Bound = !!dbInstance;
     const r2Bucket = getR2Bucket(env);
     const isR2Bound = !!r2Bucket;
+
+    // -------------------------------------------------------------------------
+    // ROUTE 0-A: Cloudflare R2 Image Asset Serving (GET / HEAD)
+    // -------------------------------------------------------------------------
+    const isImageExt = /\.(png|jpe?g|webp|gif|svg|ico|bmp|avif)$/i.test(pathname);
+    const isR2PathPrefix = /^\/(?:cdn|uploads?|images?|r2|api\/images?|api\/cdn|api\/uploads?)\//i.test(pathname);
+    const isUploadHost = url.hostname.toLowerCase().startsWith('upload.') || url.hostname.toLowerCase().includes('upload.cbtrank.com');
+
+    // Health / info check on upload CDN root
+    if (isUploadHost && (pathname === '/' || pathname === '')) {
+      return jsonResponse({
+        service: "CBT RANK - Cloudflare R2 Image CDN",
+        status: "online",
+        isR2Bound: isR2Bound,
+        domain: getR2PublicDomain(env)
+      });
+    }
+
+    const shouldHandleR2 = (request.method === 'GET' || request.method === 'HEAD') && (
+      isR2PathPrefix ||
+      isImageExt ||
+      (isUploadHost && !pathname.startsWith('/api/'))
+    );
+
+    if (shouldHandleR2) {
+      if (!isR2Bound) {
+        return new Response("Cloudflare R2 Bucket is not bound to this Worker.", {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+
+      let r2Key = pathname;
+      r2Key = r2Key.replace(/^\/(?:cdn|uploads?|images?|r2|api\/images?|api\/cdn|api\/uploads?)\//i, '');
+      r2Key = r2Key.replace(/^\/+/, '');
+      try {
+        r2Key = decodeURIComponent(r2Key);
+      } catch (e) {}
+
+      if (!r2Key) {
+        return new Response("Missing image filename", {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+
+      try {
+        const object = await r2Bucket.get(r2Key);
+        if (!object) {
+          return new Response(`Image not found: '${r2Key}'`, {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
+          });
+        }
+
+        let contentType = object.httpMetadata?.contentType;
+        if (!contentType || contentType === 'application/octet-stream') {
+          const dotIdx = r2Key.lastIndexOf('.');
+          const ext = dotIdx !== -1 ? r2Key.slice(dotIdx + 1).toLowerCase() : '';
+          const mimeMap = {
+            png: 'image/png',
+            jpg: 'image/jpeg',
+            jpeg: 'image/jpeg',
+            webp: 'image/webp',
+            gif: 'image/gif',
+            svg: 'image/svg+xml',
+            ico: 'image/x-icon',
+            avif: 'image/avif',
+            bmp: 'image/bmp'
+          };
+          contentType = mimeMap[ext] || 'image/png';
+        }
+
+        const headers = new Headers();
+        Object.keys(corsHeaders).forEach(k => headers.set(k, corsHeaders[k]));
+        headers.set('Content-Type', contentType);
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+        if (object.httpEtag) headers.set('ETag', object.httpEtag);
+        if (object.size !== undefined) headers.set('Content-Length', String(object.size));
+
+        const ifNoneMatch = request.headers.get('if-none-match');
+        if (ifNoneMatch && object.httpEtag && ifNoneMatch === object.httpEtag) {
+          return new Response(null, { status: 304, headers });
+        }
+
+        if (request.method === 'HEAD') {
+          return new Response(null, { status: 200, headers });
+        }
+
+        return new Response(object.body, { status: 200, headers });
+      } catch (err) {
+        return new Response("Failed to fetch image from R2: " + err.message, {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+    }
 
     // -------------------------------------------------------------------------
     // ROUTE 0: Image Upload to Cloudflare R2 (/api/upload or /upload)
@@ -487,7 +667,8 @@ export default {
         const excerpt = String(body.excerpt || '').trim();
         const category = String(body.category || 'Exam Analysis').trim();
         const author = String(body.author || body.author_name || 'Team CBTRANK').trim();
-        const coverImage = String(body.cover_image || body.image || '').trim();
+        const rawCoverImage = String(body.cover_image || body.image || '').trim();
+        const coverImage = formatBlogCoverUrl(rawCoverImage, getR2PublicDomain(env));
         const content = String(body.content || body.description || '').trim();
         const status = String(body.status || 'publish').toLowerCase() === 'draft' ? 'draft' : 'publish';
         const views = parseInt(body.views, 10) || 0;
@@ -507,42 +688,56 @@ export default {
           nextId = Date.now();
         }
 
-        const dataMap = {
-          title,
-          slug,
-          excerpt,
-          category,
-          author,
-          author_name: author,
-          cover_image: coverImage,
-          image: coverImage,
-          content,
-          description: content,
-          status,
-          views
-        };
+        const candidateFields = [
+          { key: 'title', val: title, aliases: [] },
+          { key: 'slug', val: slug, aliases: [] },
+          { key: 'excerpt', val: excerpt, aliases: [] },
+          { key: 'category', val: category, aliases: [] },
+          { key: 'author', val: author, aliases: ['author_name'] },
+          { key: 'author_name', val: author, aliases: ['author'] },
+          { key: 'cover_image', val: coverImage, aliases: ['image', 'coverImage', 'thumbnail'] },
+          { key: 'image', val: coverImage, aliases: ['cover_image', 'coverImage', 'thumbnail'] },
+          { key: 'content', val: content, aliases: ['description'] },
+          { key: 'description', val: content, aliases: ['content'] },
+          { key: 'status', val: status, aliases: [] },
+          { key: 'views', val: views, aliases: [] }
+        ];
 
         let colsToInsert = ['id'];
         let placeholders = ['?'];
         let valuesToInsert = [nextId];
+        const handledCols = new Set();
 
-        Object.keys(dataMap).forEach(col => {
-          if (availableCols.length === 0 || availableCols.includes(col)) {
-            colsToInsert.push(col);
-            placeholders.push('?');
-            valuesToInsert.push(dataMap[col]);
+        for (const field of candidateFields) {
+          if (hasColumn(availableCols, field.key, field.aliases)) {
+            const actualCol = resolveColumnName(availableCols, field.key, field.aliases);
+            const lower = actualCol.toLowerCase();
+            if (!handledCols.has(lower)) {
+              handledCols.add(lower);
+              colsToInsert.push(actualCol);
+              placeholders.push('?');
+              valuesToInsert.push(field.val);
+            }
           }
-        });
-
-        if (availableCols.includes('created_at')) {
-          colsToInsert.push('created_at');
-          placeholders.push('?');
-          valuesToInsert.push(nowIso);
         }
-        if (availableCols.includes('updated_at')) {
-          colsToInsert.push('updated_at');
-          placeholders.push('?');
-          valuesToInsert.push(nowIso);
+
+        if (hasColumn(availableCols, 'created_at')) {
+          const actualCol = resolveColumnName(availableCols, 'created_at');
+          if (!handledCols.has(actualCol.toLowerCase())) {
+            handledCols.add(actualCol.toLowerCase());
+            colsToInsert.push(actualCol);
+            placeholders.push('?');
+            valuesToInsert.push(nowIso);
+          }
+        }
+        if (hasColumn(availableCols, 'updated_at')) {
+          const actualCol = resolveColumnName(availableCols, 'updated_at');
+          if (!handledCols.has(actualCol.toLowerCase())) {
+            handledCols.add(actualCol.toLowerCase());
+            colsToInsert.push(actualCol);
+            placeholders.push('?');
+            valuesToInsert.push(nowIso);
+          }
         }
 
         const insertSql = `INSERT INTO blogs (${colsToInsert.join(', ')}) VALUES (${placeholders.join(', ')})`;
@@ -613,39 +808,47 @@ export default {
         const excerpt = String(body.excerpt || '').trim();
         const category = String(body.category || 'Exam Analysis').trim();
         const author = String(body.author || body.author_name || 'Team CBTRANK').trim();
-        const coverImage = String(body.cover_image || body.image || '').trim();
+        const rawCoverImage = String(body.cover_image || body.image || '').trim();
+        const coverImage = formatBlogCoverUrl(rawCoverImage, getR2PublicDomain(env));
         const content = String(body.content || body.description || '').trim();
         const status = String(body.status || 'publish').toLowerCase() === 'draft' ? 'draft' : 'publish';
         const views = (body.views !== undefined && body.views !== '') ? parseInt(body.views, 10) : 0;
 
         const availableCols = await getTableColumns(env);
-        const dataMap = {
-          title,
-          slug,
-          excerpt,
-          category,
-          author,
-          author_name: author,
-          cover_image: coverImage,
-          image: coverImage,
-          content,
-          description: content,
-          status,
-          views
-        };
+        const candidateFields = [
+          { key: 'title', val: title, aliases: [] },
+          { key: 'slug', val: slug, aliases: [] },
+          { key: 'excerpt', val: excerpt, aliases: [] },
+          { key: 'category', val: category, aliases: [] },
+          { key: 'author', val: author, aliases: ['author_name'] },
+          { key: 'author_name', val: author, aliases: ['author'] },
+          { key: 'cover_image', val: coverImage, aliases: ['image', 'coverImage', 'thumbnail'] },
+          { key: 'image', val: coverImage, aliases: ['cover_image', 'coverImage', 'thumbnail'] },
+          { key: 'content', val: content, aliases: ['description'] },
+          { key: 'description', val: content, aliases: ['content'] },
+          { key: 'status', val: status, aliases: [] },
+          { key: 'views', val: views, aliases: [] }
+        ];
 
         let setClauses = [];
         let setValues = [];
+        const handledCols = new Set();
 
-        Object.keys(dataMap).forEach(col => {
-          if (availableCols.length === 0 || availableCols.includes(col)) {
-            setClauses.push(`${col} = ?`);
-            setValues.push(dataMap[col]);
+        for (const field of candidateFields) {
+          if (hasColumn(availableCols, field.key, field.aliases)) {
+            const actualCol = resolveColumnName(availableCols, field.key, field.aliases);
+            const lower = actualCol.toLowerCase();
+            if (!handledCols.has(lower)) {
+              handledCols.add(lower);
+              setClauses.push(`${actualCol} = ?`);
+              setValues.push(field.val);
+            }
           }
-        });
+        }
 
-        if (availableCols.includes('updated_at')) {
-          setClauses.push("updated_at = ?");
+        if (hasColumn(availableCols, 'updated_at')) {
+          const actualCol = resolveColumnName(availableCols, 'updated_at');
+          setClauses.push(`${actualCol} = ?`);
           setValues.push(new Date().toISOString());
         }
 
@@ -747,7 +950,8 @@ export default {
         }
         const rows = await executeD1(env, sql, params);
         if (rows && rows.length > 0) {
-          return jsonResponse({ success: true, data: rows[0], isD1Bound: true });
+          const normalized = normalizeBlogRow(rows[0], getR2PublicDomain(env));
+          return jsonResponse({ success: true, data: normalized, isD1Bound: true });
         }
         return errorResponse(`Blog article '${identifier}' not found in D1 database`, 404, { isD1Bound: true });
       } catch (err) {
@@ -818,8 +1022,11 @@ export default {
 
         if (!rows) rows = [];
 
+        const r2Domain = getR2PublicDomain(env);
+        const normalizedRows = rows.map(r => normalizeBlogRow(r, r2Domain));
+
         if (rawArray) {
-          return new Response(JSON.stringify(rows), {
+          return new Response(JSON.stringify(normalizedRows), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
             status: 200
           });
@@ -827,9 +1034,9 @@ export default {
 
         return jsonResponse({
           success: true,
-          count: rows.length,
-          data: rows,
-          blogs: rows,
+          count: normalizedRows.length,
+          data: normalizedRows,
+          blogs: normalizedRows,
           isD1Bound: true
         });
       } catch (err) {
@@ -848,7 +1055,9 @@ export default {
       if (isD1Bound) {
         try {
           tableCols = await ensureBlogsTable(env);
-          initialBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
+          const rawBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
+          const r2Domain = getR2PublicDomain(env);
+          initialBlogs = (rawBlogs || []).map(r => normalizeBlogRow(r, r2Domain));
         } catch (e) {
           dbError = e.message;
           console.error("D1 Blogs Load Error:", e);
@@ -2122,7 +2331,20 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
 
   <script>
     let allBlogs = ${initialJson};
+    var r2PublicBase = ${JSON.stringify(r2PublicDomain)};
     let isD1Connected = ${isD1Active ? 'true' : 'false'};
+
+    function formatBlogCoverUrl(url) {
+      if (!url || typeof url !== 'string') return '';
+      url = url.trim();
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+      }
+      var base = (r2PublicBase || 'https://upload.cbtrank.com').replace(/\/+$/, '');
+      var clean = url.replace(/^\/+/, '');
+      return base + '/' + clean;
+    }
     let currentCategoryFilter = 'All';
     let currentStatusFilter = 'all';
     let searchQuery = '';
@@ -2349,7 +2571,8 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       var author = document.getElementById('formAuthor').value.trim() || 'Team CBTRANK';
       var category = document.getElementById('formCategory').value;
       if (category === 'Other') category = document.getElementById('formCustomCategory').value.trim() || 'Other';
-      var cover = document.getElementById('formCoverImage').value.trim();
+      var rawCover = document.getElementById('formCoverImage').value.trim();
+      var cover = formatBlogCoverUrl(rawCover);
       var content = getContentValue();
 
       var previewHtml = '';
@@ -2372,7 +2595,8 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       var b = allBlogs.find(function(x) { return x.id == id; });
       if (!b) return;
 
-      var cover = b.cover_image || b.image || '';
+      var rawCover = b.cover_image || b.image || '';
+      var cover = formatBlogCoverUrl(rawCover);
       var previewHtml = '';
       if (cover) {
         previewHtml += '<img src="' + escapeHtml(cover) + '" style="width:100%; max-height:280px; object-fit:cover; border-radius:10px; margin-bottom:16px;" alt="Cover" onerror="onThumbErr(this)">';
@@ -2441,9 +2665,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       var hint = document.getElementById('coverImageHint');
       val = (val || '').trim();
       if (val) {
-        preview.src = val;
+        var resolvedUrl = formatBlogCoverUrl(val);
+        preview.src = resolvedUrl;
         preview.style.display = 'block';
-        hint.innerText = 'Cover image URL configured.';
+        hint.innerHTML = '<span style="color:#38bdf8;">✓ Cover image set:</span> <code style="word-break:break-all;">' + escapeHtml(resolvedUrl) + '</code>';
       } else {
         preview.style.display = 'none';
         preview.src = '';
@@ -2856,9 +3081,10 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       var rowsHtml = '';
       filtered.forEach(function(b) {
         var isPub = (String(b.status).toLowerCase() === 'publish' || String(b.status).toLowerCase() === 'published');
-        var coverUrl = b.cover_image || b.image || '';
+        var rawCover = b.cover_image || b.image || '';
+        var coverUrl = formatBlogCoverUrl(rawCover);
         var thumbHtml = coverUrl
-          ? '<img src="' + escapeHtml(coverUrl) + '" class="table-thumb" alt="Cover" onerror="onThumbErr(this)">'
+          ? '<img src="' + escapeHtml(coverUrl) + '" class="table-thumb" alt="Cover" onerror="onThumbErr(this)" loading="lazy">'
           : '<div class="table-thumb-placeholder">🖼️</div>';
 
         rowsHtml += '<tr>' +
@@ -2911,7 +3137,8 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
       var cardsHtml = '';
       filtered.forEach(function(b) {
         var isPub = (String(b.status).toLowerCase() === 'publish' || String(b.status).toLowerCase() === 'published');
-        var coverUrl = b.cover_image || b.image || '';
+        var rawCover = b.cover_image || b.image || '';
+        var coverUrl = formatBlogCoverUrl(rawCover);
 
         cardsHtml += '<div class="blog-card">' +
           '<div class="card-top">' +
@@ -2925,7 +3152,7 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
               '</div>' +
               '<div class="card-title">' + escapeHtml(b.title) + '</div>' +
             '</div>' +
-            (coverUrl ? '<div class="card-thumb-wrap"><img src="' + escapeHtml(coverUrl) + '" class="card-thumb" alt="Cover" onerror="onThumbErr(this)"></div>' : '') +
+            (coverUrl ? '<div class="card-thumb-wrap"><img src="' + escapeHtml(coverUrl) + '" class="card-thumb" alt="Cover" onerror="onThumbErr(this)" loading="lazy"></div>' : '') +
           '</div>' +
 
           (b.excerpt ? '<div class="card-excerpt">' + escapeHtml(b.excerpt) + '</div>' : '') +
@@ -3004,7 +3231,28 @@ function renderBlogsManagerPortal(isD1Bound, isR2Bound, tableExists, preloadedBl
     }
 
     function onThumbErr(img) {
-      if (img) img.style.display = 'none';
+      if (!img) return;
+      if (img.id === 'formCoverPreview') {
+        img.style.display = 'none';
+        var hint = document.getElementById('coverImageHint');
+        if (hint) {
+          hint.innerHTML = '<span style="color:#f87171;">⚠️ Cover preview failed to load from URL. Verify R2 file exists or check domain.</span>';
+        }
+        return;
+      }
+      var parent = img.parentElement;
+      if (parent && (parent.classList.contains('card-thumb-wrap') || parent.tagName === 'TD')) {
+        img.style.display = 'none';
+        var placeholder = parent.querySelector('.table-thumb-placeholder');
+        if (!placeholder) {
+          placeholder = document.createElement('div');
+          placeholder.className = 'table-thumb-placeholder';
+          placeholder.innerText = '🖼️';
+          parent.appendChild(placeholder);
+        }
+      } else {
+        img.style.display = 'none';
+      }
     }
 
     function copySlugBtn(btn) {
