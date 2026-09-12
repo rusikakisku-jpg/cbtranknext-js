@@ -316,6 +316,25 @@ export const ALL_EXAMS_FALLBACK: Exam[] = [
 export async function getExamBySlug(slug: string): Promise<Exam | null> {
   if (!slug) return null;
 
+  // 1. Direct query by slug (fastest & works even if exam is hidden)
+  try {
+    const res = await fetch(`https://api.cbtrank.com/exams?slug=${encodeURIComponent(slug)}`, {
+      headers: { 'User-Agent': 'CBTRank-Web/2.0' },
+      next: { revalidate: 60 }
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.success && json.data) {
+        return json.data;
+      }
+      if (Array.isArray(json)) {
+        const found = json.find((e: Exam) => e && e.slug === slug);
+        if (found) return found;
+      }
+    }
+  } catch (err) {}
+
+  // 2. Full active exams list fallback
   try {
     const res = await fetch('https://api.cbtrank.com/exams', {
       headers: { 'User-Agent': 'CBTRank-Web/2.0' },

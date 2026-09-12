@@ -28,11 +28,40 @@ const DEFAULT_LANGUAGES = [
   "Malayalam", "Marathi", "Odia", "Punjabi", "Tamil", "Telugu", "Urdu"
 ];
 
-function isRRBSlug(slug: string): boolean {
-  if (!slug) return false;
-  const s = slug.toLowerCase();
-  return s.includes('rrb') || s.includes('railway') || s.includes('alp') ||
-    s.includes('technician') || s.includes('paramedical') || s.includes('ntpc');
+function parseLocationData(rawLoc: string[] | string | undefined | null, locType: string | undefined): { label: string; list: string[] } {
+  let label = (locType && typeof locType === 'string' && locType.trim()) ? locType.trim() : 'State / UT';
+  if (label === 'States/UT' || label === 'State/UT' || label === 'States / UT') {
+    label = 'State / UT';
+  }
+
+  let list: string[] = [];
+  if (Array.isArray(rawLoc)) {
+    list = rawLoc.map(s => String(s).trim()).filter(Boolean);
+  } else if (typeof rawLoc === 'string' && rawLoc.trim()) {
+    const s = rawLoc.trim();
+    if (s.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) list = parsed.map((x: any) => String(x).trim()).filter(Boolean);
+      } catch (e) {}
+    }
+    if (list.length === 0 && s.includes(',')) {
+      list = s.split(',').map(x => x.trim()).filter(Boolean);
+    } else if (list.length === 0 && s) {
+      list = [s];
+    }
+  }
+
+  const isAllIndia = list.length === 1 && list[0].toLowerCase() === 'all india';
+  if (list.length === 0 || isAllIndia) {
+    if (label.toLowerCase().includes('rrb') || label.toLowerCase().includes('railway') || label.toLowerCase().includes('zone')) {
+      list = DEFAULT_RRB_ZONES;
+    } else {
+      list = DEFAULT_STATES;
+    }
+  }
+
+  return { label, list };
 }
 
 function urlHasHtmlExtension(raw: string): boolean {
@@ -216,6 +245,8 @@ interface AnswerkeyCalculatorProps {
   sidebar?: React.ReactNode;
   initialMarksRight?: number | string;
   initialMarksWrong?: number | string;
+  initialLocationType?: string;
+  initialLocations?: string[] | string;
 }
 
 export default function AnswerkeyCalculator({
@@ -224,15 +255,17 @@ export default function AnswerkeyCalculator({
   sidebar,
   initialMarksRight,
   initialMarksWrong,
+  initialLocationType,
+  initialLocations,
 }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
-  const isRRB = isRRBSlug(examSlug);
+  const initialParsed = parseLocationData(initialLocations, initialLocationType);
   const defaultBannerTitle = initialTitle || formatExamSlugTitle(examSlug);
   const [bannerTitle, setBannerTitle] = useState(defaultBannerTitle);
   const [bannerSub, setBannerSub] = useState('Paste your official answer key URL and add your exam details.');
-  const [locations, setLocations] = useState<string[]>(isRRB ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
-  const [locationLabel, setLocationLabel] = useState(isRRB ? 'RRB Zones' : 'State / UT');
+  const [locations, setLocations] = useState<string[]>(initialParsed.list);
+  const [locationLabel, setLocationLabel] = useState(initialParsed.label);
   const [locationLoading, setLocationLoading] = useState(false);
   const [languages, setLanguages] = useState<string[]>(DEFAULT_LANGUAGES);
   const [langLoading, setLangLoading] = useState(false);
@@ -266,7 +299,7 @@ export default function AnswerkeyCalculator({
   function applyExamData(examObj: Record<string, unknown>, slug: string) {
     const title = (examObj.title as string) || '';
     const subtitle = (examObj.subtitle as string) || `Paste your ${title || 'exam'} official answer key URL and add your exam details.`;
-    const groupLabel = (examObj.location_type_id as string) || (isRRBSlug(slug) ? 'RRB Zones' : 'State / UT');
+    const parsed = parseLocationData(examObj.location_id as any, examObj.location_type_id as string);
     
     if (title) {
       setBannerTitle(title.toLowerCase().includes('answer key') ? title : `${title} Answer Key Calculator`);
@@ -274,7 +307,9 @@ export default function AnswerkeyCalculator({
       setBannerTitle(defaultBannerTitle);
     }
     setBannerSub(subtitle);
-    setLocationLabel(groupLabel);
+    setLocationLabel(parsed.label);
+    setLocations(parsed.list);
+    setLocationLoading(false);
 
     // Save default exam marking scheme if provided
     if (examObj.marks_right !== undefined) {
@@ -283,31 +318,11 @@ export default function AnswerkeyCalculator({
     if (examObj.marks_wrong !== undefined) {
       cbtSaveString(STORAGE_KEYS.MARKS_WRONG, String(examObj.marks_wrong));
     }
-
-    let locArray: string[] = [];
-    if (Array.isArray(examObj.location_id)) {
-      locArray = examObj.location_id as string[];
-    } else if (typeof examObj.location_id === 'string' && (examObj.location_id as string).trim()) {
-      const str = (examObj.location_id as string).trim();
-      if (str.startsWith('[')) {
-        try { const parsed = JSON.parse(str); if (Array.isArray(parsed)) locArray = parsed; } catch (e) {}
-      }
-      if (locArray.length === 0 && str.includes(',')) locArray = str.split(',').map((s: string) => s.trim()).filter(Boolean);
-      else if (locArray.length === 0 && str) locArray = [str];
-    }
-
-    if (locArray.length > 0) {
-      setLocations(locArray);
-      setLocationLoading(false);
-    } else {
-      setLocations(isRRBSlug(slug) ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
-      setLocationLabel(isRRBSlug(slug) ? 'RRB Zones' : 'State / UT');
-    }
   }
 
   useEffect(() => {
     if (!examSlug) {
-      // Generic /answerkey page — clear old exam marking cache and load default locations
+      // Generic /answerkey page — clear old exam marking cache and load default locations (State / UT)
       cbtRemove(STORAGE_KEYS.MARKS_RIGHT);
       cbtRemove(STORAGE_KEYS.MARKS_WRONG);
       cbtRemove(STORAGE_KEYS.ACTIVE_EXAM);
@@ -323,22 +338,36 @@ export default function AnswerkeyCalculator({
       cbtSaveString(STORAGE_KEYS.MARKS_WRONG, String(initialMarksWrong));
     }
 
-    // Exam-specific page — try localStorage cache first (0ms)
+    // 1. If backend location_type_id was provided directly via SSR props, apply it
+    if (initialLocationType !== undefined) {
+      const parsed = parseLocationData(initialLocations, initialLocationType);
+      setLocationLabel(parsed.label);
+      setLocations(parsed.list);
+      return;
+    }
+
+    // 2. Exam-specific page — try localStorage cache (0ms)
     try {
       const cachedExam = cbtGet<any>(STORAGE_KEYS.ACTIVE_EXAM);
-      if (cachedExam) {
-        if (cachedExam.slug === examSlug) {
-          applyExamData(cachedExam, examSlug);
-          return;
-        }
+      if (cachedExam && cachedExam.slug === examSlug) {
+        applyExamData(cachedExam, examSlug);
+        return;
       }
     } catch (e) {}
 
-    // Fallback: apply default zone or state according to slug
-    setLocations(isRRBSlug(examSlug) ? DEFAULT_RRB_ZONES : DEFAULT_STATES);
-    setLocationLabel(isRRBSlug(examSlug) ? 'RRB Zones' : 'State / UT');
+    // 3. If someone runs/opens a slug URL directly without initial props, fetch fresh from backend API by slug
+    setLocationLoading(true);
+    fetch(`https://api.cbtrank.com/exams?slug=${encodeURIComponent(examSlug)}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(json => {
+        if (json && json.success && json.data) {
+          applyExamData(json.data, examSlug);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLocationLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examSlug, initialMarksRight, initialMarksWrong]);
+  }, [examSlug, initialMarksRight, initialMarksWrong, initialLocationType, initialLocations]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
