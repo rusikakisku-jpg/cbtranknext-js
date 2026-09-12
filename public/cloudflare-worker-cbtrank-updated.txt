@@ -806,12 +806,9 @@ export default {
         const cleanUrl = sanitizeSql(inputUrl);
         const createdAt = getISTTimestamp();
 
-        // Prevent duplicate URL inserts
-        const existingCheck = await queryD1(env, `SELECT id FROM valid_answerkey_urls WHERE url = '${cleanUrl}' LIMIT 1`);
-        if (!existingCheck || existingCheck.length === 0) {
-          const insertSql = `INSERT INTO valid_answerkey_urls (url, created_at) VALUES ('${cleanUrl}', '${createdAt}')`;
-          await queryD1(env, insertSql);
-        }
+        // Insert URL record into valid_answerkey_urls table
+        const insertSql = `INSERT INTO valid_answerkey_urls (url, created_at) VALUES ('${cleanUrl}', '${createdAt}')`;
+        await queryD1(env, insertSql);
 
         return new Response(JSON.stringify({
           success: true,
