@@ -415,7 +415,8 @@ export default {
         }
 
         let updateSql = `UPDATE exams SET ${field} = ?`;
-        let updateParams = [newValue];
+        let updateParams = [];
+        updateParams.push(newValue);
         if (hasColumn(availableCols, 'updated_at')) {
           updateSql += ", " + resolveColumnName(availableCols, 'updated_at') + " = ?";
           updateParams.push(nowIso);
@@ -524,7 +525,8 @@ export default {
         // Explicitly include id as first column to satisfy NOT NULL constraints across all D1 schema variants
         let colsToInsert = ['id'];
         let placeholders = ['?'];
-        let valuesToInsert = [nextId];
+        let valuesToInsert = [];
+        valuesToInsert.push(nextId);
 
         Object.keys(dataMap).forEach(col => {
           if (availableCols.length === 0 || hasColumn(availableCols, col)) {
