@@ -969,8 +969,26 @@ export default {
 // (Cards View on Mobile, Full Data Table on Tablet & Desktop)
 // =============================================================================
 function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbError) {
-  const initialJson = JSON.stringify(preloadedExams || []);
   const isD1Active = isD1Bound && !dbError;
+  const examsList = Array.isArray(preloadedExams) ? preloadedExams : [];
+  const initTotal = examsList.length;
+  let initVisible = 0;
+  let initTop = 0;
+  let initLatest = 0;
+
+  examsList.forEach(e => {
+    if (e.is_visible == 1 || e.is_visible === true || e.is_visible === '1') initVisible++;
+    if (e.set_on_top == 1 || e.set_on_top === true || e.set_on_top === '1') initTop++;
+    if (e.is_latest == 1 || e.is_latest === true || e.is_latest === '1') initLatest++;
+  });
+  const initHidden = Math.max(0, initTotal - initVisible);
+
+  // Strictly sanitized JSON to prevent breaking HTML parser or script tags
+  const safeJson = JSON.stringify(examsList)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
 
   const d1StatusBadge = isD1Active
     ? '<span class="badge-status-ok"><span class="pulse-dot"></span> D1 Database Connected (' + preloadedExams.length + ' Exams)</span>'
@@ -2029,28 +2047,28 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Total Exams</h4>
-          <div class="val" id="statTotal">0</div>
+          <div class="val" id="statTotal">${initTotal}</div>
         </div>
         <div class="kpi-icon">📚</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Visible / Active</h4>
-          <div class="val" id="statVisible">0</div>
+          <div class="val" id="statVisible">${initVisible}</div>
         </div>
         <div class="kpi-icon" style="color:#10b981; background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.2);">👁️</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Pinned On Top</h4>
-          <div class="val" id="statTop">0</div>
+          <div class="val" id="statTop">${initTop}</div>
         </div>
         <div class="kpi-icon" style="color:#fbbf24; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.2);">📌</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-info">
           <h4>Latest Exams</h4>
-          <div class="val" id="statLatest">0</div>
+          <div class="val" id="statLatest">${initLatest}</div>
         </div>
         <div class="kpi-icon" style="color:#38bdf8; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.2);">⚡</div>
       </div>
@@ -2072,11 +2090,11 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
 
     <!-- Filter Tabs -->
     <div class="filter-tabs">
-      <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">All (<span id="cntAll">0</span>)</div>
-      <div class="filter-tab" data-filter="visible" onclick="setFilter('visible')">Active (<span id="cntVisible">0</span>)</div>
-      <div class="filter-tab" data-filter="hidden" onclick="setFilter('hidden')">Hidden (<span id="cntHidden">0</span>)</div>
-      <div class="filter-tab" data-filter="top" onclick="setFilter('top')">Top (<span id="cntTop">0</span>)</div>
-      <div class="filter-tab" data-filter="latest" onclick="setFilter('latest')">Latest (<span id="cntLatest">0</span>)</div>
+      <div class="filter-tab active" data-filter="all" onclick="setFilter('all')">All (<span id="cntAll">${initTotal}</span>)</div>
+      <div class="filter-tab" data-filter="visible" onclick="setFilter('visible')">Active (<span id="cntVisible">${initVisible}</span>)</div>
+      <div class="filter-tab" data-filter="hidden" onclick="setFilter('hidden')">Hidden (<span id="cntHidden">${initHidden}</span>)</div>
+      <div class="filter-tab" data-filter="top" onclick="setFilter('top')">Top (<span id="cntTop">${initTop}</span>)</div>
+      <div class="filter-tab" data-filter="latest" onclick="setFilter('latest')">Latest (<span id="cntLatest">${initLatest}</span>)</div>
     </div>
 
     <!-- =====================================================================
@@ -2388,8 +2406,23 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     &copy; 2026 CBT RANK System | Cloudflare D1 Native Exam Management Portal
   </footer>
 
+  <!-- Preloaded D1 Database Records (Safe JSON Data Container) -->
+  <script type="application/json" id="preloadedExamsData">
+${safeJson}
+  </script>
+
   <script>
-    let allExams = ${initialJson};
+    let allExams = [];
+    try {
+      var preloadedEl = document.getElementById('preloadedExamsData');
+      if (preloadedEl && preloadedEl.textContent && preloadedEl.textContent.trim()) {
+        allExams = JSON.parse(preloadedEl.textContent.trim());
+      }
+    } catch (parseErr) {
+      console.warn('Initial JSON parse notice, will fallback to live API fetch:', parseErr);
+      allExams = [];
+    }
+
     let isD1Connected = ${isD1Active ? 'true' : 'false'};
     let currentFilter = 'all';
     let searchQuery = '';
@@ -2399,16 +2432,37 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     var isTinyMceReady = false;
     var isRawHtmlMode = false;
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initApp);
-    } else {
+    var isAppInitialized = false;
+
+    function initApp() {
+      try {
+        renderAllViews();
+        updateStats();
+      } catch (viewErr) {
+        console.error('renderAllViews notice:', viewErr);
+      }
+      try {
+        initTinyMce();
+      } catch (mceErr) {
+        console.warn('initTinyMce notice:', mceErr);
+      }
+
+      // Auto-Sync Fallback: If for any reason allExams is empty, automatically fetch live data from /api/exams
+      if (!Array.isArray(allExams) || allExams.length === 0) {
+        refreshData();
+      }
+    }
+
+    function safeInitApp() {
+      if (isAppInitialized && Array.isArray(allExams) && allExams.length > 0) return;
+      isAppInitialized = true;
       initApp();
     }
 
-    function initApp() {
-      renderAllViews();
-      updateStats();
-      initTinyMce();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', safeInitApp);
+    } else {
+      safeInitApp();
     }
 
     function copyExamSlug(id) {
@@ -2518,6 +2572,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     function renderCards(filtered) {
       var grid = document.getElementById('examsCardsGrid');
       if (!grid) return;
+      if (!Array.isArray(filtered)) filtered = [];
 
       if (filtered.length === 0) {
         if (allExams.length === 0) {
@@ -2621,6 +2676,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     function renderTable(filtered) {
       var tbody = document.getElementById('examsTableBody');
       if (!tbody) return;
+      if (!Array.isArray(filtered)) filtered = [];
 
       if (filtered.length === 0) {
         if (allExams.length === 0) {
@@ -3191,7 +3247,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             }
           }
         } catch (jsonErr) {
-          alert("Invalid JSON in Custom Parameters:\n" + jsonErr.message + "\n\nPlease check JSON syntax or click 'Format JSON'.");
+          alert('Invalid JSON in Custom Parameters: ' + jsonErr.message + ' - Please check JSON syntax or click Format JSON.');
           document.getElementById('formCustomFields').focus();
           saveBtn.disabled = false;
           saveBtn.innerText = isEdit ? '💾 Update Exam' : '💾 Create Exam';
