@@ -7,18 +7,22 @@
  *    - Resolves the 1,000 candidate block bug using single-query SQL aggregation.
  *    - Fully utilizes D1 composite indexes (idx_user_ranks_exam, idx_user_ranks_shift, idx_user_ranks_category).
  *    - Accurately returns overallRank, totalOverall, shiftRank, totalShift, categoryRank, totalCategory, genderRank, totalGender, and percentile.
+ *    - 🎯 Dynamic Paper/Trade/Branch (sub_type) Rank: Automatically calculates subTypeRank, totalSubType, and subTypePercentile when sub_type is provided.
  * 2. 🚫 ZERO DIRECT PUBLIC ACCESS to raw table dumps:
  *    - /user_ranks, /valid_answerkey_urls, /invalid_answerkey_urls require Admin Authorization for GET requests.
  * 3. 🔑 Admin Authorization: Full access granted with 'Authorization: Bearer <token>', 'x-api-key', or '?admin_key='.
  * 4. 🛡️ SQL Injection Sanitization: All parameters sanitized with strict SQL string cleaning.
  * 5. ⚡ Seamless Submissions & Smart Upsert:
- *    - POST /user_ranks prevents overwriting candidates across different exams.
+ *    - POST /user_ranks supports dynamic parameters: sub_type (Trade/Branch/Paper) & custom_data (JSON object with extra parameters like CCAA, NAC %, etc.).
+ *    - Prevents overwriting candidates across different exams.
  *    - Prevents NaN total_marks crashes.
- * 6. 🗄️ Native Cloudflare D1 (env.DB) + REST API Fallback 100% preserved.
- * 7. 🚀 Lightning Fast Proxy:
+ * 6. 🛠️ Self-Healing Auto-Migration:
+ *    - Automatically checks and adds missing columns (sub_type, custom_data on user_ranks, custom_fields on exams) in Cloudflare D1.
+ * 7. 🗄️ Native Cloudflare D1 (env.DB) + REST API Fallback 100% preserved.
+ * 8. 🚀 Lightning Fast Proxy:
  *    - /calculator_api tries the ultra-fast dedicated VPS (http://62.171.188.100/api_v7.php) first with automatic fallback to Render.
- * 8. 🌐 Exact 100% Backward Compatibility:
- *    - All existing public endpoints (/exams, /locations, /languages, /settings, /blogs, etc.) preserved.
+ * 9. 🌐 Exact 100% Backward Compatibility:
+ *    - All existing public endpoints (/exams, /locations, /languages, /settings, /blogs, etc.) preserved without breaking any client.
  */
 
 // ⚙️ Configuration & Fallbacks (Can also be set in Cloudflare Worker Environment Variables)
@@ -28,6 +32,51 @@ const DEFAULT_CF_API_TOKEN = "cfut_umhNZGH5mokB88O6AHQVSURuP6AW48AIry4wVFaW74f7f
 const DEFAULT_ADMIN_SECRET = "cbtrank_admin_secret_key_2026"; // Set in Cloudflare Env as ADMIN_API_KEY or use header
 const CALCULATOR_VPS_PRIMARY = "http://62.171.188.100/api_v7.php";
 const CALCULATOR_RENDER_BACKUP = "https://test-gpdi.onrender.com/api_v7.php";
+
+// Track auto-migration state across isolate lifecycle
+let isSchemaMigrated = false;
+
+/**
+ * Self-Healing Auto-Migration:
+ * Ensures sub_type, custom_data exist in user_ranks and custom_fields exists in exams
+ */
+async function ensureDynamicSchema(env) {
+  if (isSchemaMigrated) return;
+  if (!env) return;
+
+  // 1. Native D1 Binding
+  if (env.DB && typeof env.DB.prepare === 'function') {
+    try {
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]'").run(); } catch (e) {}
+      isSchemaMigrated = true;
+      return;
+    } catch (err) {}
+  }
+
+  // 2. Cloudflare D1 REST API Fallback
+  const accountId = (env && env.CF_ACCOUNT_ID) || DEFAULT_CF_ACCOUNT_ID;
+  const databaseId = (env && env.CF_DATABASE_ID) || DEFAULT_CF_DATABASE_ID;
+  const apiToken = (env && env.CF_API_TOKEN) || DEFAULT_CF_API_TOKEN;
+
+  if (accountId && databaseId && apiToken) {
+    try {
+      const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
+      await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+          sql: "ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''; ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'; ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]';" 
+        })
+      });
+      isSchemaMigrated = true;
+    } catch (e) {}
+  }
+}
 
 /**
  * Helper: Query Cloudflare D1 Database (Native Binding First, REST API Fallback)
@@ -107,6 +156,13 @@ export default {
       pathname = pathname.slice(0, -1);
     }
 
+    // Run schema migration non-blockingly
+    if (ctx && ctx.waitUntil) {
+      ctx.waitUntil(ensureDynamicSchema(env));
+    } else {
+      ensureDynamicSchema(env).catch(() => {});
+    }
+
     // 🌐 CORS Headers (Supports preflight caching & custom auth headers)
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -142,12 +198,27 @@ export default {
 
       if (targetSlug) {
         const cleanSlug = sanitizeSql(targetSlug);
-        const sql = `SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link FROM exams WHERE slug = '${cleanSlug}' LIMIT 1`;
-        const results = await queryD1(env, sql);
+        let sql = `SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link, custom_fields FROM exams WHERE slug = '${cleanSlug}' LIMIT 1`;
+        let results = await queryD1(env, sql);
+        
+        // Graceful fallback if custom_fields column is not yet present
+        if (!results || results.length === 0) {
+          try {
+            const fallbackSql = `SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link FROM exams WHERE slug = '${cleanSlug}' LIMIT 1`;
+            const fallbackResults = await queryD1(env, fallbackSql);
+            if (fallbackResults && fallbackResults.length > 0) results = fallbackResults;
+          } catch (e) {}
+        }
+
         if (results && results.length > 0) {
           const examRow = results[0];
           if (examRow.location_id && typeof examRow.location_id === 'string') {
             try { examRow.location_id = JSON.parse(examRow.location_id); } catch (e) {}
+          }
+          if (examRow.custom_fields && typeof examRow.custom_fields === 'string') {
+            try { examRow.custom_fields = JSON.parse(examRow.custom_fields); } catch (e) { examRow.custom_fields = []; }
+          } else if (!examRow.custom_fields) {
+            examRow.custom_fields = [];
           }
           return new Response(JSON.stringify({ success: true, data: examRow }), { headers: corsHeaders, status: 200 });
         } else {
@@ -155,12 +226,27 @@ export default {
         }
       }
 
-      const sql = "SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link FROM exams WHERE is_visible = 1 ORDER BY set_on_top DESC, is_latest DESC, id DESC";
-      const results = await queryD1(env, sql);
+      let sql = "SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link, custom_fields FROM exams WHERE is_visible = 1 ORDER BY set_on_top DESC, is_latest DESC, id DESC";
+      let results = await queryD1(env, sql);
+
+      // Graceful fallback if custom_fields column is not yet present
+      if (!results || (Array.isArray(results) && results.length === 0)) {
+        try {
+          const fallbackSql = "SELECT id, title, subtitle, slug, is_latest, is_visible, location_type_id, location_id, marks_right, marks_wrong, set_on_top, answerkey_login_link, description, external_exam_id, youtube_link FROM exams WHERE is_visible = 1 ORDER BY set_on_top DESC, is_latest DESC, id DESC";
+          const fallbackResults = await queryD1(env, fallbackSql);
+          if (fallbackResults && fallbackResults.length > 0) results = fallbackResults;
+        } catch (e) {}
+      }
+
       if (results && Array.isArray(results)) {
         results.forEach(examRow => {
           if (examRow.location_id && typeof examRow.location_id === 'string') {
             try { examRow.location_id = JSON.parse(examRow.location_id); } catch (e) {}
+          }
+          if (examRow.custom_fields && typeof examRow.custom_fields === 'string') {
+            try { examRow.custom_fields = JSON.parse(examRow.custom_fields); } catch (e) { examRow.custom_fields = []; }
+          } else if (!examRow.custom_fields) {
+            examRow.custom_fields = [];
           }
         });
       }
@@ -295,7 +381,7 @@ export default {
 
     // =========================================================================
     // 6.5 ⚡ DEDUPLICATED EXAM SHIFTS, DATES & LANGUAGES (/exam_shifts, /api/exam_shifts)
-    // Returns unique (exam_date, exam_time) and unique paper_language from user_ranks
+    // Returns unique (exam_date, exam_time), paper_language, and sub_types from user_ranks
     // =========================================================================
     if (pathname === '/exam_shifts' || pathname === '/api/exam_shifts' || pathname === '/exam_dates' || pathname === '/api/exam_dates') {
       let examId = sanitizeSql((url.searchParams.get('exam_id') || url.searchParams.get('id') || url.searchParams.get('exam_slug') || url.searchParams.get('slug') || '').trim());
@@ -322,6 +408,7 @@ export default {
             TRIM(exam_date) AS exam_date, 
             TRIM(exam_time) AS exam_time, 
             TRIM(paper_language) AS paper_language,
+            TRIM(sub_type) AS sub_type,
             TRIM(url) AS url,
             TRIM(user_id) AS user_id
           FROM user_ranks 
@@ -335,10 +422,36 @@ export default {
           ORDER BY exam_date ASC, exam_time ASC, paper_language ASC;
         `;
 
-        const rows = await queryD1(env, querySql);
+        let rows = await queryD1(env, querySql);
+
+        // Graceful fallback if sub_type column does not exist yet
+        if (!rows || (Array.isArray(rows) && rows.length === 0)) {
+          try {
+            const fallbackSql = `
+              SELECT 
+                TRIM(exam_date) AS exam_date, 
+                TRIM(exam_time) AS exam_time, 
+                TRIM(paper_language) AS paper_language,
+                TRIM(url) AS url,
+                TRIM(user_id) AS user_id
+              FROM user_ranks 
+              WHERE exam_id = '${examId}' 
+                AND exam_date IS NOT NULL 
+                AND TRIM(exam_date) != '' 
+                AND LOWER(exam_date) != 'null'
+                AND exam_time IS NOT NULL 
+                AND TRIM(exam_time) != ''
+                AND LOWER(exam_time) != 'null'
+              ORDER BY exam_date ASC, exam_time ASC, paper_language ASC;
+            `;
+            const fallbackRows = await queryD1(env, fallbackSql);
+            if (fallbackRows && fallbackRows.length > 0) rows = fallbackRows;
+          } catch (e) {}
+        }
 
         const shiftMap = new Map();
         const allLanguagesSet = new Set();
+        const allSubTypesSet = new Set();
         const dateSet = new Set();
         const candidateList = [];
         const seenCandidateUrls = new Set();
@@ -347,6 +460,7 @@ export default {
           const d = (row.exam_date || "").trim();
           const t = (row.exam_time || "").trim();
           const lang = (row.paper_language || "").trim() || "Unknown";
+          const sub = (row.sub_type || "").trim();
           const candidateUrl = (row.url || "").trim();
           const userId = (row.user_id || "").trim();
 
@@ -378,6 +492,10 @@ export default {
             }
           }
 
+          if (sub && sub.toLowerCase() !== "null" && sub !== "") {
+            allSubTypesSet.add(sub);
+          }
+
           if (candidateUrl && candidateUrl.toLowerCase() !== "null" && !seenCandidateUrls.has(candidateUrl)) {
             seenCandidateUrls.add(candidateUrl);
             candidateList.push({
@@ -385,6 +503,7 @@ export default {
               exam_date: d,
               exam_time: t,
               paper_language: lang,
+              sub_type: sub || undefined,
               user_id: userId,
               url: candidateUrl
             });
@@ -398,6 +517,7 @@ export default {
 
         const sortedDates = Array.from(dateSet).sort();
         const allLanguages = Array.from(allLanguagesSet).sort((a, b) => a.localeCompare(b));
+        const allSubTypes = Array.from(allSubTypesSet).sort((a, b) => a.localeCompare(b));
 
         const groupedByDate = {};
         shifts.forEach(s => {
@@ -417,8 +537,10 @@ export default {
           total_shifts: shifts.length,
           total_dates: sortedDates.length,
           total_languages: allLanguages.length,
+          total_sub_types: allSubTypes.length,
           total_candidate_urls: candidateList.length,
           all_languages: allLanguages,
+          all_sub_types: allSubTypes,
           dates: sortedDates,
           shifts: shifts,
           grouped_by_date: groupedByDate,
@@ -443,6 +565,7 @@ export default {
     // =========================================================================
     // 7️⃣ ⚡ ULTRA-FAST LIVE RANK ENDPOINT (/live_rank, /api/live_rank)
     // Fixes the 1,000 Candidate Block Bug using Direct D1 SQL Index Count Aggregation
+    // Supports dynamic trade/branch (sub_type) ranking seamlessly
     // =========================================================================
     if (pathname === '/live_rank' || pathname === '/api/live_rank' || pathname === '/rank' || pathname === '/api/rank') {
       let examId = sanitizeSql((url.searchParams.get('exam_id') || '').trim());
@@ -454,6 +577,7 @@ export default {
       let examTime = sanitizeSql((url.searchParams.get('exam_time') || url.searchParams.get('time') || '').trim());
       let userId = sanitizeSql((url.searchParams.get('user_id') || url.searchParams.get('userId') || '').trim());
       let candidateUrl = sanitizeSql((url.searchParams.get('url') || '').trim());
+      let subType = sanitizeSql((url.searchParams.get('sub_type') || url.searchParams.get('subType') || url.searchParams.get('branch') || url.searchParams.get('trade') || url.searchParams.get('paper') || '').trim());
 
       // If POST method, allow JSON payload parameters
       if (request.method === 'POST') {
@@ -471,6 +595,9 @@ export default {
             if (body.exam_time || body.time) examTime = sanitizeSql(String(body.exam_time || body.time).trim());
             if (body.user_id || body.userId) userId = sanitizeSql(String(body.user_id || body.userId).trim());
             if (body.url) candidateUrl = sanitizeSql(String(body.url).trim());
+            if (body.sub_type || body.subType || body.branch || body.trade || body.paper) {
+              subType = sanitizeSql(String(body.sub_type || body.subType || body.branch || body.trade || body.paper).trim());
+            }
           }
         } catch (e) {}
       }
@@ -495,11 +622,21 @@ export default {
       let isExistingInShift = false;
       let isExistingInCat = false;
       let isExistingInGender = false;
+      let isExistingInSubType = false;
 
       if (userId || candidateUrl) {
         const userMatch = userId ? `user_id = '${userId}'` : `url = '${candidateUrl}'`;
-        const userCheckSql = `SELECT user_id, exam_date, exam_time, category, gender, total_marks FROM user_ranks WHERE ${examWhere} AND ${userMatch} LIMIT 1`;
-        const userRows = await queryD1(env, userCheckSql);
+        let userRows = null;
+        try {
+          const userCheckSql = `SELECT user_id, exam_date, exam_time, category, gender, total_marks, sub_type FROM user_ranks WHERE ${examWhere} AND ${userMatch} LIMIT 1`;
+          userRows = await queryD1(env, userCheckSql);
+        } catch (e) {
+          try {
+            const userCheckSql = `SELECT user_id, exam_date, exam_time, category, gender, total_marks FROM user_ranks WHERE ${examWhere} AND ${userMatch} LIMIT 1`;
+            userRows = await queryD1(env, userCheckSql);
+          } catch (err2) {}
+        }
+
         if (userRows && userRows.length > 0) {
           const exUser = userRows[0];
           isExistingInOverall = true;
@@ -514,6 +651,9 @@ export default {
           const exGender = (exUser.gender || '').trim().toLowerCase();
           if (gender && (exGender === gender || (gender === 'male' && exGender === 'm') || (gender === 'female' && exGender === 'f') || (gender === 'm' && exGender === 'male') || (gender === 'f' && exGender === 'female'))) {
             isExistingInGender = true;
+          }
+          if (subType && (exUser.sub_type || '').trim().toLowerCase() === subType.toLowerCase()) {
+            isExistingInSubType = true;
           }
         }
       }
@@ -542,6 +682,12 @@ export default {
       // Category condition SQL
       const catCondition = category ? `LOWER(category) = '${category}'` : "0=1";
 
+      // Trade/Branch (sub_type) condition SQL
+      let subTypeCondition = "0=1";
+      if (subType) {
+        subTypeCondition = `LOWER(TRIM(sub_type)) = '${subType.toLowerCase()}'`;
+      }
+
       // ⚡ ULTRA-FAST SINGLE-QUERY CONDITIONAL AGGREGATE
       let aggregateSql = `
         SELECT
@@ -552,12 +698,36 @@ export default {
           COALESCE(SUM(CASE WHEN ${catCondition} THEN 1 ELSE 0 END), 0) AS raw_total_cat,
           COALESCE(SUM(CASE WHEN ${catCondition} AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_cat,
           COALESCE(SUM(CASE WHEN ${genderSql} THEN 1 ELSE 0 END), 0) AS raw_total_gender,
-          COALESCE(SUM(CASE WHEN (${genderSql}) AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_gender
+          COALESCE(SUM(CASE WHEN (${genderSql}) AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_gender,
+          COALESCE(SUM(CASE WHEN ${subTypeCondition} THEN 1 ELSE 0 END), 0) AS raw_total_subtype,
+          COALESCE(SUM(CASE WHEN (${subTypeCondition}) AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_subtype
         FROM user_ranks
         WHERE ${examWhere} ${excludeUserCondition}
       `;
 
-      let aggResults = await queryD1(env, aggregateSql);
+      let aggResults = null;
+      try {
+        aggResults = await queryD1(env, aggregateSql);
+      } catch (aggErr) {
+        // Fallback without sub_type if column does not exist yet
+        const legacySql = `
+          SELECT
+            COUNT(*) AS raw_total_overall,
+            COALESCE(SUM(CASE WHEN total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_overall,
+            COALESCE(SUM(CASE WHEN ${shiftCondition} THEN 1 ELSE 0 END), 0) AS raw_total_shift,
+            COALESCE(SUM(CASE WHEN ${shiftCondition} AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_shift,
+            COALESCE(SUM(CASE WHEN ${catCondition} THEN 1 ELSE 0 END), 0) AS raw_total_cat,
+            COALESCE(SUM(CASE WHEN ${catCondition} AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_cat,
+            COALESCE(SUM(CASE WHEN ${genderSql} THEN 1 ELSE 0 END), 0) AS raw_total_gender,
+            COALESCE(SUM(CASE WHEN (${genderSql}) AND total_marks > ${marks + 0.0001} THEN 1 ELSE 0 END), 0) AS higher_gender
+          FROM user_ranks
+          WHERE ${examWhere} ${excludeUserCondition}
+        `;
+        try {
+          aggResults = await queryD1(env, legacySql);
+        } catch (legErr) {}
+      }
+
       let aggRow = (aggResults && aggResults[0]) ? aggResults[0] : {};
 
       // Fallback: If 0 candidates found and examId had letters/zeros interchange (e.g. 1258O vs 12580)
@@ -594,7 +764,11 @@ export default {
             totalCategory: 1,
             genderRank: 1,
             totalGender: 1,
-            percentile: 100.0
+            percentile: 100.0,
+            sub_type: subType || null,
+            subTypeRank: subType ? 1 : null,
+            totalSubType: subType ? 1 : null,
+            subTypePercentile: subType ? 100.0 : null
           }
         }), { headers: corsHeaders, status: 200 });
       }
@@ -630,24 +804,46 @@ export default {
         totalGender = Math.max(genderRank, isExistingInGender ? rawGender : (rawGender + 1));
       }
 
+      const rawSubType = Number(aggRow.raw_total_subtype) || 0;
+      const higherSubType = subType ? (Number(aggRow.higher_subtype) || 0) : 0;
+      let subTypeRank = 1;
+      let totalSubType = 1;
+      if (rawSubType > 0 || subType) {
+        subTypeRank = higherSubType + 1;
+        totalSubType = Math.max(subTypeRank, isExistingInSubType ? rawSubType : (rawSubType + 1));
+      }
+
       let percentile = 100.0;
       if (totalShift > 1) {
         percentile = Math.min(99.9, Math.max(1.0, Number((((totalShift - higherShift) / totalShift) * 100).toFixed(2))));
       }
 
+      const responseData = {
+        overallRank,
+        totalOverall,
+        shiftRank,
+        totalShift,
+        categoryRank,
+        totalCategory,
+        genderRank,
+        totalGender,
+        percentile
+      };
+
+      if (subType) {
+        responseData.sub_type = subType;
+        responseData.subTypeRank = subTypeRank;
+        responseData.totalSubType = totalSubType;
+        if (totalSubType > 1) {
+          responseData.subTypePercentile = Math.min(99.9, Math.max(1.0, Number((((totalSubType - higherSubType) / totalSubType) * 100).toFixed(2))));
+        } else {
+          responseData.subTypePercentile = 100.0;
+        }
+      }
+
       return new Response(JSON.stringify({
         success: true,
-        data: {
-          overallRank,
-          totalOverall,
-          shiftRank,
-          totalShift,
-          categoryRank,
-          totalCategory,
-          genderRank,
-          totalGender,
-          percentile
-        }
+        data: responseData
       }), { headers: corsHeaders, status: 200 });
     }
 
@@ -680,6 +876,39 @@ export default {
           const domain = sanitizeSql((body.domain || ''));
           const createdAt = getISTTimestamp();
 
+          // 🎯 Dynamic Branch/Trade/Paper and Custom Dynamic Parameters
+          const subType = sanitizeSql((body.sub_type || body.subType || body.branch || body.trade || body.paper || '').toString().trim());
+
+          let customData = '';
+          if (body.custom_data !== undefined && body.custom_data !== null) {
+            if (typeof body.custom_data === 'object') {
+              customData = sanitizeSql(JSON.stringify(body.custom_data));
+            } else {
+              customData = sanitizeSql(String(body.custom_data).trim());
+            }
+          }
+
+          // Automatically collect any custom dynamic parameters passed in payload (e.g. ccaa_qualified, nac_percentage)
+          const standardKeys = new Set([
+            'user_id', 'userId', 'url', 'exam_slug', 'slug', 'paper_language', 'paper_lang',
+            'url_hash', 'total_marks', 'marks', 'exam_date', 'date', 'exam_time', 'time',
+            'exam_id', 'id', 'location', 'gender', 'category', 'domain', 'sub_type', 'subType',
+            'branch', 'trade', 'paper', 'custom_data', 'customData'
+          ]);
+          const extraFields = {};
+          for (const [k, v] of Object.entries(body)) {
+            if (!standardKeys.has(k) && v !== undefined && v !== null && v !== '') {
+              extraFields[k] = v;
+            }
+          }
+          if (Object.keys(extraFields).length > 0) {
+            let existingObj = {};
+            if (customData) {
+              try { existingObj = JSON.parse(customData); } catch (e) { existingObj = { _raw: customData }; }
+            }
+            customData = sanitizeSql(JSON.stringify({ ...existingObj, ...extraFields }));
+          }
+
           // 🔍 SMART CHECK: Isolate record by Roll Number (user_id) + Exam ID/Slug to prevent overwriting attempts of different exams
           let checkSql = "";
           let whereCondition = "";
@@ -709,9 +938,27 @@ export default {
             if (gender) updateClause += `, gender = '${gender}'`;
             if (category) updateClause += `, category = '${category}'`;
             if (domain) updateClause += `, domain = '${domain}'`;
+            if (subType) updateClause += `, sub_type = '${subType}'`;
+            if (customData) updateClause += `, custom_data = '${customData}'`;
 
-            const updateSql = `UPDATE user_ranks SET ${updateClause} WHERE ${whereCondition}`;
-            await queryD1(env, updateSql);
+            try {
+              const updateSql = `UPDATE user_ranks SET ${updateClause} WHERE ${whereCondition}`;
+              await queryD1(env, updateSql);
+            } catch (uErr) {
+              // Legacy update fallback if sub_type or custom_data column is missing
+              let legacyUpdateClause = `url = '${userUrl}', total_marks = ${totalMarks}, updated_at = '${createdAt}'`;
+              if (paperLang) legacyUpdateClause += `, paper_language = '${paperLang}'`;
+              if (examDate) legacyUpdateClause += `, exam_date = '${examDate}'`;
+              if (examTime) legacyUpdateClause += `, exam_time = '${examTime}'`;
+              if (examId) legacyUpdateClause += `, exam_id = '${examId}'`;
+              if (examSlug && examSlug !== 'general') legacyUpdateClause += `, exam_slug = '${examSlug}'`;
+              if (location) legacyUpdateClause += `, location = '${location}'`;
+              if (gender) legacyUpdateClause += `, gender = '${gender}'`;
+              if (category) legacyUpdateClause += `, category = '${category}'`;
+              if (domain) legacyUpdateClause += `, domain = '${domain}'`;
+              const legacyUpdateSql = `UPDATE user_ranks SET ${legacyUpdateClause} WHERE ${whereCondition}`;
+              await queryD1(env, legacyUpdateSql);
+            }
 
             return new Response(JSON.stringify({
               success: true,
@@ -723,14 +970,24 @@ export default {
 
           } else {
             // ➕ INSERT brand new candidate record
-            const insertSql = `
-              INSERT INTO user_ranks 
-              (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, created_at, updated_at)
-              VALUES 
-              ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${createdAt}', '${createdAt}')
-            `;
-
-            await queryD1(env, insertSql);
+            try {
+              const insertSql = `
+                INSERT INTO user_ranks 
+                (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, sub_type, custom_data, created_at, updated_at)
+                VALUES 
+                ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${subType}', '${customData}', '${createdAt}', '${createdAt}')
+              `;
+              await queryD1(env, insertSql);
+            } catch (iErr) {
+              // Legacy insert fallback if sub_type or custom_data column is missing
+              const legacyInsertSql = `
+                INSERT INTO user_ranks 
+                (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, created_at, updated_at)
+                VALUES 
+                ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${createdAt}', '${createdAt}')
+              `;
+              await queryD1(env, legacyInsertSql);
+            }
 
             return new Response(JSON.stringify({
               success: true,
@@ -758,13 +1015,19 @@ export default {
       const limit = Math.min(parseInt(url.searchParams.get('limit') || '100', 10), 1000);
       const qExamId = url.searchParams.get('exam_id') ? sanitizeSql(url.searchParams.get('exam_id').trim()) : '';
       const qExamSlug = url.searchParams.get('exam_slug') ? sanitizeSql(url.searchParams.get('exam_slug').trim()) : '';
+      const qSubType = (url.searchParams.get('sub_type') || url.searchParams.get('branch') || url.searchParams.get('trade') || '').trim() ? sanitizeSql((url.searchParams.get('sub_type') || url.searchParams.get('branch') || url.searchParams.get('trade')).trim()) : '';
       
-      let whereClause = "";
+      let whereClauses = [];
       if (qExamId) {
-        whereClause = `WHERE exam_id = '${qExamId}'`;
+        whereClauses.push(`exam_id = '${qExamId}'`);
       } else if (qExamSlug && qExamSlug !== 'general') {
-        whereClause = `WHERE exam_slug = '${qExamSlug}'`;
+        whereClauses.push(`exam_slug = '${qExamSlug}'`);
       }
+      if (qSubType) {
+        whereClauses.push(`LOWER(TRIM(sub_type)) = '${qSubType.toLowerCase()}'`);
+      }
+
+      const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
       let sql = `SELECT * FROM user_ranks ${whereClause} ORDER BY total_marks DESC LIMIT ${limit}`;
       let results = await queryD1(env, sql);
@@ -1069,8 +1332,8 @@ export default {
         live_rank: {
           path: "/live_rank",
           method: "GET | POST",
-          description: "Ultra-fast direct SQL index count calculation for overall, shift, category, and gender rank + percentile. No 1,000 candidate limits.",
-          example: `${url.origin}/live_rank?exam_id=100576&total_marks=85.5&category=ur&gender=male&exam_date=2026-08-15&exam_time=09:00+-+11:00`
+          description: "Ultra-fast direct SQL index count calculation for overall, shift, category, gender, and branch/trade (sub_type) rank + percentile. No 1,000 candidate limits.",
+          example: `${url.origin}/live_rank?exam_id=100576&total_marks=85.5&category=ur&gender=male&sub_type=Electrical&exam_date=2026-08-15&exam_time=09:00+-+11:00`
         },
         calculator_api: {
           path: "/calculator_api",
@@ -1081,14 +1344,20 @@ export default {
         exams: {
           path: "/exams",
           method: "GET",
-          description: "List all active CBT exams, marking schemes, and zones",
+          description: "List all active CBT exams, marking schemes, zones, and dynamic custom_fields",
           example: `${url.origin}/exams`
         },
         exam_by_slug: {
           path: "/exams?slug={exam_slug}",
           method: "GET",
-          description: "Get specific exam details by slug",
+          description: "Get specific exam details by slug including dynamic custom_fields",
           example: `${url.origin}/exams?slug=osssc-ri-ari-amin-icds-sfs-junior-assistant`
+        },
+        exam_shifts: {
+          path: "/exam_shifts",
+          method: "GET | POST",
+          description: "Get unique exam dates, shifts, languages, and all trade/paper sub_types for an exam",
+          example: `${url.origin}/exam_shifts?exam_id=100576`
         },
         blogs: {
           path: "/blogs",
@@ -1129,7 +1398,7 @@ export default {
         user_ranks: {
           path: "/user_ranks",
           method: "POST (Public) | GET (Strictly Admin Only)",
-          description: "Smart upsert candidate attempt records without cross-exam overwriting. Public GET is strictly restricted.",
+          description: "Smart upsert candidate attempt records with branch/trade (sub_type) & custom_data JSON parameters without cross-exam overwriting. Public GET is strictly restricted.",
           example: `${url.origin}/user_ranks`
         },
         valid_answerkey_urls: {
