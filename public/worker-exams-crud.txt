@@ -19,6 +19,7 @@
  *   8. Auto-Migration: 1-click table creator if 'exams' table doesn't exist yet
  *   9. REST API: /api/exams, /api/exams/:id, /api/exams/toggle, /exams
  *  10. Zero External Dependencies: Self-contained, secure, fast HTML/CSS/JS
+ *  11. Extended Fields: Exam Status (upcoming, active, completed) + Last Exam Date Picker
  * 
  * Cloudflare D1 Binding Requirement:
  *   - Variable Name: DB (Settings -> Bindings -> D1 Database Bindings -> Variable: DB)
@@ -159,6 +160,39 @@ function normalizeExamRow(row) {
   const lat = getProp('is_latest');
   if (lat !== undefined) item.is_latest = (lat == 1 || lat === true || lat === 'true' || lat === '1') ? 1 : 0;
 
+  // Status column normalization (default: upcoming)
+  const stVal = getProp('status');
+  if (stVal !== undefined && stVal !== null && String(stVal).trim() !== '') {
+    const cleanSt = String(stVal).trim().toLowerCase();
+    item.status = ['upcoming', 'active', 'completed'].includes(cleanSt) ? cleanSt : 'upcoming';
+  } else {
+    item.status = 'upcoming';
+  }
+
+  // Last exam date normalization
+  const ledVal = getProp('last_exam_date', 'lastexamdate', 'exam_date', 'last_date');
+  if (ledVal !== undefined && ledVal !== null) {
+    item.last_exam_date = String(ledVal).trim();
+  } else {
+    item.last_exam_date = '';
+  }
+
+  // Custom dynamic fields normalization (JSON parsed array)
+  const cfVal = getProp('custom_fields', 'customfields', 'extra_fields');
+  if (cfVal !== undefined && cfVal !== null && cfVal !== '') {
+    if (typeof cfVal === 'string') {
+      try {
+        item.custom_fields = JSON.parse(cfVal);
+      } catch (e) {
+        item.custom_fields = [];
+      }
+    } else {
+      item.custom_fields = cfVal;
+    }
+  } else {
+    item.custom_fields = [];
+  }
+
   return item;
 }
 
@@ -178,6 +212,8 @@ async function ensureExamsTable(env) {
       is_latest INTEGER DEFAULT 0,
       is_visible INTEGER DEFAULT 0,
       set_on_top INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'upcoming',
+      last_exam_date TEXT DEFAULT '',
       location_type_id TEXT DEFAULT 'States/UT',
       location_id TEXT DEFAULT '["All India"]',
       marks_right REAL DEFAULT 1.0,
@@ -186,6 +222,7 @@ async function ensureExamsTable(env) {
       description TEXT DEFAULT '',
       external_exam_id TEXT DEFAULT '',
       youtube_link TEXT DEFAULT '',
+      custom_fields TEXT DEFAULT '[]',
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
@@ -199,6 +236,8 @@ async function ensureExamsTable(env) {
     { name: 'is_latest', type: "INTEGER DEFAULT 0" },
     { name: 'is_visible', type: "INTEGER DEFAULT 0" },
     { name: 'set_on_top', type: "INTEGER DEFAULT 0" },
+    { name: 'status', type: "TEXT DEFAULT 'upcoming'" },
+    { name: 'last_exam_date', type: "TEXT DEFAULT ''", aliases: ['lastexamdate', 'exam_date', 'last_date'] },
     { name: 'location_type_id', type: "TEXT DEFAULT 'States/UT'" },
     { name: 'location_id', type: "TEXT DEFAULT '[\"All India\"]'" },
     { name: 'marks_right', type: "REAL DEFAULT 1.0", aliases: ['mark_right', 'positive_marks', 'right_marks'] },
@@ -207,6 +246,7 @@ async function ensureExamsTable(env) {
     { name: 'description', type: "TEXT DEFAULT ''" },
     { name: 'external_exam_id', type: "TEXT DEFAULT ''" },
     { name: 'youtube_link', type: "TEXT DEFAULT ''" },
+    { name: 'custom_fields', type: "TEXT DEFAULT '[]'", aliases: ['customfields', 'extra_fields'] },
     { name: 'created_at', type: "TEXT DEFAULT ''" },
     { name: 'updated_at', type: "TEXT DEFAULT ''" }
   ];
@@ -222,7 +262,7 @@ async function ensureExamsTable(env) {
       try {
         await db.prepare(`ALTER TABLE exams ADD COLUMN ${col.name} ${col.type}`).run();
       } catch (e) {
-        // Handled
+        // Handled safely
       }
     }
   }
@@ -254,6 +294,27 @@ function normalizeLocationId(loc) {
 }
 
 // =============================================================================
+
+// =============================================================================
+// Helper: Custom Dynamic Fields Normalizer (JSON Array String)
+// =============================================================================
+function normalizeCustomFields(val) {
+  if (!val) return '[]';
+  if (Array.isArray(val)) return JSON.stringify(val);
+  if (typeof val === 'object') return JSON.stringify([val]);
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed === '[]' || trimmed === '{}') return '[]';
+    try {
+      const parsed = JSON.parse(trimmed);
+      return JSON.stringify(parsed);
+    } catch (e) {
+      return '[]';
+    }
+  }
+  return '[]';
+}
+
 // Helper: CORS & JSON Responses
 // =============================================================================
 const corsHeaders = {
@@ -414,7 +475,38 @@ export default {
           });
         }
 
+        // AUTO-VISIBLE ON LATEST RULE:
+        // Setting is_latest = 1 automatically forces this exam to be Visible = 1 as well.
+        if (field === 'is_latest' && newValue === 1) {
+          let updateSql = "UPDATE exams SET " + resolveColumnName(availableCols, 'is_latest') + " = 1";
+          let updateParams = [];
+
+          if (hasColumn(availableCols, 'is_visible')) {
+            updateSql += ", " + resolveColumnName(availableCols, 'is_visible') + " = 1";
+          }
+          if (hasColumn(availableCols, 'updated_at')) {
+            updateSql += ", " + resolveColumnName(availableCols, 'updated_at') + " = ?";
+            updateParams.push(nowIso);
+          }
+          updateSql += " WHERE id = ?";
+          updateParams.push(id);
+
+          await executeD1(env, updateSql, updateParams);
+
+          return jsonResponse({
+            success: true,
+            message: `Exam #${id} marked as Latest (auto-marked Visible)`,
+            id: id,
+            field: field,
+            newValue: 1,
+            is_visible: 1,
+            is_latest: 1,
+            isD1Bound: true
+          });
+        }
+
         let updateSql = `UPDATE exams SET ${field} = ?`;
+        /** @type {any[]} */
         let updateParams = [];
         updateParams.push(newValue);
         if (hasColumn(availableCols, 'updated_at')) {
@@ -470,13 +562,23 @@ export default {
         let isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 0;
         let isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 0;
 
-        // EXCLUSIVE TOP RULE:
+        // EXCLUSIVE TOP RULE & LATEST AUTO-VISIBLE RULE:
         // If this new exam is set on top, it MUST be visible and latest, and all other exams lose top status.
+        // If this new exam is marked latest, it MUST also be visible.
         if (setOnTop === 1) {
           isVisible = 1;
           isLatest = 1;
           await executeD1(env, "UPDATE exams SET set_on_top = 0");
+        } else if (isLatest === 1) {
+          isVisible = 1;
         }
+
+        // Status & Last Exam Date Fields
+        const rawStatus = String(body.status || 'upcoming').trim().toLowerCase();
+        const allowedStatuses = ['upcoming', 'active', 'completed'];
+        const status = allowedStatuses.includes(rawStatus) ? rawStatus : 'upcoming';
+        const lastExamDate = String(body.last_exam_date || '').trim();
+
         const locTypeId = String(body.location_type_id || 'States/UT').trim();
         const locId = normalizeLocationId(body.location_id);
         let marksRight = 1.0;
@@ -495,6 +597,7 @@ export default {
         const description = String(body.description || '').trim();
         const externalExamId = String(body.external_exam_id || '').trim();
         const youtubeLink = String(body.youtube_link || '').trim();
+        const customFields = normalizeCustomFields(body.custom_fields || body.customFields);
 
         const availableCols = await getTableColumns(env);
         const nowIso = new Date().toISOString();
@@ -516,15 +619,18 @@ export default {
 
         const dataMap = {
           title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
+          status, last_exam_date: lastExamDate,
           location_type_id: locTypeId, location_id: locId,
           [rightColName]: marksRight,
           [wrongColName]: marksWrong,
-          answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
+          answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink,
+          custom_fields: customFields
         };
 
         // Explicitly include id as first column to satisfy NOT NULL constraints across all D1 schema variants
         let colsToInsert = ['id'];
         let placeholders = ['?'];
+        /** @type {any[]} */
         let valuesToInsert = [];
         valuesToInsert.push(nextId);
 
@@ -616,13 +722,23 @@ export default {
         let isLatest = (body.is_latest !== undefined && body.is_latest !== null) ? (body.is_latest ? 1 : 0) : 1;
         let isVisible = (body.is_visible !== undefined && body.is_visible !== null) ? (body.is_visible ? 1 : 0) : 1;
 
-        // EXCLUSIVE TOP RULE:
+        // EXCLUSIVE TOP RULE & LATEST AUTO-VISIBLE RULE:
         // If this exam is set on top, it MUST be visible and latest, and all other exams lose top status.
+        // If this exam is marked latest, it MUST also be visible.
         if (setOnTop === 1) {
           isVisible = 1;
           isLatest = 1;
           await executeD1(env, "UPDATE exams SET set_on_top = 0 WHERE id != ?", [examId]);
+        } else if (isLatest === 1) {
+          isVisible = 1;
         }
+
+        // Status & Last Exam Date Fields
+        const rawStatus = String(body.status || 'upcoming').trim().toLowerCase();
+        const allowedStatuses = ['upcoming', 'active', 'completed'];
+        const status = allowedStatuses.includes(rawStatus) ? rawStatus : 'upcoming';
+        const lastExamDate = String(body.last_exam_date || '').trim();
+
         const locTypeId = String(body.location_type_id || 'States/UT').trim();
         const locId = normalizeLocationId(body.location_id);
         let marksRight = 1.0;
@@ -641,6 +757,7 @@ export default {
         const description = String(body.description || '').trim();
         const externalExamId = String(body.external_exam_id || '').trim();
         const youtubeLink = String(body.youtube_link || '').trim();
+        const customFields = normalizeCustomFields(body.custom_fields || body.customFields);
 
         const availableCols = await getTableColumns(env);
         const rightColName = resolveColumnName(availableCols, 'marks_right', ['mark_right', 'positive_marks', 'right_marks']);
@@ -648,10 +765,12 @@ export default {
 
         const dataMap = {
           title, subtitle, slug, is_latest: isLatest, is_visible: isVisible, set_on_top: setOnTop,
+          status, last_exam_date: lastExamDate,
           location_type_id: locTypeId, location_id: locId,
           [rightColName]: marksRight,
           [wrongColName]: marksWrong,
-          answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink
+          answerkey_login_link: answerLink, description, external_exam_id: externalExamId, youtube_link: youtubeLink,
+          custom_fields: customFields
         };
 
         let setClauses = [];
@@ -734,12 +853,14 @@ export default {
         return errorResponse("Cloudflare D1 database binding 'DB' is missing.", 500, { isD1Bound: false });
       }
       try {
-        const identifier = getSingleMatch[1];
         let sql = "SELECT * FROM exams WHERE slug = ? LIMIT 1";
-        let params = [identifier];
+        /** @type {any[]} */
+        let params = [];
         if (/^\d+$/.test(identifier)) {
           sql = "SELECT * FROM exams WHERE id = ? OR slug = ? LIMIT 1";
           params = [parseInt(identifier, 10), identifier];
+        } else {
+          params = [identifier];
         }
         const rows = await executeD1(env, sql, params);
         if (rows && rows.length > 0) {
@@ -1386,7 +1507,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
     }
     .badge-tag:hover { transform: scale(1.05); }
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-gray { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+    .badge-gray { background: rgba(30, 41, 59, 0.85); color: #64748b; border: 1px solid #334155; }
+    .badge-gray:hover { color: #cbd5e1; border-color: #475569; background: #1e293b; }
     .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
     .badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 
@@ -1605,6 +1727,56 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       transition: all 0.15s;
     }
     .preset-chip:hover {
+      background: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
+
+    /* Date Input & Interactive Calendar Picker Enhancements */
+    input[type="date"] {
+      color-scheme: dark;
+      position: relative;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      filter: invert(1);
+      opacity: 0.85;
+      padding: 4px;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    .date-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .date-input-wrapper input[type="date"] {
+      width: 100%;
+      padding-right: 42px;
+    }
+    .date-picker-trigger-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      border-radius: 6px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.15s ease;
+    }
+    .date-picker-trigger-btn:hover {
       background: #38bdf8;
       color: #0f172a;
       border-color: #38bdf8;
@@ -1930,7 +2102,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                 <th style="width:110px;">Marking</th>
                 <th style="width:160px;">Location Type</th>
                 <th style="width:110px;">Ext. ID</th>
-                <th style="width:160px;">Status Flags</th>
+                <th style="width:170px;">Status &amp; Flags</th>
                 <th style="width:130px; text-align:right;">Actions</th>
               </tr>
             </thead>
@@ -2066,8 +2238,37 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             </div>
 
             <!-- SECTION 5: STATUS & DISPLAY FLAGS -->
-            <div class="form-section-title">⚙️ 5. Visibility &amp; Status Flags</div>
+            <div class="form-section-title">⚙️ 5. Exam Status, Last Date &amp; Visibility Flags</div>
 
+            <!-- Exam Status Dropdown (upcoming, active, completed) -->
+            <div class="form-group">
+              <label class="form-label">Exam Status <span class="req">*</span></label>
+              <select id="formStatus" class="form-select">
+                <option value="upcoming">Upcoming</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+
+            <!-- Last Exam Date Picker with Calendar Trigger & Presets -->
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <label class="form-label" style="margin-bottom:0;">Last Exam Date</label>
+                <span style="font-size:11px; color:#38bdf8; cursor:pointer; font-weight:600;" onclick="openExamDatePicker()">📅 Open Calendar</span>
+              </div>
+              <div class="date-input-wrapper">
+                <input type="date" id="formLastExamDate" class="form-input" style="cursor:pointer;" onclick="openExamDatePicker()" onfocus="openExamDatePicker()">
+                <button type="button" class="date-picker-trigger-btn" onclick="openExamDatePicker()" title="Open Calendar Picker">📅</button>
+              </div>
+              <div class="preset-chips" style="margin-top:6px;">
+                <button type="button" class="preset-chip" onclick="setExamDatePreset(0)">📅 Today</button>
+                <button type="button" class="preset-chip" onclick="setExamDatePreset(-1)">Yesterday</button>
+                <button type="button" class="preset-chip" onclick="setExamDatePreset(-7)">7 Days Ago</button>
+                <button type="button" class="preset-chip" onclick="setExamDatePreset('clear')">Clear</button>
+              </div>
+            </div>
+
+            <!-- Visibility Cards Grid -->
             <div class="status-cards-grid">
               <label class="status-toggle-card">
                 <div class="status-toggle-label">
@@ -2090,13 +2291,38 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                   <span class="name">⚡ Latest</span>
                   <span class="hint">Display 'New' badge</span>
                 </div>
-                <input type="checkbox" id="formIsLatest">
+                <input type="checkbox" id="formIsLatest" onchange="onIsLatestChange(this.checked)">
               </label>
             </div>
 
-            <!-- SECTION 6: DESCRIPTION & GUIDELINES -->
+            
+            <!-- SECTION 6: DYNAMIC CUSTOM PARAMETERS -->
             <div class="form-section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-              <span>📝 6. Description &amp; Instructions (HTML Supported)</span>
+              <span>🎯 6. Dynamic Custom Parameters (Trade / Branch / CCAA / Extra Fields)</span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; font-weight:normal; text-transform:none;">
+                <button type="button" class="preset-chip" onclick="setCustomFieldsPreset('trade')">+ Trade / Branch</button>
+                <button type="button" class="preset-chip" onclick="setCustomFieldsPreset('ccaa')">+ CCAA &amp; NAC %</button>
+                <button type="button" class="preset-chip" onclick="setCustomFieldsPreset('paper')">+ Paper 1 / 2</button>
+                <button type="button" class="preset-chip" onclick="formatCustomFieldsJson()">⚡ Format JSON</button>
+                <button type="button" class="preset-chip" onclick="setCustomFieldsPreset('clear')">Clear</button>
+              </div>
+            </div>
+
+            <!-- Custom Fields Input -->
+            <div class="form-group form-group-full">
+              <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Custom Parameters Config (JSON Array)</span>
+                <span style="font-size:10px; color:#38bdf8; text-transform:none; font-weight:normal;">Auto-rendered on Calculator Form</span>
+              </label>
+              <textarea id="formCustomFields" class="form-textarea" style="font-family:monospace; font-size:13px; min-height:110px;" placeholder='e.g. [{"id": "sub_type", "label": "Trade / Branch", "type": "select", "options": ["Electrical", "Civil", "Mechanical"], "required": true}]'></textarea>
+              <div style="font-size:11px; color:#64748b; margin-top:4px;">
+                Used for exams with separate papers/trades (like RRB JE / SSC JE / ALP) or conditional fields (like Group D CCAA &amp; NAC %). Click preset buttons above to auto-fill.
+              </div>
+            </div>
+
+            <!-- SECTION 7: DESCRIPTION & GUIDELINES -->
+            <div class="form-section-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <span>📝 7. Description &amp; Instructions (HTML Supported)</span>
               <div style="display:flex; gap:6px; flex-wrap:wrap; font-weight:normal; text-transform:none;">
                 <button type="button" class="preset-chip" onclick="insertDescriptionTemplate('guidelines')">+ Guidelines</button>
                 <button type="button" class="preset-chip" onclick="insertDescriptionTemplate('cutoff')">+ Cut-off Table</button>
@@ -2276,6 +2502,18 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       renderTable(filtered);
     }
 
+    // Helper: Render Status Badge HTML
+    function renderStatusBadge(status) {
+      var st = (status || 'upcoming').toLowerCase();
+      if (st === 'active') {
+        return '<span class="badge-tag badge-green" style="cursor:default;" title="Status: Active">● Active</span>';
+      } else if (st === 'completed') {
+        return '<span class="badge-tag badge-gray" style="cursor:default;" title="Status: Completed">● Completed</span>';
+      } else {
+        return '<span class="badge-tag badge-amber" style="cursor:default;" title="Status: Upcoming">● Upcoming</span>';
+      }
+    }
+
     // Render Mobile Cards View
     function renderCards(filtered) {
       var grid = document.getElementById('examsCardsGrid');
@@ -2314,21 +2552,27 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a> ';
         }
         if (exam.description && exam.description.trim()) {
-          linksHtml += '<span class="link-chip" style="cursor:pointer;" onclick="previewExamDescription(' + exam.id + ')" title="Preview HTML Notes & Guidelines">📝 Notes</span>';
+          linksHtml += '<span class="link-chip" style="cursor:pointer;" onclick="previewExamDescription(' + exam.id + ')" title="Preview HTML Notes & Guidelines">📝 Notes</span> ';
+        }
+        if (exam.custom_fields && Array.isArray(exam.custom_fields) && exam.custom_fields.length > 0) {
+          linksHtml += '<span class="link-chip" style="color:#a78bfa; border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.1); cursor:pointer;" onclick="openEditModal(' + exam.id + ')" title="Custom Parameters: ' + escapeHtml(exam.custom_fields.map(function(f){return f.label || f.id;}).join(', ')) + '">🎯 ' + exam.custom_fields.length + ' Custom Fields</span>';
         }
 
         return '<div class="exam-mobile-card">' +
           '<div class="card-top-row">' +
-            '<span class="badge-id">#' + exam.id + '</span>' +
+            '<div style="display:flex; align-items:center; gap:6px;">' +
+              '<span class="badge-id">#' + exam.id + '</span>' +
+              renderStatusBadge(exam.status) +
+            '</div>' +
             '<div class="card-status-bar">' +
               '<span class="badge-tag ' + (isVis ? 'badge-green' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_visible&quot;)" title="Click to toggle visibility">' +
                 (isVis ? '✓ Visible' : 'Hidden') +
               '</span>' +
               '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;set_on_top&quot;)" title="Click to toggle pin">' +
-                (isTop ? '📌 Top' : 'Normal') +
+                '📌 Top' +
               '</span>' +
               '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_latest&quot;)" title="Click to toggle latest">' +
-                (isLat ? '⚡ Latest' : 'Standard') +
+                '⚡ Latest' +
               '</span>' +
             '</div>' +
           '</div>' +
@@ -2350,12 +2594,12 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
               '</span>' +
             '</div>' +
             '<div class="card-detail-item">' +
-              '<span class="card-detail-label">Location Type</span>' +
-              '<span class="card-detail-value">' + escapeHtml(exam.location_type_id || 'States/UT') + '</span>' +
+              '<span class="card-detail-label">Last Exam Date</span>' +
+              '<span class="card-detail-value" style="color:' + (exam.last_exam_date ? '#38bdf8' : '#64748b') + ';">' + (exam.last_exam_date ? '📅 ' + escapeHtml(exam.last_exam_date) : '—') + '</span>' +
             '</div>' +
             '<div class="card-detail-item">' +
-              '<span class="card-detail-label">Locations</span>' +
-              '<span class="card-detail-value" title="' + escapeHtml(locText) + '">' + escapeHtml(locText) + '</span>' +
+              '<span class="card-detail-label">Location Type</span>' +
+              '<span class="card-detail-value">' + escapeHtml(exam.location_type_id || 'States/UT') + '</span>' +
             '</div>' +
             '<div class="card-detail-item">' +
               '<span class="card-detail-label">Ext. ID</span>' +
@@ -2411,18 +2655,25 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
           linksHtml += '<a href="' + escapeHtml(exam.youtube_link) + '" target="_blank" class="link-chip link-youtube" title="YouTube Explanation Video">▶️ Video</a> ';
         }
         if (exam.description && exam.description.trim()) {
-          linksHtml += '<span class="link-chip" style="cursor:pointer;" onclick="previewExamDescription(' + exam.id + ')" title="Preview HTML Notes & Guidelines">📝 Notes</span>';
+          linksHtml += '<span class="link-chip" style="cursor:pointer;" onclick="previewExamDescription(' + exam.id + ')" title="Preview HTML Notes & Guidelines">📝 Notes</span> ';
+        }
+        if (exam.custom_fields && Array.isArray(exam.custom_fields) && exam.custom_fields.length > 0) {
+          linksHtml += '<span class="link-chip" style="color:#a78bfa; border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.1); cursor:pointer;" onclick="openEditModal(' + exam.id + ')" title="Custom Parameters: ' + escapeHtml(exam.custom_fields.map(function(f){return f.label || f.id;}).join(', ')) + '">🎯 ' + exam.custom_fields.length + ' Custom Fields</span>';
         }
 
         return '<tr>' +
           '<td><span class="badge-id">#' + exam.id + '</span></td>' +
           '<td>' +
-            '<div style="font-weight:700; color:#fff; font-size:14px;">' + escapeHtml(exam.title) + '</div>' +
+            '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+              '<span style="font-weight:700; color:#fff; font-size:14px;">' + escapeHtml(exam.title) + '</span>' +
+              renderStatusBadge(exam.status) +
+            '</div>' +
             '<div style="display:flex; align-items:center; gap:6px;">' +
               '<span class="slug-badge">' + escapeHtml(exam.slug) + '</span>' +
               '<button type="button" class="btn-icon" style="padding:2px 6px; font-size:10px; min-height:24px;" onclick="copyExamSlug(' + exam.id + ')" title="Copy Slug">📋</button>' +
             '</div>' +
             (exam.subtitle ? '<div style="font-size:12px; color:#94a3b8; margin-top:2px;">' + escapeHtml(exam.subtitle) + '</div>' : '') +
+            (exam.last_exam_date ? '<div style="font-size:11px; color:#38bdf8; margin-top:4px; font-weight:600;">📅 Last Exam Date: ' + escapeHtml(exam.last_exam_date) + '</div>' : '') +
           '</td>' +
           '<td>' +
             '<div class="marks-chip">' +
@@ -2446,10 +2697,10 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
                 (isVis ? '✓ Visible' : 'Hidden') +
               '</span>' +
               '<span class="badge-tag ' + (isTop ? 'badge-amber' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;set_on_top&quot;)" title="Click to toggle pin">' +
-                (isTop ? '📌 Top' : 'Normal') +
+                '📌 Top' +
               '</span>' +
               '<span class="badge-tag ' + (isLat ? 'badge-blue' : 'badge-gray') + '" onclick="toggleFlag(' + exam.id + ', &quot;is_latest&quot;)" title="Click to toggle latest">' +
-                (isLat ? '⚡ Latest' : 'Standard') +
+                '⚡ Latest' +
               '</span>' +
             '</div>' +
           '</td>' +
@@ -2667,6 +2918,11 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       document.getElementById('formIsLatest').checked = false;
       document.getElementById('formSetOnTop').checked = false;
 
+      // Status & Last Exam Date defaults
+      document.getElementById('formStatus').value = 'upcoming';
+      document.getElementById('formLastExamDate').value = '';
+      document.getElementById('formCustomFields').value = '';
+
       document.getElementById('formLocationTypeId').value = 'States/UT';
       var customGroup = document.getElementById('customLocationTypeGroup');
       if (customGroup) customGroup.style.display = 'none';
@@ -2708,6 +2964,24 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       var curWrong = (exam.marks_wrong !== undefined && exam.marks_wrong !== null && exam.marks_wrong !== '') ? exam.marks_wrong : (exam.marks_wrong === 0 ? 0 : 0.25);
       document.getElementById('formMarksRight').value = curRight;
       document.getElementById('formMarksWrong').value = curWrong;
+
+      // Status & Last Exam Date population
+      document.getElementById('formStatus').value = (exam.status || 'upcoming').toLowerCase();
+      document.getElementById('formLastExamDate').value = exam.last_exam_date || '';
+      var cfField = document.getElementById('formCustomFields');
+      if (cfField) {
+        if (exam.custom_fields && Array.isArray(exam.custom_fields) && exam.custom_fields.length > 0) {
+          cfField.value = JSON.stringify(exam.custom_fields, null, 2);
+        } else if (exam.custom_fields && typeof exam.custom_fields === 'string' && exam.custom_fields.trim() !== '' && exam.custom_fields.trim() !== '[]') {
+          try {
+            cfField.value = JSON.stringify(JSON.parse(exam.custom_fields), null, 2);
+          } catch (e) {
+            cfField.value = exam.custom_fields;
+          }
+        } else {
+          cfField.value = '';
+        }
+      }
 
       var standardTypes = ['States/UT', 'RRB Zones', 'All India', 'General'];
       var locType = exam.location_type_id || 'States/UT';
@@ -2837,10 +3111,48 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       }
     }
 
+    function openExamDatePicker() {
+      var el = document.getElementById('formLastExamDate');
+      if (el) {
+        try {
+          if (typeof el.showPicker === 'function') {
+            el.showPicker();
+          } else {
+            el.focus();
+          }
+        } catch (e) {
+          el.focus();
+        }
+      }
+    }
+
+    function setExamDatePreset(offset) {
+      var el = document.getElementById('formLastExamDate');
+      if (!el) return;
+      if (offset === 'clear') {
+        el.value = '';
+        return;
+      }
+      var d = new Date();
+      if (typeof offset === 'number') {
+        d.setDate(d.getDate() + offset);
+      }
+      var yyyy = d.getFullYear();
+      var mm = String(d.getMonth() + 1).padStart(2, '0');
+      var dd = String(d.getDate()).padStart(2, '0');
+      el.value = yyyy + '-' + mm + '-' + dd;
+    }
+
     function onSetOnTopChange(isChecked) {
       if (isChecked) {
         document.getElementById('formIsVisible').checked = true;
         document.getElementById('formIsLatest').checked = true;
+      }
+    }
+
+    function onIsLatestChange(isChecked) {
+      if (isChecked) {
+        document.getElementById('formIsVisible').checked = true;
       }
     }
 
@@ -2866,6 +3178,27 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       saveBtn.disabled = true;
       saveBtn.innerText = '⏳ Saving...';
 
+      var customFieldsInput = (document.getElementById('formCustomFields').value || '').trim();
+      var customFieldsData = [];
+      if (customFieldsInput) {
+        try {
+          customFieldsData = JSON.parse(customFieldsInput);
+          if (!Array.isArray(customFieldsData)) {
+            if (typeof customFieldsData === 'object') {
+              customFieldsData = [customFieldsData];
+            } else {
+              throw new Error("Custom fields must be a JSON array of field objects.");
+            }
+          }
+        } catch (jsonErr) {
+          alert("Invalid JSON in Custom Parameters:\n" + jsonErr.message + "\n\nPlease check JSON syntax or click 'Format JSON'.");
+          document.getElementById('formCustomFields').focus();
+          saveBtn.disabled = false;
+          saveBtn.innerText = isEdit ? '💾 Update Exam' : '💾 Create Exam';
+          return;
+        }
+      }
+
       var locTypeSelect = document.getElementById('formLocationTypeId').value;
       var finalLocationType = locTypeSelect;
       if (locTypeSelect === 'Other') {
@@ -2884,6 +3217,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         title: title,
         slug: slug,
         subtitle: document.getElementById('formSubtitle').value.trim(),
+        status: (document.getElementById('formStatus').value || 'upcoming').toLowerCase(),
+        last_exam_date: document.getElementById('formLastExamDate').value.trim(),
         marks_right: !isNaN(parseFloat(document.getElementById('formMarksRight').value)) ? parseFloat(document.getElementById('formMarksRight').value) : 1.0,
         marks_wrong: !isNaN(parseFloat(document.getElementById('formMarksWrong').value)) ? Math.abs(parseFloat(document.getElementById('formMarksWrong').value)) : 0.25,
         location_type_id: finalLocationType,
@@ -2891,6 +3226,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         external_exam_id: document.getElementById('formExternalExamId').value.trim(),
         answerkey_login_link: document.getElementById('formAnswerLink').value.trim(),
         youtube_link: document.getElementById('formYoutubeLink').value.trim(),
+        custom_fields: customFieldsData,
         description: getDescriptionContent().trim(),
         is_visible: (document.getElementById('formSetOnTop').checked || document.getElementById('formIsVisible').checked) ? 1 : 0,
         set_on_top: document.getElementById('formSetOnTop').checked ? 1 : 0,
@@ -2994,6 +3330,7 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
       // EXCLUSIVE TOP RULE:
       // If setting this exam on top, all other exams must be unset from top (set_on_top = 0),
       // and this exam MUST automatically become Visible (is_visible = 1) and Latest (is_latest = 1).
+      // EXCLUSIVE TOP RULE & LATEST AUTO-VISIBLE RULE:
       if (field === 'set_on_top' && newVal === 1) {
         for (var j = 0; j < allExams.length; j++) {
           if (allExams[j].id == id) {
@@ -3004,6 +3341,9 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
             allExams[j].set_on_top = 0;
           }
         }
+      } else if (field === 'is_latest' && newVal === 1) {
+        exam.is_latest = 1;
+        exam.is_visible = 1;
       } else {
         exam[field] = newVal;
       }
@@ -3036,6 +3376,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         } else {
           if (field === 'set_on_top' && newVal === 1) {
             showToast('Exam #' + id + ' set as the sole Top exam (also Visible & Latest)!');
+          } else if (field === 'is_latest' && newVal === 1) {
+            showToast('Exam #' + id + ' marked as Latest (also Visible)!');
           } else {
             showToast('Updated ' + field + ' for Exam #' + id + ' in D1');
           }
@@ -3119,6 +3461,78 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
+  
+
+    function setCustomFieldsPreset(type) {
+      var el = document.getElementById('formCustomFields');
+      if (!el) return;
+      if (type === 'trade') {
+        el.value = JSON.stringify([
+          {
+            "id": "sub_type",
+            "label": "Trade / Branch / Stream",
+            "type": "select",
+            "options": [
+              "Electrical Engineering",
+              "Mechanical Engineering",
+              "Civil Engineering",
+              "Electronics & Communication",
+              "Computer Science / IT"
+            ],
+            "required": true
+          }
+        ], null, 2);
+        showToast('Inserted Trade / Branch preset!');
+      } else if (type === 'ccaa') {
+        el.value = JSON.stringify([
+          {
+            "id": "ccaa_qualified",
+            "label": "CCAA Qualified?",
+            "type": "select",
+            "options": ["No", "Yes"],
+            "required": false
+          },
+          {
+            "id": "nac_percentage",
+            "label": "NAC Percentage",
+            "type": "number",
+            "placeholder": "Enter NAC Percentage (e.g. 80.5)",
+            "required": false,
+            "depends_on": { "field": "ccaa_qualified", "value": "Yes" }
+          }
+        ], null, 2);
+        showToast('Inserted CCAA & NAC % preset!');
+      } else if (type === 'paper') {
+        el.value = JSON.stringify([
+          {
+            "id": "sub_type",
+            "label": "Exam Paper",
+            "type": "select",
+            "options": ["Paper 1", "Paper 2"],
+            "required": true
+          }
+        ], null, 2);
+        showToast('Inserted Paper 1 / 2 preset!');
+      } else if (type === 'clear') {
+        el.value = '';
+        showToast('Cleared custom fields');
+      }
+    }
+
+    function formatCustomFieldsJson() {
+      var el = document.getElementById('formCustomFields');
+      if (!el || !el.value.trim()) {
+        showToast('Custom fields is empty');
+        return;
+      }
+      try {
+        var parsed = JSON.parse(el.value.trim());
+        el.value = JSON.stringify(parsed, null, 2);
+        showToast('Custom fields JSON formatted!');
+      } catch (err) {
+        alert('JSON Syntax Error: ' + err.message);
+      }
+    }
   </script>
 </body>
 </html>`;
@@ -3129,7 +3543,8 @@ function renderExamsManagerPortal(isD1Bound, tableExists, preloadedExams, dbErro
   });
 }
 
-function escapeHtml(str) {
+
+    function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
