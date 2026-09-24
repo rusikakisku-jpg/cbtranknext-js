@@ -143,7 +143,7 @@ export default function RankPage() {
         }
       }
 
-      fetchLiveRankAction({
+      const livePayload = {
         examId: officialExamId,
         examSlug: (result as any).exam_slug || (result as any).slug || form?.exam_slug || '',
         examDate: result.testDate || '',
@@ -153,28 +153,59 @@ export default function RankPage() {
         totalMarks: rawScore,
         userId: rNum,
         url: ansUrl
-      }).then(res => {
-        if (res && res.success && res.data) {
-          setLiveRank(res.data);
-          try {
-            cbtSave(STORAGE_KEYS.RESULT_DATA, {
-              ...result,
-              overallRank: res.data.overallRank,
-              totalOverall: res.data.totalOverall,
-              shiftRank: res.data.shiftRank,
-              totalShift: res.data.totalShift,
-              categoryRank: res.data.categoryRank,
-              totalCategory: res.data.totalCategory,
-              genderRank: res.data.genderRank,
-              totalGender: res.data.totalGender,
-              liveRank: res.data
+      };
+
+      const handleRankSuccess = (data: any) => {
+        if (!data) return;
+        setLiveRank(data);
+        try {
+          cbtSave(STORAGE_KEYS.RESULT_DATA, {
+            ...result,
+            overallRank: data.overallRank,
+            totalOverall: data.totalOverall,
+            shiftRank: data.shiftRank,
+            totalShift: data.totalShift,
+            categoryRank: data.categoryRank,
+            totalCategory: data.totalCategory,
+            genderRank: data.genderRank,
+            totalGender: data.totalGender,
+            liveRank: data
+          });
+        } catch (e) {}
+      };
+
+      // 1. Fetch via primary client-safe /api/live-rank HTTP endpoint
+      fetch('/api/live-rank', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(livePayload)
+      })
+        .then(r => (r.ok ? r.json() : null))
+        .then(json => {
+          if (json && json.success && json.data) {
+            handleRankSuccess(json.data);
+            setLoadingRank(false);
+          } else {
+            return fetchLiveRankAction(livePayload).then(res => {
+              if (res && res.success && res.data) {
+                handleRankSuccess(res.data);
+              }
+              setLoadingRank(false);
             });
-          } catch (e) {}
-        }
-        setLoadingRank(false);
-      }).catch(() => {
-        setLoadingRank(false);
-      });
+          }
+        })
+        .catch(() => {
+          fetchLiveRankAction(livePayload)
+            .then(res => {
+              if (res && res.success && res.data) {
+                handleRankSuccess(res.data);
+              }
+              setLoadingRank(false);
+            })
+            .catch(() => {
+              setLoadingRank(false);
+            });
+        });
 
     } catch (e) {
       router.push('/');

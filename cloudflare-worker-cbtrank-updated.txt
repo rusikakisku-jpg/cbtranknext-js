@@ -895,7 +895,8 @@ export default {
 
       const higherOverall = Number(aggRow.higher_overall) || 0;
       const overallRank = higherOverall + 1;
-      const totalOverall = Math.max(overallRank, isExistingInOverall ? rawOverall : (rawOverall + 1));
+      // 🎯 Self-Inclusive Total: rawOverall excludes the user, so adding the user (+1) ensures candidate themselves is counted
+      const totalOverall = Math.max(overallRank, rawOverall + 1);
 
       const rawShift = Number(aggRow.raw_total_shift) || 0;
       const higherShift = (examDate) ? (Number(aggRow.higher_shift) || 0) : 0;
@@ -903,7 +904,7 @@ export default {
       let totalShift = 1;
       if (rawShift > 0 || examDate) {
         shiftRank = higherShift + 1;
-        totalShift = Math.max(shiftRank, isExistingInShift ? rawShift : (rawShift + 1));
+        totalShift = Math.max(shiftRank, rawShift + 1);
       }
 
       const rawCat = Number(aggRow.raw_total_cat) || 0;
@@ -912,7 +913,7 @@ export default {
       let totalCategory = 1;
       if (rawCat > 0 || category) {
         categoryRank = higherCat + 1;
-        totalCategory = Math.max(categoryRank, isExistingInCat ? rawCat : (rawCat + 1));
+        totalCategory = Math.max(categoryRank, rawCat + 1);
       }
 
       const rawGender = Number(aggRow.raw_total_gender) || 0;
@@ -921,7 +922,7 @@ export default {
       let totalGender = 1;
       if (rawGender > 0 || gender) {
         genderRank = higherGender + 1;
-        totalGender = Math.max(genderRank, isExistingInGender ? rawGender : (rawGender + 1));
+        totalGender = Math.max(genderRank, rawGender + 1);
       }
 
       const rawSubType = Number(aggRow.raw_total_subtype) || 0;
@@ -930,7 +931,7 @@ export default {
       let totalSubType = 1;
       if (rawSubType > 0 || subType) {
         subTypeRank = higherSubType + 1;
-        totalSubType = Math.max(subTypeRank, isExistingInSubType ? rawSubType : (rawSubType + 1));
+        totalSubType = Math.max(subTypeRank, rawSubType + 1);
       }
 
       let percentile = 100.0;
