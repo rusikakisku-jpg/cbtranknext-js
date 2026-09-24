@@ -235,7 +235,7 @@ interface FormData {
 }
 
 const ENABLE_TELEGRAM_DIALOG = true;
-const SHOW_TELEGRAM_DIALOG_CLOSE_ICON = true; // Set to `true` to show cross (close) icon on dialogue, or `false` to hide it
+const SHOW_TELEGRAM_DIALOG_CLOSE_ICON = false; // Set to `true` to show cross (close) icon on dialogue, or `false` to hide it
 
 export default function ResultPage() {
   const router = useRouter();
