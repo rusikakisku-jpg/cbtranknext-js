@@ -290,3 +290,67 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
 
   return sortBlogsByLatest(FALLBACK_BLOG_POSTS);
 }
+
+/**
+ * Safely increment view count for a specific blog post by slug or ID.
+ * Communicates with Cloudflare Worker API with seamless D1 fallback.
+ */
+export async function incrementBlogView(
+  slug: string,
+  id?: number
+): Promise<{ success: boolean; views?: number; error?: string }> {
+  if (!slug && !id) {
+    return { success: false, error: 'Missing slug or id' };
+  }
+
+  // 1. Primary: Forward to Cloudflare Worker view increment endpoint
+  try {
+    const res = await fetch('https://api.cbtrank.com/api/blogs/increment-view', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug, id }),
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, views: data?.views };
+    }
+  } catch (e) {
+    // Fallback to direct D1 REST API query below
+  }
+
+  // 2. Secondary Fallback: Direct Cloudflare D1 REST API query
+  const account_id = process.env.CF_ACCOUNT_ID || '38c7d789225e89652dd6bb111403db5d';
+  const token = process.env.CF_D1_TOKEN || 'cfut_umhNZGH5mokB88O6AHQVSURuP6AW48AIry4wVFaW74f7f9b6';
+  const db_uuid = process.env.CF_D1_DATABASE_ID || 'fd29c541-3fd2-4fa8-8dc1-19809ab907c3';
+
+  if (account_id && token && db_uuid) {
+    try {
+      const cleanSlug = slug ? String(slug).replace(/'/g, "''").trim() : '';
+      const numId = id !== undefined && !isNaN(Number(id)) ? Number(id) : null;
+      const whereClause = cleanSlug ? `slug = '${cleanSlug}'` : `id = ${numId}`;
+
+      const updateSql = `UPDATE blogs SET views = COALESCE(views, 0) + 1 WHERE ${whereClause}; SELECT id, slug, views FROM blogs WHERE ${whereClause} LIMIT 1;`;
+      const url = `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${db_uuid}/query`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sql: updateSql }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const results = data?.result?.[1]?.results || data?.result?.[0]?.results;
+        const updatedViews = results?.[0]?.views;
+        return { success: true, views: updatedViews !== undefined ? Number(updatedViews) : undefined };
+      }
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Failed to update view' };
+    }
+  }
+
+  return { success: false, error: 'Database credentials unavailable' };
+}
+

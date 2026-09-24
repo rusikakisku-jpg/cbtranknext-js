@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchBlogsFromCloudflareD1 } from '../../data/blogs';
+import BlogViewTracker from '../../components/BlogViewTracker';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -148,6 +149,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   return (
     <main style={{ minHeight: '80vh', padding: '12px 0 36px' }}>
+      <BlogViewTracker slug={post.slug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
