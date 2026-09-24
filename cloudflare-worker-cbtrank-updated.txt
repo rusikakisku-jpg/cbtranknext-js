@@ -50,6 +50,7 @@ async function ensureDynamicSchema(env) {
       try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0").run(); } catch (e) {}
       isSchemaMigrated = true;
       return;
     } catch (err) {}
@@ -70,7 +71,7 @@ async function ensureDynamicSchema(env) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ 
-          sql: "ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''; ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'; ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]';" 
+          sql: "ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''; ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'; ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]'; ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0;" 
         })
       });
       isSchemaMigrated = true;
@@ -308,6 +309,101 @@ export default {
       const settingsObj = {};
       results.forEach(r => { if (r.setting_key) settingsObj[r.setting_key] = r.setting_value; });
       return new Response(JSON.stringify(settingsObj), { headers: corsHeaders, status: 200 });
+    }
+
+    // =========================================================================
+    // 5.5 👁️ BLOG VIEWS (GET & POST INCREMENT) ENDPOINT (Public)
+    // Supports:
+    // - POST /api/blogs/increment-view (or /blogs/view, /api/blogs/view, /blogs/increment-view)
+    // - POST /blog/:slug/view or /blogs/:slug/view
+    // - GET /api/blogs/views or /blogs/views?slug=... (Get current view count)
+    // =========================================================================
+    if (
+      pathname === '/api/blogs/increment-view' ||
+      pathname === '/api/blogs/view' ||
+      pathname === '/blogs/view' ||
+      pathname === '/blogs/increment-view' ||
+      pathname === '/api/blogs/views' ||
+      pathname === '/blogs/views' ||
+      pathname === '/blog/view' ||
+      pathname === '/blog/increment-view' ||
+      pathname.endsWith('/view') ||
+      pathname.endsWith('/increment-view')
+    ) {
+      // 1. Extract target slug or id
+      let slug = sanitizeSql((url.searchParams.get('slug') || '').trim());
+      let id = parseInt(url.searchParams.get('id') || '', 10);
+
+      // Check if slug is in pathname e.g. /blog/:slug/view or /blogs/:slug/view
+      const matchPathSlug = pathname.match(/^\/(?:api\/)?(?:blogs|blog|posts|articles)\/([a-zA-Z0-9_-]+)\/(?:view|increment-view)$/);
+      if (matchPathSlug && matchPathSlug[1] && !slug) {
+        slug = sanitizeSql(matchPathSlug[1].trim());
+      }
+
+      // Check request JSON body if POST
+      if (request.method === 'POST') {
+        try {
+          const body = await request.clone().json();
+          if (body) {
+            if (body.slug && !slug) slug = sanitizeSql(String(body.slug).trim());
+            if (body.id && isNaN(id)) id = parseInt(body.id, 10);
+          }
+        } catch (e) {}
+      }
+
+      if (slug || !isNaN(id)) {
+        const whereClause = slug ? `slug = '${slug}'` : `id = ${id}`;
+
+        if (request.method === 'POST') {
+          // 🔄 Increment views: UPDATE blogs SET views = COALESCE(views, 0) + 1
+          try {
+            await queryD1(env, `UPDATE blogs SET views = COALESCE(views, 0) + 1 WHERE ${whereClause}`);
+            const checkRows = await queryD1(env, `SELECT id, slug, views FROM blogs WHERE ${whereClause} LIMIT 1`);
+            const updatedViews = (checkRows && checkRows[0] && checkRows[0].views !== undefined) ? Number(checkRows[0].views) : 1;
+
+            return new Response(JSON.stringify({
+              success: true,
+              message: "View count recorded successfully",
+              slug: slug || (checkRows && checkRows[0] && checkRows[0].slug) || null,
+              id: !isNaN(id) ? id : (checkRows && checkRows[0] && checkRows[0].id) || null,
+              views: updatedViews
+            }), { headers: corsHeaders, status: 200 });
+          } catch (err) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: "Failed to increment view count: " + (err.message || String(err))
+            }), { headers: corsHeaders, status: 500 });
+          }
+        } else {
+          // 🔍 Get current views: SELECT id, slug, views FROM blogs
+          try {
+            const checkRows = await queryD1(env, `SELECT id, slug, views FROM blogs WHERE ${whereClause} LIMIT 1`);
+            if (checkRows && checkRows.length > 0) {
+              return new Response(JSON.stringify({
+                success: true,
+                slug: checkRows[0].slug,
+                id: checkRows[0].id,
+                views: Number(checkRows[0].views || 0)
+              }), { headers: corsHeaders, status: 200 });
+            } else {
+              return new Response(JSON.stringify({
+                success: false,
+                error: `No article found matching ${slug ? 'slug: ' + slug : 'id: ' + id}`
+              }), { headers: corsHeaders, status: 404 });
+            }
+          } catch (err) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: "Failed to get view count: " + (err.message || String(err))
+            }), { headers: corsHeaders, status: 500 });
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({
+        success: false,
+        error: "Missing slug or id parameter. Provide slug or id via JSON body (e.g. { \"slug\": \"...\" }) or query parameter (?slug=...)"
+      }), { headers: corsHeaders, status: 400 });
     }
 
     // =========================================================================
@@ -1394,6 +1490,12 @@ export default {
           method: "GET",
           description: "Get specific blog post content and metadata by slug",
           example: `${url.origin}/blogs?slug=how-cbt-rank-normalization-works`
+        },
+        blog_views: {
+          path: "/api/blogs/increment-view (or /blogs/view)",
+          method: "POST (Increment) | GET (Fetch)",
+          description: "Increment view count for a blog post (POST) or fetch current view count (GET) by slug or id",
+          example: `${url.origin}/api/blogs/increment-view?slug=how-cbt-rank-normalization-works`
         },
         locations: {
           path: "/locations",
