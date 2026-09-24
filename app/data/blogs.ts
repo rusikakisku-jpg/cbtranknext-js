@@ -1,9 +1,14 @@
 export interface BlogPost {
+  id?: number;
   slug: string;
   title: string;
   excerpt: string;
   category: string;
   date: string;
+  created_at?: string;
+  published_at?: string;
+  publish_date?: string;
+  updated_at?: string;
   readTime: string;
   coverImage?: string;
   author_name?: string;
@@ -13,6 +18,72 @@ export interface BlogPost {
     paragraph: string;
   }>;
 }
+
+/**
+ * Safely parse any date/time string or number into a reliable Unix millisecond timestamp.
+ * Supports ISO strings, YYYY-MM-DD, YYYY-MM-DD HH:MM:SS, "Month Day, Year", etc.
+ */
+export function parsePostTimestamp(post: BlogPost | any): number {
+  if (!post) return 0;
+
+  // Candidates in priority order: published_at, publish_date, created_at, date, updated_at
+  const candidates = [
+    post.published_at,
+    post.publish_date,
+    post.created_at,
+    post.date,
+    post.updated_at,
+  ];
+
+  for (const raw of candidates) {
+    if (raw === undefined || raw === null) continue;
+    if (typeof raw === 'number' && !isNaN(raw)) {
+      return raw > 1e11 ? raw : raw * 1000;
+    }
+    const str = String(raw).trim();
+    if (!str) continue;
+
+    // 1. Direct standard Date.parse (handles ISO 8601, 'August 14, 2026', '2026-09-24', etc.)
+    const parsed = Date.parse(str);
+    if (!isNaN(parsed)) return parsed;
+
+    // 2. Fallback regex match for YYYY-MM-DD [HH:MM:SS]
+    const m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+    if (m) {
+      const y = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const d = parseInt(m[3], 10);
+      const h = m[4] ? parseInt(m[4], 10) : 0;
+      const mi = m[5] ? parseInt(m[5], 10) : 0;
+      const s = m[6] ? parseInt(m[6], 10) : 0;
+      const dt = new Date(Date.UTC(y, mo, d, h, mi, s));
+      if (!isNaN(dt.getTime())) return dt.getTime();
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Sorts blog posts chronologically descending:
+ * 1. Latest date & time first
+ * 2. If dates/times are identical, tie-break by ID DESC (newest ID first)
+ */
+export function sortBlogsByLatest(blogs: BlogPost[]): BlogPost[] {
+  if (!Array.isArray(blogs)) return [];
+  return [...blogs].sort((a, b) => {
+    const timeA = parsePostTimestamp(a);
+    const timeB = parsePostTimestamp(b);
+    if (timeB !== timeA) {
+      return timeB - timeA; // Descending: latest date/time first
+    }
+    // Tie breaker: ID DESC
+    const idA = typeof a.id === 'number' ? a.id : (parseInt(String((a as any).id || '0'), 10) || 0);
+    const idB = typeof b.id === 'number' ? b.id : (parseInt(String((b as any).id || '0'), 10) || 0);
+    return idB - idA;
+  });
+}
+
 
 export const FALLBACK_BLOG_POSTS: BlogPost[] = [
   {
@@ -117,11 +188,16 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
         });
 
         const blogsList: BlogPost[] = publishedBlogs.map((b: any) => ({
+          id: b.id !== undefined && b.id !== null ? Number(b.id) : undefined,
           slug: String(b.slug),
           title: String(b.title),
           excerpt: formatCleanExcerpt(b.excerpt, b.description, b.title),
           category: String(b.category || 'Exam Analysis'),
-          date: String(b.created_at || 'August 2026').split(' ')[0],
+          date: String(b.published_at || b.publish_date || b.created_at || b.date || 'August 2026').trim().split(' ')[0],
+          created_at: b.created_at ? String(b.created_at).trim() : undefined,
+          published_at: b.published_at ? String(b.published_at).trim() : undefined,
+          publish_date: b.publish_date ? String(b.publish_date).trim() : undefined,
+          updated_at: b.updated_at ? String(b.updated_at).trim() : undefined,
           readTime: '4 min read',
           author_name: String(b.author_name || b.author || 'Team CBTRANK'),
           views: Number(b.views || 0),
@@ -129,7 +205,7 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
           content: String(b.content || b.description || b.title)
         }));
         if (blogsList.length > 0) {
-          return blogsList;
+          return sortBlogsByLatest(blogsList);
         }
       }
     }
@@ -187,11 +263,16 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
       }
 
       blogsList.push({
+        id: b.id !== undefined && b.id !== null ? Number(b.id) : undefined,
         slug: String(b.slug),
         title: String(b.title),
         excerpt: formatCleanExcerpt(null, b.description, b.title),
         category: String(b.category || 'Exam Analysis'),
-        date: String(b.created_at || 'August 2026').split(' ')[0],
+        date: String(b.published_at || b.publish_date || b.created_at || b.date || 'August 2026').trim().split(' ')[0],
+        created_at: b.created_at ? String(b.created_at).trim() : undefined,
+        published_at: b.published_at ? String(b.published_at).trim() : undefined,
+        publish_date: b.publish_date ? String(b.publish_date).trim() : undefined,
+        updated_at: b.updated_at ? String(b.updated_at).trim() : undefined,
         readTime: '4 min read',
         author_name: String(b.author || 'Team CBTRANK'),
         views: Number(b.views || 0),
@@ -201,11 +282,11 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
     }
 
     if (blogsList.length > 0) {
-      return blogsList;
+      return sortBlogsByLatest(blogsList);
     }
   } catch (err) {
     // Silent error fallback to static CBTRANK posts
   }
 
-  return FALLBACK_BLOG_POSTS;
+  return sortBlogsByLatest(FALLBACK_BLOG_POSTS);
 }

@@ -2,7 +2,7 @@ export const runtime = 'edge';
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { fetchBlogsFromCloudflareD1, BlogPost, FALLBACK_BLOG_POSTS } from '../data/blogs';
+import { fetchBlogsFromCloudflareD1, sortBlogsByLatest, BlogPost, FALLBACK_BLOG_POSTS } from '../data/blogs';
 
 interface BlogPageProps {
   searchParams?: Promise<{
@@ -87,6 +87,9 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
   if (!Array.isArray(allPosts) || allPosts.length === 0) {
     allPosts = FALLBACK_BLOG_POSTS;
   }
+
+  // Strictly sort all posts date-time wise so the latest post always appears first
+  allPosts = sortBlogsByLatest(allPosts);
 
   const filteredPosts = query
     ? allPosts.filter(p =>
