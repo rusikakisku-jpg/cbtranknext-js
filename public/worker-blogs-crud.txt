@@ -1373,6 +1373,29 @@ export default {
           normalizedRows = DEFAULT_BLOGS.map(r => normalizeBlogRow(r, r2Domain));
         }
 
+        // Strictly sort API response date-time wise (latest first, tie-break by id DESC)
+        normalizedRows.sort((a, b) => {
+          const parseTs = (item) => {
+            if (!item) return 0;
+            const raw = item.published_at || item.publish_date || item.created_at || item.date || item.updated_at || '';
+            const str = String(raw).trim();
+            if (!str) return 0;
+            const t = Date.parse(str);
+            if (!isNaN(t)) return t;
+            const m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (m) {
+              const dt = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+              if (!isNaN(dt.getTime())) return dt.getTime();
+            }
+            return 0;
+          };
+          const tA = parseTs(a);
+          const tB = parseTs(b);
+          if (tB !== tA) return tB - tA;
+          return (Number(b.id) || 0) - (Number(a.id) || 0);
+        });
+
+
         if (rawArray) {
           return new Response(JSON.stringify(normalizedRows), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8' },
@@ -1413,8 +1436,29 @@ export default {
             await seedDefaultBlogs(env);
             rawBlogs = await executeD1(env, "SELECT * FROM blogs ORDER BY id DESC");
           }
-          const r2Domain = getR2PublicDomain(env);
           initialBlogs = (rawBlogs || []).map(r => normalizeBlogRow(r, r2Domain));
+
+          // Strictly sort portal view date-time wise (latest first)
+          initialBlogs.sort((a, b) => {
+            const parseTs = (item) => {
+              if (!item) return 0;
+              const raw = item.published_at || item.publish_date || item.created_at || item.date || item.updated_at || '';
+              const str = String(raw).trim();
+              if (!str) return 0;
+              const t = Date.parse(str);
+              if (!isNaN(t)) return t;
+              const m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+              if (m) {
+                const dt = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+                if (!isNaN(dt.getTime())) return dt.getTime();
+              }
+              return 0;
+            };
+            const tA = parseTs(a);
+            const tB = parseTs(b);
+            if (tB !== tA) return tB - tA;
+            return (Number(b.id) || 0) - (Number(a.id) || 0);
+          });
         } catch (e) {
           dbError = e.message;
           console.error("D1 Blogs Load Error:", e);

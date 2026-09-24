@@ -372,6 +372,30 @@ export default {
         } catch (e) {}
       }
 
+      // Strictly sort results date-time wise (latest first, tie-break by id DESC)
+      if (Array.isArray(results) && results.length > 0) {
+        results.sort((a, b) => {
+          const parseTs = (item) => {
+            if (!item) return 0;
+            const raw = item.published_at || item.publish_date || item.created_at || item.date || item.updated_at || '';
+            const str = String(raw).trim();
+            if (!str) return 0;
+            const t = Date.parse(str);
+            if (!isNaN(t)) return t;
+            const m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (m) {
+              const dt = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+              if (!isNaN(dt.getTime())) return dt.getTime();
+            }
+            return 0;
+          };
+          const tA = parseTs(a);
+          const tB = parseTs(b);
+          if (tB !== tA) return tB - tA;
+          return (Number(b.id) || 0) - (Number(a.id) || 0);
+        });
+      }
+
       return new Response(JSON.stringify({
         success: true,
         total: Array.isArray(results) ? results.length : 0,
