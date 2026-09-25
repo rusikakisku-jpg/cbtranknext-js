@@ -174,22 +174,27 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="exam-list" id="exam-list">
-              {exams.length === 0 ? (
-                <div className="empty-state">
-                  No exams available right now. Check back soon!
+            {/* Desktop Side-by-Side Layout: Latest Exams (Left) + Latest Articles (Right) */}
+            <div className={`home-layout-columns ${APP_FEATURE_FLAGS.SHOW_HOMEPAGE_BLOGS && latestBlogs.length > 0 ? 'has-sidebar' : ''}`}>
+              <div className="exam-list" id="exam-list">
+                {exams.length === 0 ? (
+                  <div className="empty-state">
+                    No exams available right now. Check back soon!
+                  </div>
+                ) : (
+                  exams.map((exam) => (
+                    <ExamCard key={exam.slug} exam={exam} />
+                  ))
+                )}
+              </div>
+
+              {/* Latest 5 Blog Posts Section (Toggleable via APP_FEATURE_FLAGS.SHOW_HOMEPAGE_BLOGS) */}
+              {APP_FEATURE_FLAGS.SHOW_HOMEPAGE_BLOGS && latestBlogs.length > 0 && (
+                <div className="home-side-articles-col">
+                  <HomeBlogsSection blogs={latestBlogs} />
                 </div>
-              ) : (
-                exams.map((exam) => (
-                  <ExamCard key={exam.slug} exam={exam} />
-                ))
               )}
             </div>
-
-            {/* Latest 5 Blog Posts Section (Toggleable via APP_FEATURE_FLAGS.SHOW_HOMEPAGE_BLOGS) */}
-            {APP_FEATURE_FLAGS.SHOW_HOMEPAGE_BLOGS && latestBlogs.length > 0 && (
-              <HomeBlogsSection blogs={latestBlogs} />
-            )}
 
             {/* In-depth Informative SEO Section & FAQ */}
             <HomeSeoContent />

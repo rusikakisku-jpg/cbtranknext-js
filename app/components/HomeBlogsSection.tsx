@@ -28,7 +28,7 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
   const gridPosts = blogs.slice(1, 5);
 
   return (
-    <section className="home-blogs-section" aria-label="Latest Articles and Updates" style={{ marginTop: '48px' }}>
+    <section className="home-blogs-section" aria-label="Latest Articles and Updates">
       <style>{`
         .home-blogs-header {
           display: flex;
