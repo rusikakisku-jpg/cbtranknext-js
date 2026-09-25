@@ -1,0 +1,225 @@
+import Link from 'next/link';
+import type { BlogPost } from '../data/blogs';
+
+interface HomeBlogsSectionProps {
+  blogs: BlogPost[];
+}
+
+function cleanExcerpt(text?: string): string {
+  if (!text) return '';
+  const clean = text.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+  if (clean.length <= 150) return clean;
+  return clean.slice(0, 147).trim() + '...';
+}
+
+function getCoverUrl(coverImage?: string | null): string {
+  if (!coverImage) return 'https://upload.cbtrank.com/logo.png';
+  if (coverImage.startsWith('http')) return coverImage;
+  return `https://upload.cbtrank.com/${coverImage.replace(/^\/+/, '')}`;
+}
+
+export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
+  if (!blogs || blogs.length === 0) return null;
+
+  // Display top 5 latest blog posts:
+  // Post 0: Top Featured Spotlight Post
+  // Posts 1 to 4: 2x2 Grid of remaining 4 latest posts
+  const featuredPost = blogs[0];
+  const gridPosts = blogs.slice(1, 5);
+
+  return (
+    <section className="home-blogs-section" aria-label="Latest Articles and Updates" style={{ marginTop: '48px' }}>
+      <style>{`
+        .home-blogs-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 22px;
+        }
+        .home-blogs-header-title {
+          font-size: 1.45rem;
+          font-weight: 800;
+          color: #0f172a;
+          line-height: 1.25;
+          margin: 0 0 6px 0;
+          letter-spacing: -0.02em;
+        }
+        .home-blogs-header-sub {
+          font-size: 0.92rem;
+          color: #64748b;
+          margin: 0;
+        }
+        .desktop-blog-viewall-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: #0066ff;
+          font-weight: 700;
+          font-size: 0.88rem;
+          text-decoration: none;
+          padding: 8px 16px;
+          background: #eff6ff;
+          border-radius: 8px;
+          border: 1px solid #bfdbfe;
+          transition: all 0.2s ease;
+        }
+        .desktop-blog-viewall-btn:hover {
+          background: #dbeafe;
+          border-color: #93c5fd;
+          transform: translateY(-1px);
+        }
+        .mobile-blog-viewall-wrap {
+          display: none;
+          margin-top: 24px;
+          text-align: center;
+        }
+        .mobile-blog-viewall-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: 100%;
+          padding: 13px 20px;
+          background: #ffffff;
+          border: 1.5px solid #cbd5e1;
+          border-radius: 12px;
+          color: #1e293b;
+          font-size: 0.92rem;
+          font-weight: 700;
+          text-decoration: none;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+          transition: all 0.2s ease;
+        }
+        .mobile-blog-viewall-btn:active {
+          background: #f1f5f9;
+        }
+        @media only screen and (max-width: 640px) {
+          .desktop-blog-viewall-btn {
+            display: none !important;
+          }
+          .mobile-blog-viewall-wrap {
+            display: block !important;
+          }
+          .home-blogs-header-title {
+            font-size: 1.25rem;
+          }
+        }
+      `}</style>
+
+      {/* Section Header */}
+      <div className="home-blogs-header">
+        <div>
+          <h2 className="home-blogs-header-title">Latest Articles &amp; Updates</h2>
+          <p className="home-blogs-header-sub">Official notifications, answer key guides and rank analysis</p>
+        </div>
+        <Link href="/blog" className="desktop-blog-viewall-btn">
+          <span>View All Articles</span>
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+      </div>
+
+      {/* Featured / Top #1 Article Card */}
+      {featuredPost && (
+        <article className="featured-blog-card">
+          <div className="featured-img-wrap">
+            <Link href={`/blog/${featuredPost.slug}`} tabIndex={-1} aria-hidden="true" style={{ display: 'block', width: '100%', height: '100%' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={getCoverUrl(featuredPost.coverImage)}
+                alt={featuredPost.title || 'Featured Article'}
+                loading="lazy"
+                decoding="async"
+              />
+            </Link>
+          </div>
+          <div className="featured-content-wrap">
+            <div>
+              <div className="featured-spotlight-pill">
+                <span>⚡ {featuredPost.category || 'Latest Update'}</span>
+              </div>
+              <h3 className="featured-title">
+                <Link href={`/blog/${featuredPost.slug}`}>
+                  {featuredPost.title}
+                </Link>
+              </h3>
+              {featuredPost.excerpt && (
+                <p className="featured-excerpt">
+                  {cleanExcerpt(featuredPost.excerpt)}
+                </p>
+              )}
+            </div>
+            <div className="card-bottom-footer">
+              <div className="card-author-chip">
+                <div className="card-avatar-mini" aria-hidden="true">C</div>
+                <span>{featuredPost.date ? featuredPost.date.split(' ')[0] : 'Recent'} &bull; {featuredPost.readTime || '4 min read'}</span>
+              </div>
+              <Link href={`/blog/${featuredPost.slug}`} className="card-read-arrow" aria-label={`Read guide: ${featuredPost.title}`}>
+                <span>Read Guide</span>
+                <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
+          </div>
+        </article>
+      )}
+
+      {/* Remaining 4 Articles Grid */}
+      {gridPosts.length > 0 && (
+        <div className="blog-cards-grid">
+          {gridPosts.map((post) => (
+            <article key={post.slug} className="premium-blog-card">
+              <div className="card-thumbnail-box">
+                <Link href={`/blog/${post.slug}`} tabIndex={-1} aria-hidden="true" style={{ display: 'block', width: '100%', height: '100%' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={getCoverUrl(post.coverImage)}
+                    alt={post.title || 'Blog Post'}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </Link>
+                {post.category && (
+                  <span className="card-cat-badge-float">
+                    {post.category}
+                  </span>
+                )}
+              </div>
+              <div className="card-main-body">
+                <div>
+                  <h3 className="card-post-title">
+                    <Link href={`/blog/${post.slug}`}>
+                      {post.title}
+                    </Link>
+                  </h3>
+                  {post.excerpt && (
+                    <p className="card-post-excerpt">
+                      {cleanExcerpt(post.excerpt)}
+                    </p>
+                  )}
+                </div>
+                <div className="card-bottom-footer">
+                  <div className="card-author-chip">
+                    <span>{post.date ? post.date.split(' ')[0] : 'Recent'}</span>
+                  </div>
+                  <Link href={`/blog/${post.slug}`} className="card-read-arrow" aria-label={`Read guide: ${post.title}`}>
+                    <span>Read Guide</span>
+                    <span aria-hidden="true">&rarr;</span>
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {/* Mobile-only View All Articles Button */}
+      <div className="mobile-blog-viewall-wrap">
+        <Link href="/blog" className="mobile-blog-viewall-btn">
+          <span>View All Articles &amp; Updates</span>
+          <span aria-hidden="true">&rarr;</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
