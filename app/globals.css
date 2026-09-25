@@ -524,6 +524,78 @@ footer {
   margin-top: 4px;
 }
 
+/* Home Page 2-Column Layout (Exams on Left, Articles on Right on Desktop) */
+.home-layout-columns {
+  display: block;
+}
+
+@media (min-width: 992px) {
+  .home-layout-columns.has-sidebar {
+    display: grid;
+    grid-template-columns: 1.08fr 0.92fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .home-layout-columns.has-sidebar .home-side-articles-col .home-blogs-section {
+    margin-top: 0;
+  }
+
+  .home-layout-columns.has-sidebar .featured-blog-card {
+    grid-template-columns: 1fr;
+    margin-bottom: 20px;
+  }
+
+  .home-layout-columns.has-sidebar .featured-img-wrap {
+    min-height: 220px;
+    height: 220px;
+  }
+
+  .home-layout-columns.has-sidebar .featured-content-wrap {
+    padding: 20px 20px 16px;
+  }
+
+  .home-layout-columns.has-sidebar .featured-title {
+    font-size: 1.18rem;
+    margin-bottom: 8px;
+  }
+
+  .home-layout-columns.has-sidebar .featured-excerpt {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+
+  .home-layout-columns.has-sidebar .blog-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .home-layout-columns.has-sidebar .card-thumbnail-box {
+    height: 145px;
+  }
+
+  .home-layout-columns.has-sidebar .card-main-body {
+    padding: 14px 16px;
+  }
+
+  .home-layout-columns.has-sidebar .card-post-title {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .home-layout-columns.has-sidebar .card-post-excerpt {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 991px) {
+  .home-layout-columns.has-sidebar .home-side-articles-col .home-blogs-section {
+    margin-top: 40px;
+  }
+}
+
 /* Exam Cards */
 .exam-list {
   display: grid;
