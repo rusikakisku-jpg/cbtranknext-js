@@ -90,35 +90,36 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
           gap: 20px;
         }
         .home-blog-viewall-wrap {
-          display: block;
-          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+          margin-top: 20px;
           text-align: center;
         }
         .home-blog-viewall-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          width: 100%;
-          padding: 13px 20px;
-          background: #ffffff;
-          border: 1.5px solid #cbd5e1;
-          border-radius: 12px;
+          gap: 6px;
+          width: auto;
+          padding: 8px 18px;
+          background: #eff6ff;
+          border: 1px solid #bfdbfe;
+          border-radius: 8px;
           color: #0066ff;
-          font-size: 0.94rem;
+          font-size: 0.88rem;
           font-weight: 700;
           text-decoration: none;
-          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+          white-space: nowrap;
           transition: all 0.2s ease;
         }
         .home-blog-viewall-btn:hover {
-          background: #eff6ff;
+          background: #dbeafe;
           border-color: #93c5fd;
           transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
         }
         .home-blog-viewall-btn:active {
-          background: #dbeafe;
+          background: #bfdbfe;
         }
         @media only screen and (max-width: 640px) {
           .home-blogs-header-title {
@@ -231,7 +232,7 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
       {/* View All Articles Button - Positioned at the very end / bottom */}
       <div className="home-blog-viewall-wrap">
         <Link href="/blog" className="home-blog-viewall-btn">
-          <span>View All Articles &amp; Updates</span>
+          <span>View All Articles</span>
           <span aria-hidden="true">&rarr;</span>
         </Link>
       </div>
