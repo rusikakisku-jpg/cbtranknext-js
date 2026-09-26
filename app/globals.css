@@ -547,8 +547,9 @@ footer {
   }
 
   .home-layout-columns.has-sidebar .featured-img-wrap {
-    min-height: 220px;
-    height: 220px;
+    min-height: unset;
+    height: auto;
+    aspect-ratio: 16 / 9;
   }
 
   .home-layout-columns.has-sidebar .featured-content-wrap {
@@ -572,7 +573,8 @@ footer {
   }
 
   .home-layout-columns.has-sidebar .card-thumbnail-box {
-    height: 165px;
+    height: auto;
+    aspect-ratio: 16 / 9;
   }
 
   .home-layout-columns.has-sidebar .card-main-body {
