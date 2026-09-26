@@ -55,6 +55,35 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
           grid-template-columns: 1fr;
           margin-bottom: 20px;
         }
+        .home-blogs-section .featured-img-wrap,
+        .home-blogs-section .card-thumbnail-box {
+          width: 100%;
+          height: auto;
+          min-height: unset;
+          aspect-ratio: 16 / 9;
+          background: #0f172a;
+          position: relative;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .home-blogs-section .featured-img-wrap a,
+        .home-blogs-section .card-thumbnail-box a {
+          display: flex !important;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          height: 100%;
+        }
+        .home-blogs-section .featured-img-wrap img,
+        .home-blogs-section .card-thumbnail-box img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          object-position: center;
+          display: block;
+        }
         .home-blogs-section .blog-cards-grid {
           display: grid;
           grid-template-columns: 1fr !important;
