@@ -170,8 +170,8 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
                 <div className="card-avatar-mini" aria-hidden="true">C</div>
                 <span>{featuredPost.date ? featuredPost.date.split(' ')[0] : 'Recent'} &bull; {featuredPost.readTime || '4 min read'}</span>
               </div>
-              <Link href={`/blog/${featuredPost.slug}`} className="card-read-arrow" aria-label={`Read guide: ${featuredPost.title}`}>
-                <span>Read Guide</span>
+              <Link href={`/blog/${featuredPost.slug}`} className="card-read-arrow" aria-label={`Read article: ${featuredPost.title}`}>
+                <span>Read Article</span>
                 <span aria-hidden="true">&rarr;</span>
               </Link>
             </div>
@@ -217,8 +217,8 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
                   <div className="card-author-chip">
                     <span>{post.date ? post.date.split(' ')[0] : 'Recent'}</span>
                   </div>
-                  <Link href={`/blog/${post.slug}`} className="card-read-arrow" aria-label={`Read guide: ${post.title}`}>
-                    <span>Read Guide</span>
+                  <Link href={`/blog/${post.slug}`} className="card-read-arrow" aria-label={`Read article: ${post.title}`}>
+                    <span>Read Article</span>
                     <span aria-hidden="true">&rarr;</span>
                   </Link>
                 </div>

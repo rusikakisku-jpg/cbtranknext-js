@@ -4042,6 +4042,7 @@ footer {
   font-size: 0.78rem;
   text-decoration: none;
   transition: gap 0.15s ease;
+  white-space: nowrap;
 }
 .card-read-arrow:hover {
   gap: 8px;
