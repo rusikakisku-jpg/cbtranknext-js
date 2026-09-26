@@ -51,31 +51,21 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
           color: #64748b;
           margin: 0;
         }
-        .desktop-blog-viewall-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          color: #0066ff;
-          font-weight: 700;
-          font-size: 0.88rem;
-          text-decoration: none;
-          padding: 8px 16px;
-          background: #eff6ff;
-          border-radius: 8px;
-          border: 1px solid #bfdbfe;
-          transition: all 0.2s ease;
+        .home-blogs-section .featured-blog-card {
+          grid-template-columns: 1fr;
+          margin-bottom: 20px;
         }
-        .desktop-blog-viewall-btn:hover {
-          background: #dbeafe;
-          border-color: #93c5fd;
-          transform: translateY(-1px);
+        .home-blogs-section .blog-cards-grid {
+          display: grid;
+          grid-template-columns: 1fr !important;
+          gap: 20px;
         }
-        .mobile-blog-viewall-wrap {
-          display: none;
+        .home-blog-viewall-wrap {
+          display: block;
           margin-top: 24px;
           text-align: center;
         }
-        .mobile-blog-viewall-btn {
+        .home-blog-viewall-btn {
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -85,23 +75,23 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
           background: #ffffff;
           border: 1.5px solid #cbd5e1;
           border-radius: 12px;
-          color: #1e293b;
-          font-size: 0.92rem;
+          color: #0066ff;
+          font-size: 0.94rem;
           font-weight: 700;
           text-decoration: none;
           box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
           transition: all 0.2s ease;
         }
-        .mobile-blog-viewall-btn:active {
-          background: #f1f5f9;
+        .home-blog-viewall-btn:hover {
+          background: #eff6ff;
+          border-color: #93c5fd;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+        }
+        .home-blog-viewall-btn:active {
+          background: #dbeafe;
         }
         @media only screen and (max-width: 640px) {
-          .desktop-blog-viewall-btn {
-            display: none !important;
-          }
-          .mobile-blog-viewall-wrap {
-            display: block !important;
-          }
           .home-blogs-header-title {
             font-size: 1.25rem;
           }
@@ -114,10 +104,6 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
           <h2 className="home-blogs-header-title">Latest Articles &amp; Updates</h2>
           <p className="home-blogs-header-sub">Official notifications, answer key guides and rank analysis</p>
         </div>
-        <Link href="/blog" className="desktop-blog-viewall-btn">
-          <span>View All Articles</span>
-          <span aria-hidden="true">&rarr;</span>
-        </Link>
       </div>
 
       {/* Featured / Top #1 Article Card */}
@@ -213,9 +199,9 @@ export default function HomeBlogsSection({ blogs }: HomeBlogsSectionProps) {
         </div>
       )}
 
-      {/* Mobile-only View All Articles Button */}
-      <div className="mobile-blog-viewall-wrap">
-        <Link href="/blog" className="mobile-blog-viewall-btn">
+      {/* View All Articles Button - Positioned at the very end / bottom */}
+      <div className="home-blog-viewall-wrap">
+        <Link href="/blog" className="home-blog-viewall-btn">
           <span>View All Articles &amp; Updates</span>
           <span aria-hidden="true">&rarr;</span>
         </Link>
