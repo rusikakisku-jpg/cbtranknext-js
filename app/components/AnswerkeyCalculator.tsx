@@ -429,14 +429,14 @@ export default function AnswerkeyCalculator({
         setProgressStep(2); // Step 2: Parsing data
         parsedResult = normalizeSmartApiResponse(actionRes.data, urlVal);
       } else {
-        showToast((actionRes && actionRes.error) || 'Failed to fetch scorecard. Please check URL.');
+        showToast('Invalid or broken link. Please check your Answer Key URL and retry.');
         setSubmitting(false);
         setBtnText('Calculate Marks & Rank');
         setProgressStep(0);
         return;
       }
     } catch (err) {
-      showToast('Network error while connecting to server. Please try again.');
+      showToast('Invalid or broken link. Please check your Answer Key URL and retry.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
       setProgressStep(0);
@@ -444,7 +444,7 @@ export default function AnswerkeyCalculator({
     }
 
     if (!parsedResult) {
-      showToast('No data found or Invalid Answer Key URL. Please check and retry.');
+      showToast('Invalid or broken link. Please check your Answer Key URL and retry.');
       setSubmitting(false);
       setBtnText('Calculate Marks & Rank');
       setProgressStep(0);

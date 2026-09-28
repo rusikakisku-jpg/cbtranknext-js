@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || 'Calculation server error occurred',
+        error: 'Invalid or broken link. Please check your Answer Key URL and retry.',
       },
       { status: 500 }
     );

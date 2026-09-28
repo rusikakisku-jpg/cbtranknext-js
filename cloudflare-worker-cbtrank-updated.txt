@@ -1399,7 +1399,7 @@ export default {
       } else {
         return new Response(JSON.stringify({
           success: false,
-          error: `Parser API responded with status ${parserRes ? parserRes.status : 502}`
+          error: "Invalid or broken link. Please check your Answer Key URL and retry."
         }), { headers: corsHeaders, status: parserRes ? parserRes.status : 502 });
       }
     }
@@ -1418,7 +1418,7 @@ export default {
       }
 
       if (!legacyUrl) {
-        return new Response(JSON.stringify({ success: false, error: "Please provide a valid Answer Key URL parameter (?url=...)" }, null, 2), { headers: corsHeaders, status: 400 });
+        return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }, null, 2), { headers: corsHeaders, status: 400 });
       }
 
       try {
@@ -1445,7 +1445,7 @@ export default {
         }
       } catch (err) {}
 
-      return new Response(JSON.stringify({ success: false, error: "Server error connecting to DigiALM Parser" }), { headers: corsHeaders, status: 500 });
+      return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }), { headers: corsHeaders, status: 500 });
     }
 
     // =========================================================================
@@ -1466,7 +1466,7 @@ export default {
       }
 
       if (!cbexamsUrl) {
-        return new Response(JSON.stringify({ success: false, error: "Please provide a valid CBExams URL parameter (?url=...)" }, null, 2), { headers: corsHeaders, status: 400 });
+        return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }, null, 2), { headers: corsHeaders, status: 400 });
       }
 
       try {
@@ -1500,7 +1500,7 @@ export default {
         }
       } catch (err) {}
 
-      return new Response(JSON.stringify({ success: false, error: "Server error connecting to CBExams Parser" }), { headers: corsHeaders, status: 500 });
+      return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }), { headers: corsHeaders, status: 500 });
     }
 
     // =========================================================================

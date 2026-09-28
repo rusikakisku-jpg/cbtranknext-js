@@ -93,7 +93,7 @@ export async function processAnswerKeyAction(params: {
         });
       } catch (e) {}
     }
-    return { success: false, error: 'Please enter a valid official Answer Key URL.' };
+    return { success: false, error: 'Invalid or broken link. Please check your Answer Key URL and retry.' };
   }
 
   const isCbexams = isCbexamsHost(urlVal);
@@ -201,7 +201,7 @@ export async function processAnswerKeyAction(params: {
 
     return { 
       success: false, 
-      error: lastErrorMessage || (smartData && (smartData.error || smartData.message)) || 'Failed to fetch scorecard. Please check if your response sheet link is active.' 
+      error: 'Invalid or broken link. Please check your Answer Key URL and retry.' 
     };
   }
 }
