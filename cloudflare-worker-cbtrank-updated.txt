@@ -20,7 +20,7 @@
  *    - Automatically checks and adds missing columns (sub_type, custom_data on user_ranks, custom_fields on exams) in Cloudflare D1.
  * 7. 🗄️ Native Cloudflare D1 (env.DB) + REST API Fallback 100% preserved.
  * 8. 🚀 Lightning Fast Proxy:
- *    - /calculator_api tries the ultra-fast dedicated VPS (https://api.cbtrank.com/digialm/) first with automatic fallback to Render.
+ *    - /calculator_api routes directly to dedicated parser endpoints (/digialm and /cbexams).
  * 9. 🌐 Exact 100% Backward Compatibility:
  *    - All existing public endpoints (/exams, /locations, /languages, /settings, /blogs, etc.) preserved without breaking any client.
  */
@@ -31,8 +31,6 @@
 // - Environment Secrets / Variables: ADMIN_API_KEY, CF_ACCOUNT_ID, CF_DATABASE_ID, CF_API_TOKEN, DIGIALM_API_URL, CBEXAMS_API_URL
 const DEFAULT_DIGIALM_API = "https://api.cbtrank.com/digialm/?url=";
 const DEFAULT_CBEXAMS_API = "https://api.cbtrank.com/cbexams/?url=";
-const CALCULATOR_VPS_PRIMARY = "https://api.cbtrank.com/digialm/";
-const CALCULATOR_RENDER_BACKUP = "https://api.cbtrank.com/digialm/";
 
 /**
  * Helper: Smart Parser URL Builder
@@ -1371,70 +1369,38 @@ export default {
       } catch (e) {}
 
       const isCbexams = isCbexamsHost(targetAnswerKeyUrl);
-      let primaryApi = "";
-      let backupApi = "";
+      let targetApi = "";
 
       if (isCbexams) {
         const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
-        primaryApi = buildParserUrl(cbexamsBase, targetAnswerKeyUrl);
-        backupApi = `${DEFAULT_CBEXAMS_API}${encodeURIComponent(targetAnswerKeyUrl)}`;
+        targetApi = buildParserUrl(cbexamsBase, targetAnswerKeyUrl);
       } else {
         const digialmBase = (env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL || env.DIGIALM_URL)) || DEFAULT_DIGIALM_API;
-        primaryApi = buildParserUrl(digialmBase, targetAnswerKeyUrl);
-        backupApi = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
+        targetApi = buildParserUrl(digialmBase, targetAnswerKeyUrl);
       }
 
-      let vpsRes = null;
+      let parserRes = null;
       try {
-        vpsRes = await fetch(primaryApi, {
+        parserRes = await fetch(targetApi, {
           method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(10000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
         });
       } catch (e) {
-        vpsRes = null;
+        parserRes = null;
       }
 
-      // If primary parser timed out or failed, try backup
-      if (!vpsRes || !vpsRes.ok) {
-        if (backupApi && backupApi !== primaryApi) {
-          try {
-            vpsRes = await fetch(backupApi, {
-              method: "GET",
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-                "Accept": "application/json, text/plain, */*"
-              },
-              signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(8000) : undefined
-            });
-          } catch (err) {}
-        }
-
-        // Secondary backup for non-CBExams (Render instance)
-        if ((!vpsRes || !vpsRes.ok) && !isCbexams) {
-          try {
-            vpsRes = await fetch(`${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(targetAnswerKeyUrl)}`, {
-              method: "GET",
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-                "Accept": "application/json, text/plain, */*"
-              }
-            });
-          } catch (err2) {}
-        }
-      }
-
-      if (vpsRes && vpsRes.ok) {
-        const rawText = await vpsRes.text();
+      if (parserRes && parserRes.ok) {
+        const rawText = await parserRes.text();
         return new Response(rawText, { headers: corsHeaders, status: 200 });
       } else {
         return new Response(JSON.stringify({
           success: false,
-          error: `Calculator API responded with status ${vpsRes ? vpsRes.status : 502}`
-        }), { headers: corsHeaders, status: vpsRes ? vpsRes.status : 502 });
+          error: `Parser API responded with status ${parserRes ? parserRes.status : 502}`
+        }), { headers: corsHeaders, status: parserRes ? parserRes.status : 502 });
       }
     }
 
@@ -1471,46 +1437,13 @@ export default {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(10000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
         });
         if (digiRes.ok) {
           const rawText = await digiRes.text();
           return new Response(rawText, { headers: corsHeaders, status: 200 });
         }
       } catch (err) {}
-
-      // Fallback to VPS
-      try {
-        const vpsEp = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(legacyUrl)}`;
-        const vpsRes = await fetch(vpsEp, {
-          method: "GET",
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json"
-          },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(8000) : undefined
-        });
-        if (vpsRes.ok) {
-          const rawText = await vpsRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: 200 });
-        }
-      } catch (err2) {}
-
-      // Fallback to Render
-      try {
-        const backupEp = `${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(legacyUrl)}`;
-        const backupRes = await fetch(backupEp, {
-          method: "GET",
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json"
-          }
-        });
-        if (backupRes.ok) {
-          const rawText = await backupRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: 200 });
-        }
-      } catch (e) {}
 
       return new Response(JSON.stringify({ success: false, error: "Server error connecting to DigiALM Parser" }), { headers: corsHeaders, status: 500 });
     }
@@ -1601,7 +1534,7 @@ export default {
         calculator_api: {
           path: "/calculator_api/",
           method: "GET | POST",
-          description: "Proxies directly to dedicated fast VPS API with seamless Render fallback to parse answer keys",
+          description: "Smart proxy that automatically routes to DigiALM or CBExams parser based on URL",
           example: `${url.origin}/calculator_api/?url=https://cdn3.digialm.com/...`
         },
         exams: {
