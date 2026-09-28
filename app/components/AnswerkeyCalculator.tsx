@@ -129,8 +129,8 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const score = data.score_summary || {};
   const secSummary = data.section_summary || {};
   
-  const candidateName = cleanCandidateVal(info['Applicant Name'] || info['Candidate Name'] || info['Participant Name'] || info['Name'] || data.candidateName || data.name || 'Verified Candidate');
-  const rollNo = cleanCandidateVal(info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Application Id'] || info['Application ID'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*(id|no)|ticket/i.test(k))?.[1] || data.rollNo || data.exam_info?.user_id || '');
+  const candidateName = cleanCandidateVal(info['Applicant Name'] || info['Candidate Name'] || info["Candidate's Name"] || info['Participant Name'] || info['Name'] || data.candidateName || data.candidate_name || data.CandidateName || data.name || 'Verified Candidate');
+  const rollNo = cleanCandidateVal(info['Roll Number'] || info['Roll No'] || info['Roll No.'] || info['Registration Number'] || info['Registration No'] || info['Application Id'] || info['Application ID'] || info['Participant ID'] || info['Candidate ID'] || info['User ID'] || data.rollNo || data.roll_no || data.rollNumber || data.registrationNo || Object.entries(info).find(([k]) => /roll|registration|participant\s*id|candidate\s*id|user\s*id|appl(ication)?\s*(id|no)|ticket/i.test(k))?.[1] || data.exam_info?.user_id || '');
   const testDate = cleanCandidateVal(info['Test Date'] || info['Exam Date'] || info['Date of Exam'] || data.testDate || data.exam_info?.exam_date || '');
   const testTime = cleanCandidateVal(info['Test Time'] || info['Test Time and Shift'] || info['Exam Time'] || info['Shift'] || info['Shift Timing'] || data.testTime || data.exam_info?.exam_time || '');
   const testCenter = cleanCandidateVal(info['Test Centre Name'] || info['Test Center Name'] || info['Test Centre'] || info['Centre Name'] || info['Center Name'] || info['Venue'] || data.testCenter || '');
@@ -171,9 +171,9 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const rawBonus = score.bonus_questions ?? data.bonus_questions ?? data.score_summary?.bonus_questions ?? '';
   const bonusCount = (rawBonus !== '' && rawBonus !== null && rawBonus !== undefined && !isNaN(Number(rawBonus))) ? Number(rawBonus) : 0;
 
-  let correctCount = Number(score.correct_answers ?? data.correctCount ?? 0);
-  let wrongCount = Number(score.wrong_answers ?? data.wrongCount ?? 0);
-  let unattemptedCount = Number(score.unattempted ?? data.unattemptedCount ?? 0);
+  let correctCount = Number(score.correct_answers ?? score.correct ?? data.correct_answers ?? data.correct ?? data.correctCount ?? 0);
+  let wrongCount = Number(score.wrong_answers ?? score.wrong ?? data.wrong_answers ?? data.wrong ?? data.wrongCount ?? 0);
+  let unattemptedCount = Number(score.unattempted ?? data.unattempted ?? data.unattemptedCount ?? 0);
 
   if (correctCount === 0 && wrongCount === 0 && sections.length > 0) {
     sections.forEach(s => {

@@ -44,9 +44,34 @@ function isCbexamsHost(raw: string): boolean {
 function isValidSmartData(data: any): boolean {
   if (!data) return false;
   if (data.success === false) return false;
-  const totalQ = Number(data.score_summary?.total_questions ?? data.questions_summary?.length ?? 0);
-  const candName = data.candidateName || data.candidate_info?.['Candidate Name'] || data.candidate_info?.['Participant Name'] || data.candidate_info?.['Applicant Name'] || data.name;
-  if (totalQ === 0 && !candName) return false;
+  const totalQ = Number(
+    data.score_summary?.total_questions ??
+    data.score_summary?.totalQuestions ??
+    data.total_questions ??
+    data.totalQuestions ??
+    data.total ??
+    data.questions_summary?.length ??
+    data.questions?.length ??
+    (Array.isArray(data.sections) ? data.sections.reduce((acc: number, s: any) => acc + Number(s.total ?? s.total_questions ?? 0), 0) : 0) ??
+    0
+  );
+  const candName =
+    data.candidateName ||
+    data.candidate_name ||
+    data.CandidateName ||
+    data.candidate_info?.['Candidate Name'] ||
+    data.candidate_info?.["Candidate's Name"] ||
+    data.candidate_info?.['Participant Name'] ||
+    data.candidate_info?.['Applicant Name'] ||
+    data.candidate_info?.['Name'] ||
+    data.name ||
+    (data.candidate_info && typeof data.candidate_info === 'object' && Object.values(data.candidate_info).find((v: any) => typeof v === 'string' && v.trim().length > 0)) ||
+    '';
+  const hasQuestions = (Array.isArray(data.questions_summary) && data.questions_summary.length > 0) || (Array.isArray(data.questions) && data.questions.length > 0);
+  const hasSections = Array.isArray(data.sections) && data.sections.length > 0;
+  const hasSectionSummary = data.section_summary && typeof data.section_summary === 'object' && Object.keys(data.section_summary).length > 0;
+  const hasScore = data.score_summary || data.score || (data.correct_answers !== undefined && data.wrong_answers !== undefined);
+  if (totalQ === 0 && !candName && !hasQuestions && !hasSections && !hasSectionSummary && !hasScore) return false;
   return true;
 }
 
@@ -77,8 +102,9 @@ export async function processAnswerKeyAction(params: {
     : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
 
   let smartData: any = null;
+  let lastErrorMessage = '';
 
-  // 1. ⚡ Fast Parallel Multi-Server Race (No timeout cancellation for CBExams)
+  // 1. ⚡ Fast Parallel Multi-Server Race (Extended timeout for CBExams)
   const fetchPromises = targetEndpoints.map(async (endpoint) => {
     const fetchOptions: RequestInit = {
       method: 'GET',
@@ -89,14 +115,19 @@ export async function processAnswerKeyAction(params: {
       }
     };
     if (!isCbexams) {
-      fetchOptions.signal = AbortSignal.timeout(12000);
+      fetchOptions.signal = AbortSignal.timeout(15000);
+    } else {
+      fetchOptions.signal = AbortSignal.timeout(25000);
     }
     const res = await fetch(endpoint, fetchOptions);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json().catch(() => null);
     if (data && isValidSmartData(data)) {
       return data;
     }
+    if (data && (data.error || data.message)) {
+      lastErrorMessage = data.error || data.message;
+    }
+    if (!res.ok) throw new Error(lastErrorMessage || `HTTP ${res.status}`);
     throw new Error(data?.error || 'Invalid response structure');
   });
 
@@ -115,15 +146,18 @@ export async function processAnswerKeyAction(params: {
           }
         };
         if (!isCbexams) {
-          fetchOptions.signal = AbortSignal.timeout(10000);
+          fetchOptions.signal = AbortSignal.timeout(12000);
+        } else {
+          fetchOptions.signal = AbortSignal.timeout(20000);
         }
         const res = await fetch(endpoint, fetchOptions);
-        if (res.ok) {
-          const data = await res.json().catch(() => null);
-          if (data && isValidSmartData(data)) {
-            smartData = data;
-            break;
-          }
+        const data = await res.json().catch(() => null);
+        if (data && (data.error || data.message)) {
+          lastErrorMessage = data.error || data.message;
+        }
+        if (res.ok && data && isValidSmartData(data)) {
+          smartData = data;
+          break;
         }
       } catch (e) {}
     }
@@ -167,7 +201,7 @@ export async function processAnswerKeyAction(params: {
 
     return { 
       success: false, 
-      error: (smartData && (smartData.error || smartData.message)) || 'Failed to fetch scorecard. Please check if your response sheet link is active.' 
+      error: lastErrorMessage || (smartData && (smartData.error || smartData.message)) || 'Failed to fetch scorecard. Please check if your response sheet link is active.' 
     };
   }
 }

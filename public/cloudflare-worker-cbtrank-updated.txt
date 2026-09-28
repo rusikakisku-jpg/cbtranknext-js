@@ -1437,11 +1437,11 @@ export default {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(15000) : undefined
         });
-        if (digiRes.ok) {
+        if (digiRes) {
           const rawText = await digiRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: 200 });
+          return new Response(rawText, { headers: corsHeaders, status: digiRes.status });
         }
       } catch (err) {}
 
@@ -1481,11 +1481,11 @@ export default {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(20000) : undefined
         });
-        if (cbRes.ok) {
+        if (cbRes) {
           const rawText = await cbRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: 200 });
+          return new Response(rawText, { headers: corsHeaders, status: cbRes.status });
         }
       } catch (err) {}
 
