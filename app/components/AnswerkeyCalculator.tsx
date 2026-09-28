@@ -134,7 +134,8 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const testDate = cleanCandidateVal(info['Test Date'] || info['Exam Date'] || info['Date of Exam'] || data.testDate || data.exam_info?.exam_date || '');
   const testTime = cleanCandidateVal(info['Test Time'] || info['Test Time and Shift'] || info['Exam Time'] || info['Shift'] || info['Shift Timing'] || data.testTime || data.exam_info?.exam_time || '');
   const testCenter = cleanCandidateVal(info['Test Centre Name'] || info['Test Center Name'] || info['Test Centre'] || info['Centre Name'] || info['Center Name'] || info['Venue'] || data.testCenter || '');
-  const examName = cleanCandidateVal(info['Subject'] || info['Assessment Name'] || info['Post Name'] || info['Exam Name'] || info['Exam'] || data.header_banner_text || data.exam_info?.detected_exam_name || data.examName || '');
+  const rawExamName = info['Exam Level'] || info['Subject'] || info['Assessment Name'] || info['Post Name'] || info['Exam Name'] || info['Exam'] || data.header_banner_text || data.exam_info?.detected_exam_name || data.examName || '';
+  const examName = cleanCandidateVal(rawExamName).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
   const examId = cleanCandidateVal(data.exam_info?.exam_id || data.exam_id || '');
   const headerImgUrl = data.header_banner_img || data.header_image || data.headerImgUrl || data.logo || '';
   const headerBannerText = data.header_banner_text || data.headerBannerText || examName || '';
