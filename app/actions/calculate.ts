@@ -1,11 +1,24 @@
 'use server';
 
-const BACKEND_BASE = process.env.BACKEND_API_URL || 'https://api.cbtrank.com';
+const BACKEND_BASE = (process.env.BACKEND_API_URL || 'https://api.cbtrank.com').replace(/\/+$/, '');
 const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
+
+// ⚡ Secure Worker API Proxy Parser Endpoints (Parsed through Cloudflare Worker API)
+const DIGIALM_API_ENDPOINT = `${BACKEND_BASE}/digialm/?url=`;
+const CBEXAMS_API_ENDPOINT = `${BACKEND_BASE}/cbexams/?url=`;
+
+// Secondary fallback endpoints if primary API is under extreme load
 const PARSER_CLUSTER = [
+  process.env.PARSER_API_URL || DIGIALM_API_ENDPOINT,
+  `${BACKEND_BASE}/calculator_api/?url=`,
   'https://api.cbtrank.com/digialm/?url='
-];
-const CBEXAMS_PARSER = 'https://api.cbtrank.com/cbexams/?url=';
+].filter((url, index, self) => url && self.indexOf(url) === index);
+
+const CBEXAMS_PARSER_CLUSTER = [
+  process.env.CBEXAMS_PARSER_URL || CBEXAMS_API_ENDPOINT,
+  `${BACKEND_BASE}/calculator_api/?url=`,
+  'https://api.cbtrank.com/cbexams/?url='
+].filter((url, index, self) => url && self.indexOf(url) === index);
 
 function cleanAndNormalizeUrl(raw: string): string {
   let url = (raw || '').trim();
@@ -64,7 +77,7 @@ export async function processAnswerKeyAction(params: {
 
   const isCbexams = isCbexamsHost(urlVal);
   const targetEndpoints = isCbexams
-    ? [`${CBEXAMS_PARSER}${encodeURIComponent(urlVal)}`]
+    ? CBEXAMS_PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`)
     : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
 
   let smartData: any = null;
@@ -75,7 +88,8 @@ export async function processAnswerKeyAction(params: {
       method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-        'Accept': 'application/json, text/plain, */*'
+        'Accept': 'application/json, text/plain, */*',
+        'x-api-key': ADMIN_KEY,
       }
     };
     if (!isCbexams) {
@@ -100,7 +114,8 @@ export async function processAnswerKeyAction(params: {
           method: 'GET',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-            'Accept': 'application/json, text/plain, */*'
+            'Accept': 'application/json, text/plain, */*',
+            'x-api-key': ADMIN_KEY,
           }
         };
         if (!isCbexams) {

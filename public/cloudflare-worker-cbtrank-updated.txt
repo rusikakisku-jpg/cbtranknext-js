@@ -25,13 +25,46 @@
  *    - All existing public endpoints (/exams, /locations, /languages, /settings, /blogs, etc.) preserved without breaking any client.
  */
 
-// ⚙️ Configuration & Fallbacks (Can also be set in Cloudflare Worker Environment Variables)
-const DEFAULT_CF_ACCOUNT_ID = "38c7d789225e89652dd6bb111403db5d";
-const DEFAULT_CF_DATABASE_ID = "fd29c541-3fd2-4fa8-8dc1-19809ab907c3";
-const DEFAULT_CF_API_TOKEN = "cfut_umhNZGH5mokB88O6AHQVSURuP6AW48AIry4wVFaW74f7f9b6";
-const DEFAULT_ADMIN_SECRET = "cbtrank_admin_secret_key_2026"; // Set in Cloudflare Env as ADMIN_API_KEY or use header
+// ⚙️ Configuration & Fallbacks (Dynamically loaded from Cloudflare Worker Environment Variables / Bindings)
+// Configure in Cloudflare Dashboard or wrangler.toml:
+// - D1 Binding: "DB" (Native Binding - Fastest & Most Secure, zero tokens needed)
+// - Environment Secrets / Variables: ADMIN_API_KEY, CF_ACCOUNT_ID, CF_DATABASE_ID, CF_API_TOKEN, DIGIALM_API_URL, CBEXAMS_API_URL
+const DEFAULT_DIGIALM_API = "https://api.cbtrank.com/digialm/?url=";
+const DEFAULT_CBEXAMS_API = "https://api.cbtrank.com/cbexams/?url=";
 const CALCULATOR_VPS_PRIMARY = "https://api.cbtrank.com/digialm/";
 const CALCULATOR_RENDER_BACKUP = "https://api.cbtrank.com/digialm/";
+
+/**
+ * Helper: Smart Parser URL Builder
+ * Safely appends targetUrl to parser base URL without double query characters
+ */
+function buildParserUrl(baseUrl, targetUrl) {
+  if (!baseUrl) return '';
+  let base = baseUrl.trim();
+  if (base.includes('?url=')) {
+    return `${base}${encodeURIComponent(targetUrl)}`;
+  } else if (base.endsWith('=')) {
+    return `${base}${encodeURIComponent(targetUrl)}`;
+  } else if (base.includes('?')) {
+    return `${base}&url=${encodeURIComponent(targetUrl)}`;
+  } else {
+    return `${base}?url=${encodeURIComponent(targetUrl)}`;
+  }
+}
+
+/**
+ * Helper: Detect if URL is from CBExams Host
+ */
+function isCbexamsHost(raw) {
+  if (!raw) return false;
+  try {
+    const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw);
+    const host = (parsed.hostname || '').toLowerCase();
+    return host === 'cbexams.com' || host.endsWith('.cbexams.com');
+  } catch (e) {
+    return (raw || '').toLowerCase().includes('cbexams');
+  }
+}
 
 // Track auto-migration state across isolate lifecycle
 let isSchemaMigrated = false;
@@ -57,9 +90,9 @@ async function ensureDynamicSchema(env) {
   }
 
   // 2. Cloudflare D1 REST API Fallback
-  const accountId = (env && env.CF_ACCOUNT_ID) || DEFAULT_CF_ACCOUNT_ID;
-  const databaseId = (env && env.CF_DATABASE_ID) || DEFAULT_CF_DATABASE_ID;
-  const apiToken = (env && env.CF_API_TOKEN) || DEFAULT_CF_API_TOKEN;
+  const accountId = env && (env.CF_ACCOUNT_ID || env.ACCOUNT_ID);
+  const databaseId = env && (env.CF_DATABASE_ID || env.DATABASE_ID);
+  const apiToken = env && (env.CF_API_TOKEN || env.API_TOKEN);
 
   if (accountId && databaseId && apiToken) {
     try {
@@ -95,9 +128,9 @@ async function queryD1(env, sql) {
   }
 
   // 2. Cloudflare D1 REST API Fallback
-  const accountId = (env && env.CF_ACCOUNT_ID) || DEFAULT_CF_ACCOUNT_ID;
-  const databaseId = (env && env.CF_DATABASE_ID) || DEFAULT_CF_DATABASE_ID;
-  const apiToken = (env && env.CF_API_TOKEN) || DEFAULT_CF_API_TOKEN;
+  const accountId = env && (env.CF_ACCOUNT_ID || env.ACCOUNT_ID);
+  const databaseId = env && (env.CF_DATABASE_ID || env.DATABASE_ID);
+  const apiToken = env && (env.CF_API_TOKEN || env.API_TOKEN);
 
   try {
     const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
@@ -138,7 +171,11 @@ function sanitizeSql(str) {
  * Helper: Verify if incoming request is from authorized Admin or Server
  */
 function isAuthorizedAdmin(request, env, url) {
-  const adminSecret = (env && (env.ADMIN_API_KEY || env.API_SECRET)) || DEFAULT_ADMIN_SECRET;
+  const adminSecret = env && (env.ADMIN_API_KEY || env.API_SECRET || env.ADMIN_KEY);
+  if (!adminSecret) {
+    console.warn("Security Warning: ADMIN_API_KEY is not set in Cloudflare Worker environment variables.");
+    return false;
+  }
   const authHeader = request.headers.get("Authorization") || "";
   const apiKeyHeader = request.headers.get("x-api-key") || request.headers.get("x-admin-key") || request.headers.get("x-api-secret") || "";
   const queryKey = url.searchParams.get("admin_key") || url.searchParams.get("api_key") || url.searchParams.get("key") || "";
@@ -1309,9 +1346,9 @@ export default {
 
     // =========================================================================
     // 1️⃣1️⃣ ⚡ CALCULATOR API PROXY ENDPOINT (/calculator_api, /api/calculator_api)
-    // Tries Dedicated Fast VPS First (Instant Response) with Fallback to Render
+    // Smart auto-routing: Uses CBEXAMS_API_URL for CBExams, DIGIALM_API_URL for DigiALM/TCS
     // =========================================================================
-    if (pathname === '/calculator_api' || pathname === '/api/calculator_api') {
+    if (pathname === '/calculator_api' || pathname === '/calculator_api/' || pathname === '/api/calculator_api' || pathname === '/api/calculator_api/' || pathname.startsWith('/calculator_api')) {
       let targetAnswerKeyUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
       if (request.method === 'POST') {
         try {
@@ -1333,39 +1370,60 @@ export default {
         }
       } catch (e) {}
 
-      const primaryApi = (env && env.CALCULATOR_API_URL) || `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
-      const backupApi = `${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
+      const isCbexams = isCbexamsHost(targetAnswerKeyUrl);
+      let primaryApi = "";
+      let backupApi = "";
+
+      if (isCbexams) {
+        const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
+        primaryApi = buildParserUrl(cbexamsBase, targetAnswerKeyUrl);
+        backupApi = `${DEFAULT_CBEXAMS_API}${encodeURIComponent(targetAnswerKeyUrl)}`;
+      } else {
+        const digialmBase = (env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL || env.DIGIALM_URL)) || DEFAULT_DIGIALM_API;
+        primaryApi = buildParserUrl(digialmBase, targetAnswerKeyUrl);
+        backupApi = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
+      }
 
       let vpsRes = null;
       try {
-        // Try dedicated VPS API first (Fast, no cold start)
         vpsRes = await fetch(primaryApi, {
           method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(6000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(10000) : undefined
         });
       } catch (e) {
         vpsRes = null;
       }
 
-      // If primary VPS timed out or failed, seamlessly fallback to backup Render endpoint
+      // If primary parser timed out or failed, try backup
       if (!vpsRes || !vpsRes.ok) {
-        try {
-          vpsRes = await fetch(backupApi, {
-            method: "GET",
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-              "Accept": "application/json, text/plain, */*"
-            }
-          });
-        } catch (err) {
-          return new Response(JSON.stringify({
-            success: false,
-            error: `Failed to connect to Calculator APIs: ${err.message}`
-          }), { headers: corsHeaders, status: 502 });
+        if (backupApi && backupApi !== primaryApi) {
+          try {
+            vpsRes = await fetch(backupApi, {
+              method: "GET",
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*"
+              },
+              signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(8000) : undefined
+            });
+          } catch (err) {}
+        }
+
+        // Secondary backup for non-CBExams (Render instance)
+        if ((!vpsRes || !vpsRes.ok) && !isCbexams) {
+          try {
+            vpsRes = await fetch(`${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(targetAnswerKeyUrl)}`, {
+              method: "GET",
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*"
+              }
+            });
+          } catch (err2) {}
         }
       }
 
@@ -1375,15 +1433,16 @@ export default {
       } else {
         return new Response(JSON.stringify({
           success: false,
-          error: `Calculator API responded with status ${vpsRes ? vpsRes.status : 500}`
-        }), { headers: corsHeaders, status: vpsRes ? vpsRes.status : 500 });
+          error: `Calculator API responded with status ${vpsRes ? vpsRes.status : 502}`
+        }), { headers: corsHeaders, status: vpsRes ? vpsRes.status : 502 });
       }
     }
 
     // =========================================================================
-    // 1️⃣2️⃣ DIGIALM PROXY PARSER ENDPOINT (Legacy)
+    // 1️⃣2️⃣ DIGIALM PROXY PARSER ENDPOINT (/digialm, /api/digialm)
+    // Uses DIGIALM_API_URL dynamically from Cloudflare Environment Variables / Secrets
     // =========================================================================
-    if (pathname === '/digialm' || pathname === '/api/digialm') {
+    if (pathname === '/digialm' || pathname === '/digialm/' || pathname === '/api/digialm' || pathname === '/api/digialm/' || pathname.startsWith('/digialm')) {
       let legacyUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
       if (request.method === 'POST') {
         try {
@@ -1402,22 +1461,42 @@ export default {
         }
       } catch (e) {}
 
-      const ep = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(legacyUrl)}`;
+      const digialmBase = (env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL || env.DIGIALM_URL)) || DEFAULT_DIGIALM_API;
+      const ep = buildParserUrl(digialmBase, legacyUrl);
+
       try {
-        const vpsRes = await fetch(ep, {
+        const digiRes = await fetch(ep, {
+          method: "GET",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json, text/plain, */*"
+          },
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(10000) : undefined
+        });
+        if (digiRes.ok) {
+          const rawText = await digiRes.text();
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
+        }
+      } catch (err) {}
+
+      // Fallback to VPS
+      try {
+        const vpsEp = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(legacyUrl)}`;
+        const vpsRes = await fetch(vpsEp, {
           method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json"
-          }
+          },
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(8000) : undefined
         });
         if (vpsRes.ok) {
           const rawText = await vpsRes.text();
           return new Response(rawText, { headers: corsHeaders, status: 200 });
         }
-      } catch (err) {}
+      } catch (err2) {}
 
-      // Fallback
+      // Fallback to Render
       try {
         const backupEp = `${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(legacyUrl)}`;
         const backupRes = await fetch(backupEp, {
@@ -1433,12 +1512,59 @@ export default {
         }
       } catch (e) {}
 
-      return new Response(JSON.stringify({ success: false, error: "Server error or Invalid URL" }), { headers: corsHeaders, status: 500 });
+      return new Response(JSON.stringify({ success: false, error: "Server error connecting to DigiALM Parser" }), { headers: corsHeaders, status: 500 });
+    }
+
+    // =========================================================================
+    // 1️⃣2️⃣.5 ⚡ CBEXAMS PROXY PARSER ENDPOINT (/cbexams, /api/cbexams)
+    // Uses CBEXAMS_API_URL dynamically from Cloudflare Environment Variables / Secrets
+    // =========================================================================
+    if (pathname === '/cbexams' || pathname === '/cbexams/' || pathname === '/api/cbexams' || pathname === '/api/cbexams/' || pathname.startsWith('/cbexams')) {
+      let cbexamsUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
+      if (request.method === 'POST') {
+        try {
+          const body = await request.json();
+          if (body && body.url) cbexamsUrl = body.url.trim();
+        } catch (e) {}
+      }
+
+      if (!cbexamsUrl) {
+        return new Response(JSON.stringify({ success: false, error: "Please provide a valid CBExams URL parameter (?url=...)" }, null, 2), { headers: corsHeaders, status: 400 });
+      }
+
+      try {
+        if (cbexamsUrl.includes('%3A') || cbexamsUrl.includes('%2F')) {
+          cbexamsUrl = decodeURIComponent(cbexamsUrl);
+        }
+      } catch (e) {}
+
+      const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
+      const targetEp = buildParserUrl(cbexamsBase, cbexamsUrl);
+
+      try {
+        const cbRes = await fetch(targetEp, {
+          method: "GET",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json, text/plain, */*"
+          },
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
+        });
+        if (cbRes.ok) {
+          const rawText = await cbRes.text();
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
+        }
+      } catch (err) {}
+
+      return new Response(JSON.stringify({ success: false, error: "Server error connecting to CBExams Parser" }), { headers: corsHeaders, status: 500 });
     }
 
     // =========================================================================
     // 1️⃣3️⃣ 🌟 MASTER API DIRECTORY (Returned for root `/`, `/api`, `/endpoints`)
     // =========================================================================
+    const isDigialmConfigured = Boolean(env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL));
+    const isCbexamsConfigured = Boolean(env && env.CBEXAMS_API_URL);
+
     return new Response(JSON.stringify({
       status: "online",
       message: "🚀 CBT RANK Live Master Cloudflare API is fully operational & strictly secured",
@@ -1449,6 +1575,22 @@ export default {
         sql_injection_protection: "Enabled (All input parameters strictly sanitized)",
         admin_authorization: "Supported via Authorization Bearer header, x-api-key, or ?admin_key="
       },
+      runtime_parsers: {
+        digialm: {
+          configured_in_env: isDigialmConfigured,
+          status: isDigialmConfigured ? "Active (Custom Cloudflare DIGIALM_API_URL)" : "Active (Default Fallback Cluster)",
+          endpoint: `${url.origin}/digialm/?url=...`
+        },
+        cbexams: {
+          configured_in_env: isCbexamsConfigured,
+          status: isCbexamsConfigured ? "Active (Custom Cloudflare CBEXAMS_API_URL)" : "Active (Default Fallback Cluster)",
+          endpoint: `${url.origin}/cbexams/?url=...`
+        },
+        smart_calculator: {
+          status: "Active (Auto-Routes between CBExams & DigiALM)",
+          endpoint: `${url.origin}/calculator_api/?url=...`
+        }
+      },
       endpoints: {
         live_rank: {
           path: "/live_rank",
@@ -1457,10 +1599,10 @@ export default {
           example: `${url.origin}/live_rank?exam_id=100576&total_marks=85.5&category=ur&gender=male&sub_type=Electrical&exam_date=2026-08-15&exam_time=09:00+-+11:00`
         },
         calculator_api: {
-          path: "/calculator_api",
+          path: "/calculator_api/",
           method: "GET | POST",
           description: "Proxies directly to dedicated fast VPS API with seamless Render fallback to parse answer keys",
-          example: `${url.origin}/calculator_api?url=https://cdn3.digialm.com/...`
+          example: `${url.origin}/calculator_api/?url=https://cdn3.digialm.com/...`
         },
         exams: {
           path: "/exams",
@@ -1540,11 +1682,17 @@ export default {
           description: "Insert invalid answer key URLs with duplicate prevention. Public GET is strictly restricted.",
           example: `${url.origin}/invalid_answerkey_urls`
         },
-        digialm_legacy: {
-          path: "/digialm",
+        digialm: {
+          path: "/digialm/",
           method: "GET | POST",
-          description: "Legacy DigiALM parser proxy",
-          example: `${url.origin}/digialm?url=https://cdn.digialm.com/...`
+          description: "DigiALM / TCS iON parser proxy powered by DIGIALM_API_URL",
+          example: `${url.origin}/digialm/?url=https://cdn.digialm.com/...`
+        },
+        cbexams: {
+          path: "/cbexams/",
+          method: "GET | POST",
+          description: "CBExams parser proxy powered by CBEXAMS_API_URL",
+          example: `${url.origin}/cbexams/?url=https://cbexams.com/...`
         }
       }
     }, null, 2), { headers: corsHeaders, status: 200 });
