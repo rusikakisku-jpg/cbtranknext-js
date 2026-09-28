@@ -397,7 +397,6 @@ export default function AnswerkeyCalculator({
 
     try {
       let actionRes: any = null;
-      const htmlPayload = formData.ans_key_html && formData.ans_key_html.trim().length > 50 ? formData.ans_key_html.trim() : undefined;
       try {
         const apiRes = await fetch('/api/calculate', {
           method: 'POST',
@@ -407,8 +406,7 @@ export default function AnswerkeyCalculator({
             category,
             gender,
             state,
-            examSlug,
-            html: htmlPayload
+            examSlug
           })
         });
         if (apiRes.ok) {
@@ -422,8 +420,7 @@ export default function AnswerkeyCalculator({
           category,
           gender,
           state,
-          examSlug,
-          html: htmlPayload
+          examSlug
         });
       }
 
@@ -432,11 +429,7 @@ export default function AnswerkeyCalculator({
         setProgressStep(2); // Step 2: Parsing data
         parsedResult = normalizeSmartApiResponse(actionRes.data, urlVal);
       } else {
-        if (isCbexamsHost(urlVal)) {
-          setShowHtmlPaste(true);
-        }
-        const errNotice = (actionRes && actionRes.error) || 'Failed to fetch scorecard. Please check URL.';
-        showToast(errNotice);
+        showToast((actionRes && actionRes.error) || 'Failed to fetch scorecard. Please check URL.');
         setSubmitting(false);
         setBtnText('Calculate Marks & Rank');
         setProgressStep(0);

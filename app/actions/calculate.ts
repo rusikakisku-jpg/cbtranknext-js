@@ -81,7 +81,6 @@ export async function processAnswerKeyAction(params: {
   gender?: string;
   state?: string;
   examSlug?: string;
-  html?: string;
 }) {
   let urlVal = cleanAndNormalizeUrl(params.url);
   if (!urlVal || urlVal.length < 10) {
@@ -104,19 +103,16 @@ export async function processAnswerKeyAction(params: {
 
   let smartData: any = null;
   let lastErrorMessage = '';
-  const hasHtml = Boolean(params.html && params.html.trim().length > 50);
 
   // 1. ⚡ Fast Parallel Multi-Server Race (Extended timeout for CBExams)
   const fetchPromises = targetEndpoints.map(async (endpoint) => {
     const fetchOptions: RequestInit = {
-      method: (isCbexams && hasHtml) ? 'POST' : 'GET',
+      method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
         'Accept': 'application/json, text/plain, */*',
         'x-api-key': ADMIN_KEY,
-        ...((isCbexams && hasHtml) ? { 'Content-Type': 'application/json' } : {})
-      },
-      ...((isCbexams && hasHtml) ? { body: JSON.stringify({ url: urlVal, html: params.html!.trim() }) } : {})
+      }
     };
     if (!isCbexams) {
       fetchOptions.signal = AbortSignal.timeout(15000);
@@ -142,14 +138,12 @@ export async function processAnswerKeyAction(params: {
     for (const endpoint of targetEndpoints) {
       try {
         const fetchOptions: RequestInit = {
-          method: (isCbexams && hasHtml) ? 'POST' : 'GET',
+          method: 'GET',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
             'x-api-key': ADMIN_KEY,
-            ...((isCbexams && hasHtml) ? { 'Content-Type': 'application/json' } : {})
-          },
-          ...((isCbexams && hasHtml) ? { body: JSON.stringify({ url: urlVal, html: params.html!.trim() }) } : {})
+          }
         };
         if (!isCbexams) {
           fetchOptions.signal = AbortSignal.timeout(12000);
