@@ -69,6 +69,7 @@ function isValidSmartData(data: any): boolean {
     '';
   const hasQuestions = (Array.isArray(data.questions_summary) && data.questions_summary.length > 0) || (Array.isArray(data.questions) && data.questions.length > 0);
   const hasSections = Array.isArray(data.sections) && data.sections.length > 0;
+  const hasSectionSummary = Boolean(data.section_summary && typeof data.section_summary === 'object' && Object.keys(data.section_summary).length > 0);
   const hasValidScore = (data.score_summary && Number(data.score_summary.total_questions || data.score_summary.totalQuestions || 0) > 0) ||
                         (data.score && Number(data.score.total_questions || data.score.total || 0) > 0) ||
                         (typeof data.correct_answers === 'number' && typeof data.wrong_answers === 'number' && (data.correct_answers + data.wrong_answers > 0));
