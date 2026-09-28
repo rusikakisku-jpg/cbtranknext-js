@@ -1454,10 +1454,14 @@ export default {
     // =========================================================================
     if (pathname === '/cbexams' || pathname === '/cbexams/' || pathname === '/api/cbexams' || pathname === '/api/cbexams/' || pathname.startsWith('/cbexams')) {
       let cbexamsUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
+      let postPayload = null;
       if (request.method === 'POST') {
         try {
-          const body = await request.json();
-          if (body && body.url) cbexamsUrl = body.url.trim();
+          const body = await request.clone().json();
+          if (body && typeof body === 'object') {
+            postPayload = body;
+            if (body.url) cbexamsUrl = body.url.trim();
+          }
         } catch (e) {}
       }
 
@@ -1474,15 +1478,22 @@ export default {
       const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
       const targetEp = buildParserUrl(cbexamsBase, cbexamsUrl);
 
+      const hasHtml = Boolean(postPayload && postPayload.html && postPayload.html.length > 50);
+
       try {
-        const cbRes = await fetch(targetEp, {
-          method: "GET",
+        const fetchOptions = {
+          method: hasHtml ? "POST" : "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json, text/plain, */*"
+            "Accept": "application/json, text/plain, */*",
+            ...(hasHtml ? { "Content-Type": "application/json" } : {})
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(20000) : undefined
-        });
+          ...(hasHtml ? { body: JSON.stringify(postPayload) } : {}),
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(25000) : undefined
+        };
+
+        const fetchTarget = hasHtml ? cbexamsBase.split('?')[0] : targetEp;
+        const cbRes = await fetch(fetchTarget, fetchOptions);
         if (cbRes) {
           const rawText = await cbRes.text();
           return new Response(rawText, { headers: corsHeaders, status: cbRes.status });
