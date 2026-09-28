@@ -7,18 +7,14 @@ const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
 const DIGIALM_API_ENDPOINT = `${BACKEND_BASE}/digialm/?url=`;
 const CBEXAMS_API_ENDPOINT = `${BACKEND_BASE}/cbexams/?url=`;
 
-// Secondary fallback endpoints if primary API is under extreme load
+// Strictly use only the two dedicated Cloudflare Worker Proxy Parser Endpoints
 const PARSER_CLUSTER = [
-  process.env.PARSER_API_URL || DIGIALM_API_ENDPOINT,
-  `${BACKEND_BASE}/calculator_api/?url=`,
-  'https://api.cbtrank.com/digialm/?url='
-].filter((url, index, self) => url && self.indexOf(url) === index);
+  process.env.PARSER_API_URL || DIGIALM_API_ENDPOINT
+];
 
 const CBEXAMS_PARSER_CLUSTER = [
-  process.env.CBEXAMS_PARSER_URL || CBEXAMS_API_ENDPOINT,
-  `${BACKEND_BASE}/calculator_api/?url=`,
-  'https://api.cbtrank.com/cbexams/?url='
-].filter((url, index, self) => url && self.indexOf(url) === index);
+  process.env.CBEXAMS_PARSER_URL || CBEXAMS_API_ENDPOINT
+];
 
 function cleanAndNormalizeUrl(raw: string): string {
   let url = (raw || '').trim();
