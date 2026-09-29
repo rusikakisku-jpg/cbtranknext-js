@@ -73,15 +73,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter((b) => b && b.slug)
         .map((b) => {
           let postDate = todayDate;
-          if (b.date) {
-            const parsed = Date.parse(b.date);
+          const rawDate = b.updated_at || b.published_at || b.publish_date || b.date || b.created_at;
+          if (rawDate) {
+            const parsed = Date.parse(rawDate);
             if (!isNaN(parsed)) postDate = new Date(parsed);
           }
           return {
             url: `${baseUrl}/blog/${b.slug}`,
             lastModified: postDate,
-            changeFrequency: 'weekly' as const,
-            priority: 0.8,
+            changeFrequency: 'daily' as const,
+            priority: 0.9,
           };
         });
     }
@@ -104,37 +105,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/blog`,
       lastModified: todayDate,
       changeFrequency: 'daily' as const,
-      priority: 0.8,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/about-us`,
-      lastModified: new Date('2025-01-01T00:00:00.000Z'),
+      lastModified: todayDate,
       changeFrequency: 'monthly' as const,
-      priority: 0.5,
+      priority: 0.7,
     },
     {
       url: `${baseUrl}/contact-us`,
-      lastModified: new Date('2025-01-01T00:00:00.000Z'),
+      lastModified: todayDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: todayDate,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/terms-and-conditions`,
+      lastModified: todayDate,
       changeFrequency: 'monthly' as const,
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/privacy-policy`,
-      lastModified: new Date('2025-01-01T00:00:00.000Z'),
-      changeFrequency: 'monthly' as const,
-      priority: 0.3,
-    },
-    {
-      url: `${baseUrl}/terms-and-conditions`,
-      lastModified: new Date('2025-01-01T00:00:00.000Z'),
-      changeFrequency: 'monthly' as const,
-      priority: 0.3,
-    },
-    {
       url: `${baseUrl}/disclaimer`,
-      lastModified: new Date('2025-01-01T00:00:00.000Z'),
+      lastModified: todayDate,
       changeFrequency: 'monthly' as const,
-      priority: 0.3,
+      priority: 0.5,
     },
   ];
 
