@@ -89,17 +89,25 @@ export default function RankPage() {
       const savedRight = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
       const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
 
+      // Prioritize official marking scheme from API response (exam_info.marking_scheme_applied)
+      const apiAppliedRight = (result as any)?.exam_info?.marking_scheme_applied?.marks_right ?? (result as any)?.marks_right;
+      const apiAppliedWrong = (result as any)?.exam_info?.marking_scheme_applied?.marks_wrong ?? (result as any)?.marks_wrong;
+
       let currentRight = 1.0;
       let currentWrong = 0;
 
-      if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
+      if (apiAppliedRight !== undefined && apiAppliedRight !== null && apiAppliedRight !== '') {
+        currentRight = Number(apiAppliedRight);
+      } else if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
         currentRight = parseFloat(savedRight);
       } else if (form?.marks_right !== undefined && form?.marks_right !== null) {
         currentRight = Number(form.marks_right);
       }
       setRightVal(currentRight);
 
-      if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
+      if (apiAppliedWrong !== undefined && apiAppliedWrong !== null && apiAppliedWrong !== '') {
+        currentWrong = Number(apiAppliedWrong);
+      } else if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
         currentWrong = parseFloat(savedWrong);
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         currentWrong = Number(form.marks_wrong);
@@ -124,7 +132,16 @@ export default function RankPage() {
       if (tBonus === 0 && (result.bonusCount || result.rawBonusQuestions)) {
         tBonus = Number(result.bonusCount || result.rawBonusQuestions || 0);
       }
-      const rawScore = ((tRight + tBonus) * currentRight) - (tWrong * currentWrong);
+
+      // Prioritize marks_obtained from API response
+      let rawScore = 0;
+      if ((result as any).marks_obtained !== undefined && (result as any).marks_obtained !== null && !isNaN(Number((result as any).marks_obtained))) {
+        rawScore = Number((result as any).marks_obtained);
+      } else if ((result as any).raw_score !== undefined && (result as any).raw_score !== null && !isNaN(Number((result as any).raw_score))) {
+        rawScore = Number((result as any).raw_score);
+      } else {
+        rawScore = ((tRight + tBonus) * currentRight) - (tWrong * currentWrong);
+      }
 
       const authCommRow = result.infoRows?.find(r => /community|caste|category/i.test(r.label));
       const effCategory = (result as any).category || authCommRow?.value || form?.category || 'UR';

@@ -83,6 +83,10 @@ export async function processAnswerKeyAction(params: {
   gender?: string;
   state?: string;
   examSlug?: string;
+  marks_right?: number | string;
+  marks_wrong?: number | string;
+  marksRight?: number | string;
+  marksWrong?: number | string;
 }) {
   let urlVal = cleanAndNormalizeUrl(params.url);
   if (!urlVal || urlVal.length < 10) {
@@ -98,10 +102,20 @@ export async function processAnswerKeyAction(params: {
     return { success: false, error: 'Invalid or broken link. Please check your Answer Key URL and retry.' };
   }
 
+  const mr = params.marks_right ?? params.marksRight;
+  const mw = params.marks_wrong ?? params.marksWrong;
+  let marksQuery = '';
+  if (mr !== undefined && mr !== null && mr !== '') {
+    marksQuery += `&marks_right=${encodeURIComponent(mr)}`;
+  }
+  if (mw !== undefined && mw !== null && mw !== '') {
+    marksQuery += `&marks_wrong=${encodeURIComponent(mw)}`;
+  }
+
   const isCbexams = isCbexamsHost(urlVal);
   const targetEndpoints = isCbexams
-    ? CBEXAMS_PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`)
-    : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}`);
+    ? CBEXAMS_PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}${marksQuery}`)
+    : PARSER_CLUSTER.map(base => `${base}${encodeURIComponent(urlVal)}${marksQuery}`);
 
   let smartData: any = null;
   let lastErrorMessage = '';

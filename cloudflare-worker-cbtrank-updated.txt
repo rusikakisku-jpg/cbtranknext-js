@@ -1428,7 +1428,11 @@ export default {
       } catch (e) {}
 
       const digialmBase = (env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL || env.DIGIALM_URL)) || DEFAULT_DIGIALM_API;
-      const ep = buildParserUrl(digialmBase, legacyUrl);
+      let ep = buildParserUrl(digialmBase, legacyUrl);
+      const mrParam = url.searchParams.get('marks_right');
+      const mwParam = url.searchParams.get('marks_wrong');
+      if (mrParam) ep += `&marks_right=${encodeURIComponent(mrParam)}`;
+      if (mwParam) ep += `&marks_wrong=${encodeURIComponent(mwParam)}`;
 
       try {
         const digiRes = await fetch(ep, {
@@ -1476,7 +1480,11 @@ export default {
       } catch (e) {}
 
       const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
-      const targetEp = buildParserUrl(cbexamsBase, cbexamsUrl);
+      let targetEp = buildParserUrl(cbexamsBase, cbexamsUrl);
+      const mrParam = url.searchParams.get('marks_right');
+      const mwParam = url.searchParams.get('marks_wrong');
+      if (mrParam) targetEp += `&marks_right=${encodeURIComponent(mrParam)}`;
+      if (mwParam) targetEp += `&marks_wrong=${encodeURIComponent(mwParam)}`;
 
       const hasHtml = Boolean(postPayload && postPayload.html && postPayload.html.length > 50);
 

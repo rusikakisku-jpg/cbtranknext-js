@@ -102,6 +102,7 @@ interface ParseResult {
   bonusCount?: number;
   rawBonusQuestions?: string | number;
   unattemptedCount: number;
+  marks_obtained?: number;
   candidateName: string;
   rollNo: string;
   testDate: string;
@@ -109,10 +110,11 @@ interface ParseResult {
   testCenter: string;
   examName: string;
   examId?: string;
+  exam_info?: any;
   headerImgUrl: string;
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
-  sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number }>;
+  sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number; marks_obtained?: number }>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   questionsSummary?: Array<any>;
 }
@@ -142,7 +144,7 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
   const questionsSummary = data.questions_summary || data.questions || [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number }> = [];
+  const sections: Array<{ name: string; total: number; correct: number; wrong: number; bonus?: number; unattempted: number; marks_obtained?: number }> = [];
 
   // Parse section_summary object map or sections array
   if (typeof secSummary === 'object' && secSummary !== null && Object.keys(secSummary).length > 0) {
@@ -154,7 +156,10 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
         const unattempted = Number(secObj.unattempted ?? 0);
         const bonus = Number(secObj.bonus_questions ?? secObj.bonus ?? 0);
         const total = Number(secObj.total_questions ?? secObj.total ?? (correct + wrong + unattempted));
-        sections.push({ name: secName, total, correct, wrong, bonus, unattempted });
+        const secMarks = (secObj.marks_obtained !== undefined && secObj.marks_obtained !== null && !isNaN(Number(secObj.marks_obtained)))
+          ? Number(secObj.marks_obtained)
+          : (secObj.score !== undefined && !isNaN(Number(secObj.score)) ? Number(secObj.score) : undefined);
+        sections.push({ name: secName, total, correct, wrong, bonus, unattempted, marks_obtained: secMarks });
       }
     });
   } else if (Array.isArray(data.sections)) {
@@ -166,6 +171,9 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
       wrong: Number(sec.wrong ?? sec.wrong_answers ?? 0),
       bonus: Number(sec.bonus ?? sec.bonus_questions ?? 0),
       unattempted: Number(sec.unattempted ?? 0),
+      marks_obtained: (sec.marks_obtained !== undefined && sec.marks_obtained !== null && !isNaN(Number(sec.marks_obtained)))
+        ? Number(sec.marks_obtained)
+        : (sec.score !== undefined && !isNaN(Number(sec.score)) ? Number(sec.score) : undefined)
     })));
   }
 
@@ -183,6 +191,18 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
       unattemptedCount += s.unattempted;
     });
   }
+
+  const apiTotalMarks = score.marks_obtained ??
+    data.marks_obtained ??
+    score.total_marks_obtained ??
+    score.score ??
+    score.total_marks ??
+    data.score ??
+    data.total_marks;
+
+  const marks_obtained = (apiTotalMarks !== undefined && apiTotalMarks !== null && !isNaN(Number(apiTotalMarks)))
+    ? Number(apiTotalMarks)
+    : undefined;
 
   const infoRows: Array<{ label: string; value: string }> = [];
   if (typeof info === 'object' && info !== null && Object.keys(info).length > 0) {
@@ -208,6 +228,7 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
     bonusCount,
     rawBonusQuestions: rawBonus,
     unattemptedCount,
+    marks_obtained,
     candidateName,
     rollNo,
     testDate,
@@ -215,6 +236,7 @@ function normalizeSmartApiResponse(data: any, baseUrl: string): ParseResult {
     testCenter,
     examName,
     examId,
+    exam_info: data.exam_info,
     headerImgUrl,
     headerBannerText,
     infoRows,
@@ -397,6 +419,15 @@ export default function AnswerkeyCalculator({
 
     try {
       let actionRes: any = null;
+      const savedRightBefore = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
+      const savedWrongBefore = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
+      const marksRightParam = (savedRightBefore !== null && savedRightBefore !== undefined && savedRightBefore !== '')
+        ? savedRightBefore
+        : (initialMarksRight !== undefined && initialMarksRight !== null && initialMarksRight !== '' ? String(initialMarksRight) : '');
+      const marksWrongParam = (savedWrongBefore !== null && savedWrongBefore !== undefined && savedWrongBefore !== '')
+        ? savedWrongBefore
+        : (initialMarksWrong !== undefined && initialMarksWrong !== null && initialMarksWrong !== '' ? String(initialMarksWrong) : '');
+
       try {
         const apiRes = await fetch('/api/calculate', {
           method: 'POST',
@@ -406,7 +437,9 @@ export default function AnswerkeyCalculator({
             category,
             gender,
             state,
-            examSlug
+            examSlug,
+            marks_right: marksRightParam,
+            marks_wrong: marksWrongParam,
           })
         });
         if (apiRes.ok) {
@@ -420,7 +453,9 @@ export default function AnswerkeyCalculator({
           category,
           gender,
           state,
-          examSlug
+          examSlug,
+          marks_right: marksRightParam,
+          marks_wrong: marksWrongParam,
         });
       }
 
@@ -464,15 +499,31 @@ export default function AnswerkeyCalculator({
 
     const savedRight = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
     const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
-    const marksRight = (savedRight !== null && savedRight !== undefined && savedRight !== '')
-      ? parseFloat(savedRight)
-      : (apiRight !== undefined && apiRight !== null ? Number(apiRight) : (initialMarksRight !== undefined && initialMarksRight !== null && initialMarksRight !== '' ? Number(initialMarksRight) : 1));
-    const marksWrong = (savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
-      ? parseFloat(savedWrong)
-      : (apiWrong !== undefined && apiWrong !== null ? Number(apiWrong) : (initialMarksWrong !== undefined && initialMarksWrong !== null && initialMarksWrong !== '' ? Number(initialMarksWrong) : 0));
 
+    // Prioritize official marking scheme from exam_info.marking_scheme_applied
+    const marksRight = (apiRight !== undefined && apiRight !== null && apiRight !== '')
+      ? Number(apiRight)
+      : ((savedRight !== null && savedRight !== undefined && savedRight !== '')
+        ? parseFloat(savedRight)
+        : (initialMarksRight !== undefined && initialMarksRight !== null && initialMarksRight !== '' ? Number(initialMarksRight) : 1));
+
+    const marksWrong = (apiWrong !== undefined && apiWrong !== null && apiWrong !== '')
+      ? Number(apiWrong)
+      : ((savedWrong !== null && savedWrong !== undefined && savedWrong !== '')
+        ? parseFloat(savedWrong)
+        : (initialMarksWrong !== undefined && initialMarksWrong !== null && initialMarksWrong !== '' ? Number(initialMarksWrong) : 0));
+
+    // Save official applied marking scheme so result page displays it
+    try {
+      cbtSaveString(STORAGE_KEYS.MARKS_RIGHT, String(marksRight));
+      cbtSaveString(STORAGE_KEYS.MARKS_WRONG, String(marksWrong));
+    } catch (e) {}
+
+    // Score obtained: Directly use "marks_obtained" from API response!
     const effectiveBonus = parsedResult.bonusCount || 0;
-    const rawScoreVal = ((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong);
+    const rawScoreVal = (parsedResult.marks_obtained !== undefined && parsedResult.marks_obtained !== null && !isNaN(Number(parsedResult.marks_obtained)))
+      ? Number(parsedResult.marks_obtained)
+      : (((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong));
 
     // Safely log candidate ranking data into user_ranks table asynchronously
     try {
@@ -573,7 +624,12 @@ export default function AnswerkeyCalculator({
       });
       cbtSave(STORAGE_KEYS.RESULT_DATA, {
         ...parsedResult,
+        marks_obtained: rawScoreVal,
+        raw_score: rawScoreVal,
         examId: examPaperCode,
+        exam_info: rawSmartData?.exam_info || parsedResult.exam_info,
+        marks_right: marksRight,
+        marks_wrong: marksWrong,
         gender: gender || '',
         category: category || '',
         overallRank, shiftRank, categoryRank, genderRank,

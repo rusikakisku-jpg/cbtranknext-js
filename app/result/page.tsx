@@ -170,6 +170,7 @@ interface Section {
   wrong: number;
   bonus?: number;
   unattempted: number;
+  marks_obtained?: number;
 }
 
 interface QuestionItem {
@@ -203,6 +204,7 @@ interface ResultData {
   testCenter: string;
   examName: string;
   examId?: string;
+  exam_info?: any;
   headerImgUrl: string;
   headerBannerText?: string;
   infoRows: Array<{ label: string; value: string }>;
@@ -213,6 +215,10 @@ interface ResultData {
   bonusCount?: number;
   rawBonusQuestions?: string | number;
   unattemptedCount: number;
+  marks_obtained?: number;
+  raw_score?: number;
+  marks_right?: number;
+  marks_wrong?: number;
   overallRank: number;
   shiftRank: number;
   categoryRank: number;
@@ -300,7 +306,13 @@ export default function ResultPage() {
       const savedRight = cbtGetString(STORAGE_KEYS.MARKS_RIGHT);
       const savedWrong = cbtGetString(STORAGE_KEYS.MARKS_WRONG);
 
-      if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
+      // Prioritize official marking scheme from API response (exam_info.marking_scheme_applied)
+      const apiAppliedRight = (result as any)?.exam_info?.marking_scheme_applied?.marks_right ?? (result as any)?.marks_right;
+      const apiAppliedWrong = (result as any)?.exam_info?.marking_scheme_applied?.marks_wrong ?? (result as any)?.marks_wrong;
+
+      if (apiAppliedRight !== undefined && apiAppliedRight !== null && apiAppliedRight !== '') {
+        setRightVal(Number(apiAppliedRight));
+      } else if (savedRight !== null && savedRight !== undefined && savedRight !== '') {
         setRightVal(parseFloat(savedRight));
       } else if (form?.marks_right !== undefined && form?.marks_right !== null) {
         setRightVal(Number(form.marks_right));
@@ -309,7 +321,9 @@ export default function ResultPage() {
       }
 
       let effectiveWrong = 0;
-      if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
+      if (apiAppliedWrong !== undefined && apiAppliedWrong !== null && apiAppliedWrong !== '') {
+        effectiveWrong = Number(apiAppliedWrong);
+      } else if (savedWrong !== null && savedWrong !== undefined && savedWrong !== '') {
         effectiveWrong = parseFloat(savedWrong);
       } else if (form?.marks_wrong !== undefined && form?.marks_wrong !== null) {
         effectiveWrong = Number(form.marks_wrong);
@@ -358,18 +372,48 @@ export default function ResultPage() {
 
   function calcMarks(sections: Section[], rightMark: number, wrongMark: number, bonusCount = 0) {
     let totalRight = 0, totalWrong = 0, totalUnattempted = 0, totalSecBonus = 0;
+    let sumSectionMarks = 0;
+    let hasSectionMarks = false;
+
     sections.forEach(s => {
       totalRight += s.correct;
       totalWrong += s.wrong;
       totalSecBonus += (s.bonus || 0);
       totalUnattempted += s.unattempted;
+      if (s.marks_obtained !== undefined && s.marks_obtained !== null && !isNaN(Number(s.marks_obtained))) {
+        sumSectionMarks += Number(s.marks_obtained);
+        hasSectionMarks = true;
+      }
     });
     const effectiveBonus = totalSecBonus > 0 ? totalSecBonus : bonusCount;
-    const raw = ((totalRight + effectiveBonus) * rightMark) - (totalWrong * wrongMark);
+
+    // Prioritize direct marks_obtained from API
+    const appliedRight = Number((resultData as any)?.exam_info?.marking_scheme_applied?.marks_right ?? resultData?.marks_right);
+    const appliedWrong = Number((resultData as any)?.exam_info?.marking_scheme_applied?.marks_wrong ?? resultData?.marks_wrong);
+    const isCustomMarking = (!isNaN(appliedRight) && rightMark !== appliedRight) || (!isNaN(appliedWrong) && wrongMark !== appliedWrong);
+
+    let raw = 0;
+    if (!isCustomMarking && resultData?.marks_obtained !== undefined && resultData?.marks_obtained !== null && !isNaN(Number(resultData.marks_obtained))) {
+      raw = Number(resultData.marks_obtained);
+    } else if (!isCustomMarking && resultData?.raw_score !== undefined && resultData?.raw_score !== null && !isNaN(Number(resultData.raw_score))) {
+      raw = Number(resultData.raw_score);
+    } else if (!isCustomMarking && hasSectionMarks && sumSectionMarks !== 0) {
+      raw = sumSectionMarks;
+    } else {
+      raw = ((totalRight + effectiveBonus) * rightMark) - (totalWrong * wrongMark);
+    }
+
     return { raw, totalRight, totalWrong, totalUnattempted, totalBonus: effectiveBonus };
   }
 
   function calcSectionMarks(sec: Section, rightMark: number, wrongMark: number, defaultBonus = 0) {
+    const appliedRight = Number((resultData as any)?.exam_info?.marking_scheme_applied?.marks_right ?? resultData?.marks_right);
+    const appliedWrong = Number((resultData as any)?.exam_info?.marking_scheme_applied?.marks_wrong ?? resultData?.marks_wrong);
+    const isCustomMarking = (!isNaN(appliedRight) && rightMark !== appliedRight) || (!isNaN(appliedWrong) && wrongMark !== appliedWrong);
+
+    if (!isCustomMarking && sec.marks_obtained !== undefined && sec.marks_obtained !== null && !isNaN(Number(sec.marks_obtained))) {
+      return Number(sec.marks_obtained);
+    }
     const b = (sec.bonus !== undefined && sec.bonus !== null && sec.bonus > 0) ? sec.bonus : defaultBonus;
     return ((sec.correct + b) * rightMark) - (sec.wrong * wrongMark);
   }
