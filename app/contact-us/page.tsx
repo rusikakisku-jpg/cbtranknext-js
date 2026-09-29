@@ -57,7 +57,43 @@ export default function ContactPage() {
         <div className="content-card">
           <div>
             <h1 className="page-title">Contact Us</h1>
-            <p className="email-info">Email: <strong>contact.cbtrank@gmail.com</strong></p>
+            <p className="lead-text" style={{ margin: '8px 0 16px 0' }}>
+              Have questions, feedback, or found a discrepancy in an exam answer key? Our support team is here to assist competitive exam aspirants and educators.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '12px',
+              marginBottom: '20px',
+            }}
+          >
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0044cc', textTransform: 'uppercase' }}>Direct Support Email</span>
+              <p style={{ fontSize: '0.92rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0' }}>
+                <a href="mailto:contact.cbtrank@gmail.com" style={{ color: '#0044cc', textDecoration: 'none' }}>
+                  contact.cbtrank@gmail.com
+                </a>
+              </p>
+            </div>
+
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>Working Hours</span>
+              <p style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0' }}>
+                Mon – Sat: 9:30 AM – 6:30 PM IST
+              </p>
+            </div>
+
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase' }}>Community &amp; Alerts</span>
+              <p style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a', margin: '4px 0 0' }}>
+                <a href="https://t.me/cbtrank" target="_blank" rel="noopener noreferrer" style={{ color: '#0088cc', textDecoration: 'none' }}>
+                  Telegram: @cbtrank
+                </a>
+              </p>
+            </div>
           </div>
 
           {(status === 'success' || status === 'error') && (
@@ -99,7 +135,7 @@ export default function ContactPage() {
                 id="message"
                 className="form-textarea-static"
                 required
-                placeholder="Type your message or query here..."
+                placeholder="Type your message, query, or exam feedback here..."
                 value={formState.message}
                 onChange={e => setFormState(prev => ({ ...prev, message: e.target.value }))}
               />
@@ -117,7 +153,7 @@ export default function ContactPage() {
             </button>
 
             <p style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center' }}>
-              We will contact you within 24 hours.
+              Typical response turnaround time is within 24 business hours.
             </p>
           </form>
         </div>
