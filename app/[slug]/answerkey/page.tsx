@@ -203,41 +203,47 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
             showUniversalCta={false}
           />
         }
-      />
-
-      {/* Dynamic Exam Overview & Marking Scheme Details */}
-      <div style={{ maxWidth: '860px', margin: '24px auto 0', padding: '0 16px' }}>
-        <div
-          style={{
-            background: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '16px',
-            padding: '24px',
-            boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <span style={{ fontSize: '1.2rem' }}>📋</span>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              {examTitle} - {hasCustomDescription ? 'Exam Pattern & Details' : 'Marking Scheme & Details'}
-            </h2>
-          </div>
-
-          {hasCustomDescription ? (
-            <div className="exam-custom-description-wrapper">
-              {isHtml ? (
-                <div
-                  className="exam-custom-description"
-                  dangerouslySetInnerHTML={{ __html: exam.description! }}
-                />
-              ) : (
-                <div className="exam-custom-description text-plain">
-                  {exam.description}
-                </div>
-              )}
+        bottomContent={
+          hasCustomDescription ? (
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)',
+              }}
+            >
+              <div className="exam-custom-description-wrapper">
+                {isHtml ? (
+                  <div
+                    className="exam-custom-description"
+                    dangerouslySetInnerHTML={{ __html: exam.description! }}
+                  />
+                ) : (
+                  <div className="exam-custom-description text-plain">
+                    {exam.description}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
-            <>
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.03)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '1.2rem' }}>📋</span>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  {examTitle} - Marking Scheme &amp; Details
+                </h2>
+              </div>
+
               <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.6, margin: '0 0 16px 0' }}>
                 Use this automated rank predictor tool to evaluate your performance in the {examTitle}. The score evaluation strictly adheres to official recruitment notification guidelines.
               </p>
@@ -266,10 +272,10 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
                   <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>TCS iON / DigiALM</p>
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            </div>
+          )
+        }
+      />
 
       <ExamFaqSection formattedTitle={examTitle} faqs={faqs} />
     </>

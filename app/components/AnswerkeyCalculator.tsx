@@ -271,6 +271,7 @@ interface AnswerkeyCalculatorProps {
   initialLocationType?: string;
   initialLocations?: string[] | string;
   hasCustomDescription?: boolean;
+  bottomContent?: React.ReactNode;
 }
 
 export default function AnswerkeyCalculator({
@@ -282,6 +283,7 @@ export default function AnswerkeyCalculator({
   initialLocationType,
   initialLocations,
   hasCustomDescription = false,
+  bottomContent,
 }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
@@ -675,9 +677,11 @@ export default function AnswerkeyCalculator({
 
         {/* Main Calculator Area (with optional Desktop Sidebar) */}
         <div className={sidebar ? "calculator-layout-wrapper" : ""}>
-          {/* Calculator Card */}
-          <div className="calculator-card">
-            <div className="top-accent-bar"></div>
+          {/* Left Column: Calculator Card + Optional Bottom Content */}
+          <div className="calculator-left-col">
+            {/* Calculator Card */}
+            <div className="calculator-card">
+              <div className="top-accent-bar"></div>
 
           <div className="banner-header">
             <div className="badge-pill">
@@ -876,6 +880,12 @@ export default function AnswerkeyCalculator({
             </form>
           </div>
         </div>
+
+        {bottomContent && (
+          <div className="calculator-bottom-content">
+            {bottomContent}
+          </div>
+        )}
       </div>
 
         {sidebar && (
@@ -886,7 +896,7 @@ export default function AnswerkeyCalculator({
       </div>
 
         {/* Rich SEO & Informational Content Cards (Shown on universal /answerkey or when exam description is blank) */}
-        {(!examSlug || !hasCustomDescription) && (
+        {!examSlug && (
         <div className="details-wrapper" style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
           
           {/* Card 1: Hero Welcome & Overview */}
@@ -1151,6 +1161,7 @@ export default function AnswerkeyCalculator({
           </div>
         </div>
       )}
+      </div>
     </main>
   );
 }
