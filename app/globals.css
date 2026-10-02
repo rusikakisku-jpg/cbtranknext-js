@@ -4493,3 +4493,30 @@ footer {
   background: #f1f5f9;
 }
 
+/* Custom Description Accordion FAQ Matching ExamFaqSection */
+.exam-custom-description details summary::-webkit-details-marker {
+  display: none;
+}
+
+.exam-custom-description details summary {
+  list-style: none;
+}
+
+.exam-custom-description details[open] {
+  border-color: #3b82f6 !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08) !important;
+}
+
+.exam-custom-description details[open] summary .faq-toggle-icon {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  transform: rotate(180deg);
+}
+
+.exam-custom-description details[open] summary .cbtrank-faq-num-pill {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
