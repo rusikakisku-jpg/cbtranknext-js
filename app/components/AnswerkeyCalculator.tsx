@@ -546,7 +546,22 @@ export default function AnswerkeyCalculator({
         location: state || '',
         gender: gender || '',
         category: category || '',
-        domain: domainHost
+        domain: domainHost,
+        marking_source: rawSmartData?.exam_info?.marking_source || (domainHost.includes('cbexams') ? 'cbexams' : 'digialm'),
+        section_summary: rawSmartData?.section_summary 
+          ? JSON.stringify(rawSmartData.section_summary) 
+          : (parsedResult.sections && parsedResult.sections.length > 0 ? JSON.stringify(parsedResult.sections) : '{}'),
+        questions_summary: rawSmartData?.questions_summary 
+          ? JSON.stringify(rawSmartData.questions_summary) 
+          : (parsedResult.questionsSummary && parsedResult.questionsSummary.length > 0 ? JSON.stringify(parsedResult.questionsSummary) : '[]'),
+        marking_scheme_applied: rawSmartData?.exam_info?.marking_scheme_applied 
+          ? JSON.stringify(rawSmartData.exam_info.marking_scheme_applied) 
+          : JSON.stringify({ marks_right: marksRight, marks_wrong: marksWrong }),
+        candidate_info: rawSmartData?.candidate_info 
+          ? JSON.stringify(rawSmartData.candidate_info) 
+          : (parsedResult.infoRows && parsedResult.infoRows.length > 0 ? JSON.stringify(parsedResult.infoRows) : '{}'),
+        header_banner_img: rawSmartData?.header_banner_img || parsedResult.headerImgUrl || '',
+        header_banner_text: rawSmartData?.header_banner_text || parsedResult.headerBannerText || ''
       };
 
       try {

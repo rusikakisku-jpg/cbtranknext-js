@@ -14,13 +14,14 @@
  * 4. 🛡️ SQL Injection Sanitization: All parameters sanitized with strict SQL string cleaning.
  * 5. ⚡ Seamless Submissions & Smart Upsert:
  *    - POST /user_ranks supports dynamic parameters: sub_type (Trade/Branch/Paper) & custom_data (JSON object with extra parameters like CCAA, NAC %, etc.).
+ *    - ➕ 7 New Dedicated Columns: marking_source, section_summary, questions_summary, marking_scheme_applied, candidate_info, header_banner_img, header_banner_text.
  *    - Prevents overwriting candidates across different exams.
  *    - Prevents NaN total_marks crashes.
  * 6. 🛠️ Self-Healing Auto-Migration:
- *    - Automatically checks and adds missing columns (sub_type, custom_data on user_ranks, custom_fields on exams) in Cloudflare D1.
+ *    - Automatically checks and adds missing columns (sub_type, custom_data, marking_source, section_summary, questions_summary, marking_scheme_applied, candidate_info, header_banner_img, header_banner_text on user_ranks, custom_fields on exams, views on blogs) in Cloudflare D1.
  * 7. 🗄️ Native Cloudflare D1 (env.DB) + REST API Fallback 100% preserved.
  * 8. 🚀 Lightning Fast Proxy:
- *    - /calculator_api routes directly to dedicated parser endpoints (/digialm and /cbexams).
+ *    - /calculator_api tries the ultra-fast dedicated VPS (http://62.171.188.100/api_v7.php) first with automatic fallback to Render.
  * 9. 🌐 Exact 100% Backward Compatibility:
  *    - All existing public endpoints (/exams, /locations, /languages, /settings, /blogs, etc.) preserved without breaking any client.
  */
@@ -29,8 +30,10 @@
 // Configure in Cloudflare Dashboard or wrangler.toml:
 // - D1 Binding: "DB" (Native Binding - Fastest & Most Secure, zero tokens needed)
 // - Environment Secrets / Variables: ADMIN_API_KEY, CF_ACCOUNT_ID, CF_DATABASE_ID, CF_API_TOKEN, DIGIALM_API_URL, CBEXAMS_API_URL
-const DEFAULT_DIGIALM_API = "https://api.cbtrank.com/digialm/?url=";
-const DEFAULT_CBEXAMS_API = "https://api.cbtrank.com/cbexams/?url=";
+const DEFAULT_DIGIALM_API = "https://digialm1.cbtrank.online/api/v12/calculate?url=";
+const DEFAULT_CBEXAMS_API = "https://cbexams.quickgift.in/?url=";
+const CALCULATOR_VPS_PRIMARY = "http://62.171.188.100/api_v7.php";
+const CALCULATOR_RENDER_BACKUP = "https://test-gpdi.onrender.com/api_v7.php";
 
 /**
  * Helper: Smart Parser URL Builder
@@ -69,7 +72,8 @@ let isSchemaMigrated = false;
 
 /**
  * Self-Healing Auto-Migration:
- * Ensures sub_type, custom_data exist in user_ranks and custom_fields exists in exams
+ * Ensures sub_type, custom_data, and all 7 new columns exist in user_ranks,
+ * custom_fields exists in exams, and views exists in blogs
  */
 async function ensureDynamicSchema(env) {
   if (isSchemaMigrated) return;
@@ -80,6 +84,13 @@ async function ensureDynamicSchema(env) {
     try {
       try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN marking_source TEXT DEFAULT ''").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN section_summary TEXT DEFAULT '{}'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN questions_summary TEXT DEFAULT '[]'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN marking_scheme_applied TEXT DEFAULT '{}'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN candidate_info TEXT DEFAULT '{}'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN header_banner_img TEXT DEFAULT ''").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN header_banner_text TEXT DEFAULT ''").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]'").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0").run(); } catch (e) {}
       isSchemaMigrated = true;
@@ -95,15 +106,26 @@ async function ensureDynamicSchema(env) {
   if (accountId && databaseId && apiToken) {
     try {
       const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
+      const migrationSql = `
+        ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT '';
+        ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}';
+        ALTER TABLE user_ranks ADD COLUMN marking_source TEXT DEFAULT '';
+        ALTER TABLE user_ranks ADD COLUMN section_summary TEXT DEFAULT '{}';
+        ALTER TABLE user_ranks ADD COLUMN questions_summary TEXT DEFAULT '[]';
+        ALTER TABLE user_ranks ADD COLUMN marking_scheme_applied TEXT DEFAULT '{}';
+        ALTER TABLE user_ranks ADD COLUMN candidate_info TEXT DEFAULT '{}';
+        ALTER TABLE user_ranks ADD COLUMN header_banner_img TEXT DEFAULT '';
+        ALTER TABLE user_ranks ADD COLUMN header_banner_text TEXT DEFAULT '';
+        ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]';
+        ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0;
+      `;
       await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${apiToken}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ 
-          sql: "ALTER TABLE user_ranks ADD COLUMN sub_type TEXT DEFAULT ''; ALTER TABLE user_ranks ADD COLUMN custom_data TEXT DEFAULT '{}'; ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]'; ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0;" 
-        })
+        body: JSON.stringify({ sql: migrationSql })
       });
       isSchemaMigrated = true;
     } catch (e) {}
@@ -1035,6 +1057,33 @@ export default {
           // 🎯 Dynamic Branch/Trade/Paper and Custom Dynamic Parameters
           const subType = sanitizeSql((body.sub_type || body.subType || body.branch || body.trade || body.paper || '').toString().trim());
 
+          // ➕ 7 NEW DEDICATED COLUMNS EXTRACTION & STRICT SANITIZATION
+          const markingSource = sanitizeSql(body.marking_source || (body.exam_info && body.exam_info.marking_source) || '');
+
+          let sectionSummary = '{}';
+          if (body.section_summary !== undefined && body.section_summary !== null && body.section_summary !== '') {
+            sectionSummary = sanitizeSql(typeof body.section_summary === 'object' ? JSON.stringify(body.section_summary) : String(body.section_summary).trim());
+          }
+
+          let questionsSummary = '[]';
+          if (body.questions_summary !== undefined && body.questions_summary !== null && body.questions_summary !== '') {
+            questionsSummary = sanitizeSql(typeof body.questions_summary === 'object' ? JSON.stringify(body.questions_summary) : String(body.questions_summary).trim());
+          }
+
+          let markingSchemeApplied = '{}';
+          const rawMarkingScheme = body.marking_scheme_applied || (body.exam_info && body.exam_info.marking_scheme_applied);
+          if (rawMarkingScheme !== undefined && rawMarkingScheme !== null && rawMarkingScheme !== '') {
+            markingSchemeApplied = sanitizeSql(typeof rawMarkingScheme === 'object' ? JSON.stringify(rawMarkingScheme) : String(rawMarkingScheme).trim());
+          }
+
+          let candidateInfo = '{}';
+          if (body.candidate_info !== undefined && body.candidate_info !== null && body.candidate_info !== '') {
+            candidateInfo = sanitizeSql(typeof body.candidate_info === 'object' ? JSON.stringify(body.candidate_info) : String(body.candidate_info).trim());
+          }
+
+          const headerBannerImg = sanitizeSql(body.header_banner_img || '');
+          const headerBannerText = sanitizeSql(body.header_banner_text || '');
+
           let customData = '';
           if (body.custom_data !== undefined && body.custom_data !== null) {
             if (typeof body.custom_data === 'object') {
@@ -1049,7 +1098,9 @@ export default {
             'user_id', 'userId', 'url', 'exam_slug', 'slug', 'paper_language', 'paper_lang',
             'url_hash', 'total_marks', 'marks', 'exam_date', 'date', 'exam_time', 'time',
             'exam_id', 'id', 'location', 'gender', 'category', 'domain', 'sub_type', 'subType',
-            'branch', 'trade', 'paper', 'custom_data', 'customData'
+            'branch', 'trade', 'paper', 'custom_data', 'customData',
+            'marking_source', 'section_summary', 'questions_summary', 'marking_scheme_applied',
+            'candidate_info', 'header_banner_img', 'header_banner_text', 'exam_info', 'score_summary'
           ]);
           const extraFields = {};
           for (const [k, v] of Object.entries(body)) {
@@ -1096,12 +1147,19 @@ export default {
             if (domain) updateClause += `, domain = '${domain}'`;
             if (subType) updateClause += `, sub_type = '${subType}'`;
             if (customData) updateClause += `, custom_data = '${customData}'`;
+            if (markingSource) updateClause += `, marking_source = '${markingSource}'`;
+            if (sectionSummary) updateClause += `, section_summary = '${sectionSummary}'`;
+            if (questionsSummary) updateClause += `, questions_summary = '${questionsSummary}'`;
+            if (markingSchemeApplied) updateClause += `, marking_scheme_applied = '${markingSchemeApplied}'`;
+            if (candidateInfo) updateClause += `, candidate_info = '${candidateInfo}'`;
+            if (headerBannerImg) updateClause += `, header_banner_img = '${headerBannerImg}'`;
+            if (headerBannerText) updateClause += `, header_banner_text = '${headerBannerText}'`;
 
             try {
               const updateSql = `UPDATE user_ranks SET ${updateClause} WHERE ${whereCondition}`;
               await queryD1(env, updateSql);
             } catch (uErr) {
-              // Legacy update fallback if sub_type or custom_data column is missing
+              // Legacy update fallback if some new columns are missing
               let legacyUpdateClause = `url = '${userUrl}', total_marks = ${totalMarks}, updated_at = '${createdAt}'`;
               if (paperLang) legacyUpdateClause += `, paper_language = '${paperLang}'`;
               if (examDate) legacyUpdateClause += `, exam_date = '${examDate}'`;
@@ -1125,24 +1183,47 @@ export default {
             }), { headers: corsHeaders, status: 200 });
 
           } else {
-            // ➕ INSERT brand new candidate record
+            // ➕ INSERT brand new candidate record with all 7 new columns
             try {
               const insertSql = `
                 INSERT INTO user_ranks 
-                (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, sub_type, custom_data, created_at, updated_at)
+                (
+                  user_id, url, exam_slug, paper_language, url_hash, total_marks,
+                  exam_date, exam_time, exam_id, location, gender, category, domain,
+                  sub_type, custom_data, created_at, updated_at,
+                  marking_source, section_summary, questions_summary,
+                  marking_scheme_applied, candidate_info, header_banner_img, header_banner_text
+                )
                 VALUES 
-                ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${subType}', '${customData}', '${createdAt}', '${createdAt}')
+                (
+                  '${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks},
+                  '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}',
+                  '${subType}', '${customData}', '${createdAt}', '${createdAt}',
+                  '${markingSource}', '${sectionSummary}', '${questionsSummary}',
+                  '${markingSchemeApplied}', '${candidateInfo}', '${headerBannerImg}', '${headerBannerText}'
+                )
               `;
               await queryD1(env, insertSql);
             } catch (iErr) {
-              // Legacy insert fallback if sub_type or custom_data column is missing
-              const legacyInsertSql = `
-                INSERT INTO user_ranks 
-                (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, created_at, updated_at)
-                VALUES 
-                ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${createdAt}', '${createdAt}')
-              `;
-              await queryD1(env, legacyInsertSql);
+              // Fallback 1: Without 7 new columns
+              try {
+                const fallbackInsertSql = `
+                  INSERT INTO user_ranks 
+                  (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, sub_type, custom_data, created_at, updated_at)
+                  VALUES 
+                  ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${subType}', '${customData}', '${createdAt}', '${createdAt}')
+                `;
+                await queryD1(env, fallbackInsertSql);
+              } catch (fErr) {
+                // Fallback 2: Legacy original table schema
+                const ancientInsertSql = `
+                  INSERT INTO user_ranks 
+                  (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, created_at, updated_at)
+                  VALUES 
+                  ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${createdAt}', '${createdAt}')
+                `;
+                await queryD1(env, ancientInsertSql);
+              }
             }
 
             return new Response(JSON.stringify({
@@ -1369,38 +1450,70 @@ export default {
       } catch (e) {}
 
       const isCbexams = isCbexamsHost(targetAnswerKeyUrl);
-      let targetApi = "";
+      let primaryApi = "";
+      let backupApi = "";
 
       if (isCbexams) {
         const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
-        targetApi = buildParserUrl(cbexamsBase, targetAnswerKeyUrl);
+        primaryApi = buildParserUrl(cbexamsBase, targetAnswerKeyUrl);
+        backupApi = `${DEFAULT_CBEXAMS_API}${encodeURIComponent(targetAnswerKeyUrl)}`;
       } else {
         const digialmBase = (env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL || env.DIGIALM_URL)) || DEFAULT_DIGIALM_API;
-        targetApi = buildParserUrl(digialmBase, targetAnswerKeyUrl);
+        primaryApi = buildParserUrl(digialmBase, targetAnswerKeyUrl);
+        backupApi = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(targetAnswerKeyUrl)}`;
       }
 
-      let parserRes = null;
+      let vpsRes = null;
       try {
-        parserRes = await fetch(targetApi, {
+        vpsRes = await fetch(primaryApi, {
           method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(10000) : undefined
         });
       } catch (e) {
-        parserRes = null;
+        vpsRes = null;
       }
 
-      if (parserRes && parserRes.ok) {
-        const rawText = await parserRes.text();
+      // If primary parser timed out or failed, try backup
+      if (!vpsRes || !vpsRes.ok) {
+        if (backupApi && backupApi !== primaryApi) {
+          try {
+            vpsRes = await fetch(backupApi, {
+              method: "GET",
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*"
+              },
+              signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(8000) : undefined
+            });
+          } catch (err) {}
+        }
+
+        // Secondary backup for non-CBExams (Render instance)
+        if ((!vpsRes || !vpsRes.ok) && !isCbexams) {
+          try {
+            vpsRes = await fetch(`${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(targetAnswerKeyUrl)}`, {
+              method: "GET",
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+                "Accept": "application/json, text/plain, */*"
+              }
+            });
+          } catch (err2) {}
+        }
+      }
+
+      if (vpsRes && vpsRes.ok) {
+        const rawText = await vpsRes.text();
         return new Response(rawText, { headers: corsHeaders, status: 200 });
       } else {
         return new Response(JSON.stringify({
           success: false,
-          error: "Invalid or broken link. Please check your Answer Key URL and retry."
-        }), { headers: corsHeaders, status: parserRes ? parserRes.status : 502 });
+          error: `Calculator API responded with status ${vpsRes ? vpsRes.status : 502}`
+        }), { headers: corsHeaders, status: vpsRes ? vpsRes.status : 502 });
       }
     }
 
@@ -1418,7 +1531,7 @@ export default {
       }
 
       if (!legacyUrl) {
-        return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }, null, 2), { headers: corsHeaders, status: 400 });
+        return new Response(JSON.stringify({ success: false, error: "Please provide a valid Answer Key URL parameter (?url=...)" }, null, 2), { headers: corsHeaders, status: 400 });
       }
 
       try {
@@ -1428,11 +1541,7 @@ export default {
       } catch (e) {}
 
       const digialmBase = (env && (env.DIGIALM_API_URL || env.CALCULATOR_API_URL || env.DIGIALM_URL)) || DEFAULT_DIGIALM_API;
-      let ep = buildParserUrl(digialmBase, legacyUrl);
-      const mrParam = url.searchParams.get('marks_right');
-      const mwParam = url.searchParams.get('marks_wrong');
-      if (mrParam) ep += `&marks_right=${encodeURIComponent(mrParam)}`;
-      if (mwParam) ep += `&marks_wrong=${encodeURIComponent(mwParam)}`;
+      const ep = buildParserUrl(digialmBase, legacyUrl);
 
       try {
         const digiRes = await fetch(ep, {
@@ -1441,15 +1550,48 @@ export default {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json, text/plain, */*"
           },
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(15000) : undefined
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(10000) : undefined
         });
-        if (digiRes) {
+        if (digiRes.ok) {
           const rawText = await digiRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: digiRes.status });
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
         }
       } catch (err) {}
 
-      return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }), { headers: corsHeaders, status: 500 });
+      // Fallback to VPS
+      try {
+        const vpsEp = `${CALCULATOR_VPS_PRIMARY}?url=${encodeURIComponent(legacyUrl)}`;
+        const vpsRes = await fetch(vpsEp, {
+          method: "GET",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json"
+          },
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(8000) : undefined
+        });
+        if (vpsRes.ok) {
+          const rawText = await vpsRes.text();
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
+        }
+      } catch (err2) {}
+
+      // Fallback to Render
+      try {
+        const backupEp = `${CALCULATOR_RENDER_BACKUP}?url=${encodeURIComponent(legacyUrl)}`;
+        const backupRes = await fetch(backupEp, {
+          method: "GET",
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "application/json"
+          }
+        });
+        if (backupRes.ok) {
+          const rawText = await backupRes.text();
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
+        }
+      } catch (e) {}
+
+      return new Response(JSON.stringify({ success: false, error: "Server error connecting to DigiALM Parser" }), { headers: corsHeaders, status: 500 });
     }
 
     // =========================================================================
@@ -1458,19 +1600,15 @@ export default {
     // =========================================================================
     if (pathname === '/cbexams' || pathname === '/cbexams/' || pathname === '/api/cbexams' || pathname === '/api/cbexams/' || pathname.startsWith('/cbexams')) {
       let cbexamsUrl = url.searchParams.get('url') ? url.searchParams.get('url').trim() : '';
-      let postPayload = null;
       if (request.method === 'POST') {
         try {
-          const body = await request.clone().json();
-          if (body && typeof body === 'object') {
-            postPayload = body;
-            if (body.url) cbexamsUrl = body.url.trim();
-          }
+          const body = await request.json();
+          if (body && body.url) cbexamsUrl = body.url.trim();
         } catch (e) {}
       }
 
       if (!cbexamsUrl) {
-        return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }, null, 2), { headers: corsHeaders, status: 400 });
+        return new Response(JSON.stringify({ success: false, error: "Please provide a valid CBExams URL parameter (?url=...)" }, null, 2), { headers: corsHeaders, status: 400 });
       }
 
       try {
@@ -1480,35 +1618,24 @@ export default {
       } catch (e) {}
 
       const cbexamsBase = (env && (env.CBEXAMS_API_URL || env.CBEXAMS_URL)) || DEFAULT_CBEXAMS_API;
-      let targetEp = buildParserUrl(cbexamsBase, cbexamsUrl);
-      const mrParam = url.searchParams.get('marks_right');
-      const mwParam = url.searchParams.get('marks_wrong');
-      if (mrParam) targetEp += `&marks_right=${encodeURIComponent(mrParam)}`;
-      if (mwParam) targetEp += `&marks_wrong=${encodeURIComponent(mwParam)}`;
-
-      const hasHtml = Boolean(postPayload && postPayload.html && postPayload.html.length > 50);
+      const targetEp = buildParserUrl(cbexamsBase, cbexamsUrl);
 
       try {
-        const fetchOptions = {
-          method: hasHtml ? "POST" : "GET",
+        const cbRes = await fetch(targetEp, {
+          method: "GET",
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "application/json, text/plain, */*",
-            ...(hasHtml ? { "Content-Type": "application/json" } : {})
+            "Accept": "application/json, text/plain, */*"
           },
-          ...(hasHtml ? { body: JSON.stringify(postPayload) } : {}),
-          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(25000) : undefined
-        };
-
-        const fetchTarget = hasHtml ? cbexamsBase.split('?')[0] : targetEp;
-        const cbRes = await fetch(fetchTarget, fetchOptions);
-        if (cbRes) {
+          signal: (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) ? AbortSignal.timeout(12000) : undefined
+        });
+        if (cbRes.ok) {
           const rawText = await cbRes.text();
-          return new Response(rawText, { headers: corsHeaders, status: cbRes.status });
+          return new Response(rawText, { headers: corsHeaders, status: 200 });
         }
       } catch (err) {}
 
-      return new Response(JSON.stringify({ success: false, error: "Invalid or broken link. Please check your Answer Key URL and retry." }), { headers: corsHeaders, status: 500 });
+      return new Response(JSON.stringify({ success: false, error: "Server error connecting to CBExams Parser" }), { headers: corsHeaders, status: 500 });
     }
 
     // =========================================================================
@@ -1553,7 +1680,7 @@ export default {
         calculator_api: {
           path: "/calculator_api/",
           method: "GET | POST",
-          description: "Smart proxy that automatically routes to DigiALM or CBExams parser based on URL",
+          description: "Proxies directly to dedicated fast VPS API with seamless Render fallback to parse answer keys",
           example: `${url.origin}/calculator_api/?url=https://cdn3.digialm.com/...`
         },
         exams: {
