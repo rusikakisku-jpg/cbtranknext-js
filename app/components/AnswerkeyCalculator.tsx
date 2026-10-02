@@ -1151,7 +1151,6 @@ export default function AnswerkeyCalculator({
           </div>
         </div>
       )}
-      </div>
     </main>
   );
 }
