@@ -573,6 +573,7 @@ export default function AnswerkeyCalculator({
           : JSON.stringify({ marks_right: marksRight, marks_wrong: marksWrong }),
         candidate_info: rawSmartData?.candidate_info 
           ? JSON.stringify(rawSmartData.candidate_info) 
+          : (parsedResult.infoRows && parsedResult.infoRows.length > 0 ? JSON.stringify(parsedResult.infoRows) : '{}'),
         header_banner_img: (rawSmartData?.header_banner_img_url && typeof rawSmartData.header_banner_img_url === 'string' && !rawSmartData.header_banner_img_url.startsWith('data:image'))
           ? rawSmartData.header_banner_img_url
           : ((rawSmartData?.header_banner_img && typeof rawSmartData.header_banner_img === 'string' && !rawSmartData.header_banner_img.startsWith('data:image'))
