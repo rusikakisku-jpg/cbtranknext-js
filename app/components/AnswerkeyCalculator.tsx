@@ -536,6 +536,7 @@ export default function AnswerkeyCalculator({
       : (((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong));
 
     // Safely log candidate ranking data into user_ranks table asynchronously
+    try {
       let clientQsStr = '[]';
       if (rawSmartData?.questions_summary) {
         clientQsStr = typeof rawSmartData.questions_summary === 'object'
