@@ -1062,6 +1062,16 @@ footer {
   margin-top: 20px;
 }
 
+.calculator-left-col .cbtrank-faq-section {
+  max-width: 100% !important;
+  margin: 24px 0 0 0 !important;
+  padding: 0 !important;
+}
+
+.calculator-left-col .details-wrapper {
+  width: 100%;
+}
+
 @media (max-width: 991px) {
   .calculator-layout-wrapper {
     display: flex;

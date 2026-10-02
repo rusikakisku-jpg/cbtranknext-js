@@ -105,8 +105,8 @@ export default function AnswerkeyPage() {
             showUniversalCta={false}
           />
         }
+        faqContent={<ExamFaqSection formattedTitle="CBT Exams" faqs={UNIVERSAL_FAQS} />}
       />
-      <ExamFaqSection formattedTitle="CBT Exams" faqs={UNIVERSAL_FAQS} />
     </>
   );
 }

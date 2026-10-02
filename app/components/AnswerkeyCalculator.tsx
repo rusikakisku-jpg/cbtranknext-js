@@ -272,6 +272,7 @@ interface AnswerkeyCalculatorProps {
   initialLocations?: string[] | string;
   hasCustomDescription?: boolean;
   bottomContent?: React.ReactNode;
+  faqContent?: React.ReactNode;
 }
 
 export default function AnswerkeyCalculator({
@@ -284,6 +285,7 @@ export default function AnswerkeyCalculator({
   initialLocations,
   hasCustomDescription = false,
   bottomContent,
+  faqContent,
 }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
@@ -886,18 +888,11 @@ export default function AnswerkeyCalculator({
             {bottomContent}
           </div>
         )}
-      </div>
 
-        {sidebar && (
-          <aside className="calculator-sidebar">
-            {sidebar}
-          </aside>
-        )}
-      </div>
-
-        {/* Rich SEO & Informational Content Cards (Shown on universal /answerkey or when exam description is blank) */}
+        {/* Rich SEO & Informational Content Cards (Shown on universal /answerkey on the left side) */}
         {!examSlug && (
-        <div className="details-wrapper" style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+          <>
+            <div className="details-wrapper" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
           
           {/* Card 1: Hero Welcome & Overview */}
           <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
@@ -1160,8 +1155,18 @@ export default function AnswerkeyCalculator({
             </p>
           </div>
         </div>
-      )}
-      </div>
-    </main>
+        {faqContent}
+      </>
+    )}
+  </div>
+
+  {sidebar && (
+    <aside className="calculator-sidebar">
+      {sidebar}
+    </aside>
+  )}
+</div>
+</div>
+</main>
   );
 }
