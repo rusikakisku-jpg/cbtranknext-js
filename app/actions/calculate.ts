@@ -87,6 +87,11 @@ export async function processAnswerKeyAction(params: {
   marks_wrong?: number | string;
   marksRight?: number | string;
   marksWrong?: number | string;
+  paper_language?: string;
+  sub_type?: string;
+  trade?: string;
+  branch?: string;
+  [key: string]: any;
 }) {
   let urlVal = cleanAndNormalizeUrl(params.url);
   if (!urlVal || urlVal.length < 10) {
@@ -195,12 +200,56 @@ export async function processAnswerKeyAction(params: {
       } catch (e) {}
     }
 
-    // Await logging to D1 with secret admin key
+    // 1. Await logging to valid_answerkey_urls with secret admin key
     try {
       await fetch(`${BACKEND_BASE}/valid_answerkey_urls`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
         body: JSON.stringify({ url: urlVal })
+      });
+    } catch (e) {}
+
+    // 2. Direct Server-Side Logging to user_ranks table (Guaranteed persistence, zero client drops)
+    try {
+      const examPaperCode = smartData?.exam_info?.exam_id || '';
+      const testExamDate = smartData?.exam_info?.exam_date || '';
+      const testExamTime = smartData?.exam_info?.exam_time || '';
+      const userRoll = smartData?.exam_info?.user_id || smartData?.candidate_info?.['Participant ID'] || smartData?.candidate_info?.['Roll No'] || '';
+      const rawScoreVal = (smartData?.score_summary?.marks_obtained !== undefined && smartData?.score_summary?.marks_obtained !== null && !isNaN(Number(smartData?.score_summary?.marks_obtained)))
+        ? Number(smartData.score_summary.marks_obtained)
+        : 0;
+
+      let domainHost = '';
+      try { domainHost = new URL(urlVal).hostname; } catch (e) {}
+
+      const serverRankPayload = {
+        user_id: userRoll,
+        url: urlVal,
+        exam_slug: params.examSlug || 'general',
+        paper_language: params.paper_language || 'English',
+        url_hash: '',
+        total_marks: rawScoreVal,
+        exam_date: testExamDate,
+        exam_time: testExamTime,
+        exam_id: examPaperCode,
+        location: params.state || '',
+        gender: params.gender || '',
+        category: params.category || '',
+        domain: domainHost,
+        sub_type: params.sub_type || params.trade || params.branch || '',
+        marking_source: smartData?.exam_info?.marking_source || (domainHost.includes('cbexams') ? 'cbexams' : 'digialm'),
+        section_summary: smartData?.section_summary ? (typeof smartData.section_summary === 'object' ? JSON.stringify(smartData.section_summary) : String(smartData.section_summary)) : '{}',
+        questions_summary: smartData?.questions_summary ? (typeof smartData.questions_summary === 'object' ? JSON.stringify(smartData.questions_summary) : String(smartData.questions_summary)) : '[]',
+        marking_scheme_applied: smartData?.exam_info?.marking_scheme_applied ? (typeof smartData.exam_info.marking_scheme_applied === 'object' ? JSON.stringify(smartData.exam_info.marking_scheme_applied) : String(smartData.exam_info.marking_scheme_applied)) : '{}',
+        candidate_info: smartData?.candidate_info ? (typeof smartData.candidate_info === 'object' ? JSON.stringify(smartData.candidate_info) : String(smartData.candidate_info)) : '{}',
+        header_banner_img: (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) ? rawBannerImg : '',
+        header_banner_text: smartData?.header_banner_text || ''
+      };
+
+      await fetch(`${BACKEND_BASE}/user_ranks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ADMIN_KEY },
+        body: JSON.stringify(serverRankPayload)
       });
     } catch (e) {}
 

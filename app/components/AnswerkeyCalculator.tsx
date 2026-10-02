@@ -446,6 +446,8 @@ export default function AnswerkeyCalculator({
             examSlug,
             marks_right: marksRightParam,
             marks_wrong: marksWrongParam,
+            paper_language: formData.paper_language || 'English',
+            sub_type: (formData as any).sub_type || (formData as any).trade || (formData as any).branch || '',
           })
         });
         if (apiRes.ok) {
@@ -462,6 +464,8 @@ export default function AnswerkeyCalculator({
           examSlug,
           marks_right: marksRightParam,
           marks_wrong: marksWrongParam,
+          paper_language: formData.paper_language || 'English',
+          sub_type: (formData as any).sub_type || (formData as any).trade || (formData as any).branch || '',
         });
       }
 
@@ -560,7 +564,9 @@ export default function AnswerkeyCalculator({
         candidate_info: rawSmartData?.candidate_info 
           ? JSON.stringify(rawSmartData.candidate_info) 
           : (parsedResult.infoRows && parsedResult.infoRows.length > 0 ? JSON.stringify(parsedResult.infoRows) : '{}'),
-        header_banner_img: rawSmartData?.header_banner_img || parsedResult.headerImgUrl || '',
+        header_banner_img: (rawSmartData?.header_banner_img && typeof rawSmartData.header_banner_img === 'string' && !rawSmartData.header_banner_img.startsWith('data:image'))
+          ? rawSmartData.header_banner_img
+          : (parsedResult.headerImgUrl && !parsedResult.headerImgUrl.startsWith('data:image') ? parsedResult.headerImgUrl : ''),
         header_banner_text: rawSmartData?.header_banner_text || parsedResult.headerBannerText || ''
       };
 
@@ -568,7 +574,6 @@ export default function AnswerkeyCalculator({
         await fetch('/api/log-rank', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          keepalive: true,
           body: JSON.stringify(rankPayload)
         });
       } catch (err) {

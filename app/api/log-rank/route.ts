@@ -1,13 +1,24 @@
 export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-import { logUserRankAction } from '../../actions/calculate';
+
+const BACKEND_BASE = (process.env.BACKEND_API_URL || 'https://api.cbtrank.com').replace(/\/+$/, '');
+const ADMIN_KEY = process.env.ADMIN_API_KEY || 'cbtrank_admin_secret_key_2026';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const result = await logUserRankAction(body);
-    return NextResponse.json(result, {
+    const res = await fetch(`${BACKEND_BASE}/user_ranks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ADMIN_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({ success: res.ok }));
+    return NextResponse.json(data, {
+      status: res.status,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json',
