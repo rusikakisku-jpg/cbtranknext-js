@@ -536,7 +536,18 @@ export default function AnswerkeyCalculator({
       : (((parsedResult.correctCount + effectiveBonus) * marksRight) - (parsedResult.wrongCount * marksWrong));
 
     // Safely log candidate ranking data into user_ranks table asynchronously
-    try {
+      let clientQsStr = '[]';
+      if (rawSmartData?.questions_summary) {
+        clientQsStr = typeof rawSmartData.questions_summary === 'object'
+          ? JSON.stringify(rawSmartData.questions_summary)
+          : String(rawSmartData.questions_summary);
+      } else if (parsedResult.questionsSummary && parsedResult.questionsSummary.length > 0) {
+        clientQsStr = JSON.stringify(parsedResult.questionsSummary);
+      }
+      if (clientQsStr.length > 700000) {
+        clientQsStr = clientQsStr.replace(/data:image\/[^;]+;base64,[^"'>]+/g, '[inline-image]');
+      }
+
       const rankPayload = {
         user_id: userRoll,
         url: urlVal,
@@ -555,9 +566,7 @@ export default function AnswerkeyCalculator({
         section_summary: rawSmartData?.section_summary 
           ? JSON.stringify(rawSmartData.section_summary) 
           : (parsedResult.sections && parsedResult.sections.length > 0 ? JSON.stringify(parsedResult.sections) : '{}'),
-        questions_summary: rawSmartData?.questions_summary 
-          ? JSON.stringify(rawSmartData.questions_summary) 
-          : (parsedResult.questionsSummary && parsedResult.questionsSummary.length > 0 ? JSON.stringify(parsedResult.questionsSummary) : '[]'),
+        questions_summary: clientQsStr,
         marking_scheme_applied: rawSmartData?.exam_info?.marking_scheme_applied 
           ? JSON.stringify(rawSmartData.exam_info.marking_scheme_applied) 
           : JSON.stringify({ marks_right: marksRight, marks_wrong: marksWrong }),

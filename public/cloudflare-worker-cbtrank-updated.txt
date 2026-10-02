@@ -134,16 +134,25 @@ async function ensureDynamicSchema(env) {
 
 /**
  * Helper: Query Cloudflare D1 Database (Native Binding First, REST API Fallback)
+ * Supports parameterized prepared statements (bind) to bypass the 100KB statement limit
  */
-async function queryD1(env, sql) {
+async function queryD1(env, sql, params = []) {
   // 1. Native Cloudflare D1 Binding (Fastest & Most Secure)
   if (env && env.DB) {
     try {
-      const res = await env.DB.prepare(sql).all();
+      let stmt = env.DB.prepare(sql);
+      if (params && Array.isArray(params) && params.length > 0) {
+        stmt = stmt.bind(...params);
+      }
+      const res = await stmt.all();
       if (res && res.results) return res.results;
       if (res) return res;
     } catch (e) {
       console.error("D1 Native Query Error:", e);
+      const hasRest = env && (env.CF_ACCOUNT_ID || env.ACCOUNT_ID) && (env.CF_DATABASE_ID || env.DATABASE_ID) && (env.CF_API_TOKEN || env.API_TOKEN);
+      if (!hasRest) {
+        throw e;
+      }
     }
   }
 
@@ -152,25 +161,28 @@ async function queryD1(env, sql) {
   const databaseId = env && (env.CF_DATABASE_ID || env.DATABASE_ID);
   const apiToken = env && (env.CF_API_TOKEN || env.API_TOKEN);
 
-  try {
-    const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ sql: sql })
-    });
-    if (response.ok) {
-      const jsonRes = await response.json();
-      if (jsonRes && jsonRes.result && jsonRes.result[0]) {
-        if (jsonRes.result[0].results) return jsonRes.result[0].results;
-        return jsonRes.result[0];
+  if (accountId && databaseId && apiToken) {
+    try {
+      const apiUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/d1/database/${databaseId}/query`;
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ sql: sql, params: params || [] })
+      });
+      if (response.ok) {
+        const jsonRes = await response.json();
+        if (jsonRes && jsonRes.result && jsonRes.result[0]) {
+          if (jsonRes.result[0].results) return jsonRes.result[0].results;
+          return jsonRes.result[0];
+        }
       }
+    } catch (e) {
+      console.error("D1 REST Fallback Error:", e);
+      throw e;
     }
-  } catch (e) {
-    console.error("D1 REST Fallback Error:", e);
   }
 
   return [];
@@ -1118,60 +1130,80 @@ export default {
 
           // 🔍 SMART CHECK: Isolate record by Roll Number (user_id) + Exam ID/Slug to prevent overwriting attempts of different exams
           let checkSql = "";
-          let whereCondition = "";
+          let checkParams = [];
+          let whereClause = "";
+          let whereParams = [];
           if (userId && (examId || (examSlug && examSlug !== 'general'))) {
-            const examFilter = examId ? `(exam_id = '${examId}' OR exam_slug = '${examSlug}')` : `exam_slug = '${examSlug}'`;
-            checkSql = `SELECT user_id FROM user_ranks WHERE user_id = '${userId}' AND ${examFilter} LIMIT 1`;
-            whereCondition = `user_id = '${userId}' AND ${examFilter}`;
+            if (examId) {
+              checkSql = "SELECT user_id FROM user_ranks WHERE user_id = ? AND (exam_id = ? OR exam_slug = ?) LIMIT 1";
+              checkParams = [userId, examId, examSlug];
+              whereClause = "user_id = ? AND (exam_id = ? OR exam_slug = ?)";
+              whereParams = [userId, examId, examSlug];
+            } else {
+              checkSql = "SELECT user_id FROM user_ranks WHERE user_id = ? AND exam_slug = ? LIMIT 1";
+              checkParams = [userId, examSlug];
+              whereClause = "user_id = ? AND exam_slug = ?";
+              whereParams = [userId, examSlug];
+            }
           } else if (userId) {
-            checkSql = `SELECT user_id FROM user_ranks WHERE user_id = '${userId}' LIMIT 1`;
-            whereCondition = `user_id = '${userId}'`;
+            checkSql = "SELECT user_id FROM user_ranks WHERE user_id = ? LIMIT 1";
+            checkParams = [userId];
+            whereClause = "user_id = ?";
+            whereParams = [userId];
           } else {
-            checkSql = `SELECT user_id FROM user_ranks WHERE url = '${userUrl}' LIMIT 1`;
-            whereCondition = `url = '${userUrl}'`;
+            checkSql = "SELECT user_id FROM user_ranks WHERE url = ? LIMIT 1";
+            checkParams = [userUrl];
+            whereClause = "url = ?";
+            whereParams = [userUrl];
           }
 
-          const existing = await queryD1(env, checkSql);
+          const existing = await queryD1(env, checkSql, checkParams);
 
           if (existing && existing.length > 0) {
-            // 🔄 UPDATE existing candidate attempt record
-            let updateClause = `url = '${userUrl}', total_marks = ${totalMarks}, updated_at = '${createdAt}'`;
-            if (paperLang) updateClause += `, paper_language = '${paperLang}'`;
-            if (examDate) updateClause += `, exam_date = '${examDate}'`;
-            if (examTime) updateClause += `, exam_time = '${examTime}'`;
-            if (examId) updateClause += `, exam_id = '${examId}'`;
-            if (examSlug && examSlug !== 'general') updateClause += `, exam_slug = '${examSlug}'`;
-            if (location) updateClause += `, location = '${location}'`;
-            if (gender) updateClause += `, gender = '${gender}'`;
-            if (category) updateClause += `, category = '${category}'`;
-            if (domain) updateClause += `, domain = '${domain}'`;
-            if (subType) updateClause += `, sub_type = '${subType}'`;
-            if (customData) updateClause += `, custom_data = '${customData}'`;
-            if (markingSource) updateClause += `, marking_source = '${markingSource}'`;
-            if (sectionSummary) updateClause += `, section_summary = '${sectionSummary}'`;
-            if (questionsSummary) updateClause += `, questions_summary = '${questionsSummary}'`;
-            if (markingSchemeApplied) updateClause += `, marking_scheme_applied = '${markingSchemeApplied}'`;
-            if (candidateInfo) updateClause += `, candidate_info = '${candidateInfo}'`;
-            if (headerBannerImg) updateClause += `, header_banner_img = '${headerBannerImg}'`;
-            if (headerBannerText) updateClause += `, header_banner_text = '${headerBannerText}'`;
+            // 🔄 UPDATE existing candidate attempt record using prepared statement parameters
+            const updateCols = [
+              "url = ?", "total_marks = ?", "updated_at = ?", "paper_language = ?",
+              "exam_date = ?", "exam_time = ?", "exam_id = ?", "exam_slug = ?",
+              "location = ?", "gender = ?", "category = ?", "domain = ?",
+              "sub_type = ?", "custom_data = ?", "marking_source = ?",
+              "section_summary = ?", "questions_summary = ?", "marking_scheme_applied = ?",
+              "candidate_info = ?", "header_banner_img = ?", "header_banner_text = ?"
+            ];
+            const updateVals = [
+              userUrl, totalMarks, createdAt, paperLang,
+              examDate, examTime, examId, examSlug,
+              location, gender, category, domain,
+              subType, customData, markingSource,
+              sectionSummary, questionsSummary, markingSchemeApplied,
+              candidateInfo, headerBannerImg, headerBannerText,
+              ...whereParams
+            ];
 
             try {
-              const updateSql = `UPDATE user_ranks SET ${updateClause} WHERE ${whereCondition}`;
-              await queryD1(env, updateSql);
+              const updateSql = `UPDATE user_ranks SET ${updateCols.join(", ")} WHERE ${whereClause}`;
+              await queryD1(env, updateSql, updateVals);
             } catch (uErr) {
               // Legacy update fallback if some new columns are missing
-              let legacyUpdateClause = `url = '${userUrl}', total_marks = ${totalMarks}, updated_at = '${createdAt}'`;
-              if (paperLang) legacyUpdateClause += `, paper_language = '${paperLang}'`;
-              if (examDate) legacyUpdateClause += `, exam_date = '${examDate}'`;
-              if (examTime) legacyUpdateClause += `, exam_time = '${examTime}'`;
-              if (examId) legacyUpdateClause += `, exam_id = '${examId}'`;
-              if (examSlug && examSlug !== 'general') legacyUpdateClause += `, exam_slug = '${examSlug}'`;
-              if (location) legacyUpdateClause += `, location = '${location}'`;
-              if (gender) legacyUpdateClause += `, gender = '${gender}'`;
-              if (category) legacyUpdateClause += `, category = '${category}'`;
-              if (domain) legacyUpdateClause += `, domain = '${domain}'`;
-              const legacyUpdateSql = `UPDATE user_ranks SET ${legacyUpdateClause} WHERE ${whereCondition}`;
-              await queryD1(env, legacyUpdateSql);
+              try {
+                const legacyCols = [
+                  "url = ?", "total_marks = ?", "updated_at = ?", "paper_language = ?",
+                  "exam_date = ?", "exam_time = ?", "exam_id = ?", "exam_slug = ?",
+                  "location = ?", "gender = ?", "category = ?", "domain = ?",
+                  "sub_type = ?", "custom_data = ?"
+                ];
+                const legacyVals = [
+                  userUrl, totalMarks, createdAt, paperLang,
+                  examDate, examTime, examId, examSlug,
+                  location, gender, category, domain,
+                  subType, customData,
+                  ...whereParams
+                ];
+                const legacyUpdateSql = `UPDATE user_ranks SET ${legacyCols.join(", ")} WHERE ${whereClause}`;
+                await queryD1(env, legacyUpdateSql, legacyVals);
+              } catch (uErr2) {
+                const ancientSql = `UPDATE user_ranks SET url = ?, total_marks = ?, updated_at = ? WHERE ${whereClause}`;
+                await queryD1(env, ancientSql, [userUrl, totalMarks, createdAt, ...whereParams]);
+              }
             }
 
             return new Response(JSON.stringify({
@@ -1183,46 +1215,54 @@ export default {
             }), { headers: corsHeaders, status: 200 });
 
           } else {
-            // ➕ INSERT brand new candidate record with all 7 new columns
+            // ➕ INSERT brand new candidate record using prepared statement parameters (bypasses 100KB SQL limit)
+            const insertCols = [
+              "user_id", "url", "exam_slug", "paper_language", "url_hash", "total_marks",
+              "exam_date", "exam_time", "exam_id", "location", "gender", "category", "domain",
+              "sub_type", "custom_data", "created_at", "updated_at",
+              "marking_source", "section_summary", "questions_summary",
+              "marking_scheme_applied", "candidate_info", "header_banner_img", "header_banner_text"
+            ];
+            const insertSql = `INSERT INTO user_ranks (${insertCols.join(", ")}) VALUES (${insertCols.map(() => "?").join(", ")})`;
+            const insertVals = [
+              userId, userUrl, examSlug, paperLang, urlHash, totalMarks,
+              examDate, examTime, examId, location, gender, category, domain,
+              subType, customData, createdAt, createdAt,
+              markingSource, sectionSummary, questionsSummary,
+              markingSchemeApplied, candidateInfo, headerBannerImg, headerBannerText
+            ];
+
             try {
-              const insertSql = `
-                INSERT INTO user_ranks 
-                (
-                  user_id, url, exam_slug, paper_language, url_hash, total_marks,
-                  exam_date, exam_time, exam_id, location, gender, category, domain,
-                  sub_type, custom_data, created_at, updated_at,
-                  marking_source, section_summary, questions_summary,
-                  marking_scheme_applied, candidate_info, header_banner_img, header_banner_text
-                )
-                VALUES 
-                (
-                  '${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks},
-                  '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}',
-                  '${subType}', '${customData}', '${createdAt}', '${createdAt}',
-                  '${markingSource}', '${sectionSummary}', '${questionsSummary}',
-                  '${markingSchemeApplied}', '${candidateInfo}', '${headerBannerImg}', '${headerBannerText}'
-                )
-              `;
-              await queryD1(env, insertSql);
+              await queryD1(env, insertSql, insertVals);
             } catch (iErr) {
               // Fallback 1: Without 7 new columns
               try {
-                const fallbackInsertSql = `
-                  INSERT INTO user_ranks 
-                  (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, sub_type, custom_data, created_at, updated_at)
-                  VALUES 
-                  ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${subType}', '${customData}', '${createdAt}', '${createdAt}')
-                `;
-                await queryD1(env, fallbackInsertSql);
+                const fallbackCols = [
+                  "user_id", "url", "exam_slug", "paper_language", "url_hash", "total_marks",
+                  "exam_date", "exam_time", "exam_id", "location", "gender", "category", "domain",
+                  "sub_type", "custom_data", "created_at", "updated_at"
+                ];
+                const fallbackSql = `INSERT INTO user_ranks (${fallbackCols.join(", ")}) VALUES (${fallbackCols.map(() => "?").join(", ")})`;
+                const fallbackVals = [
+                  userId, userUrl, examSlug, paperLang, urlHash, totalMarks,
+                  examDate, examTime, examId, location, gender, category, domain,
+                  subType, customData, createdAt, createdAt
+                ];
+                await queryD1(env, fallbackSql, fallbackVals);
               } catch (fErr) {
                 // Fallback 2: Legacy original table schema
-                const ancientInsertSql = `
-                  INSERT INTO user_ranks 
-                  (user_id, url, exam_slug, paper_language, url_hash, total_marks, exam_date, exam_time, exam_id, location, gender, category, domain, created_at, updated_at)
-                  VALUES 
-                  ('${userId}', '${userUrl}', '${examSlug}', '${paperLang}', '${urlHash}', ${totalMarks}, '${examDate}', '${examTime}', '${examId}', '${location}', '${gender}', '${category}', '${domain}', '${createdAt}', '${createdAt}')
-                `;
-                await queryD1(env, ancientInsertSql);
+                const ancientCols = [
+                  "user_id", "url", "exam_slug", "paper_language", "url_hash", "total_marks",
+                  "exam_date", "exam_time", "exam_id", "location", "gender", "category", "domain",
+                  "created_at", "updated_at"
+                ];
+                const ancientSql = `INSERT INTO user_ranks (${ancientCols.join(", ")}) VALUES (${ancientCols.map(() => "?").join(", ")})`;
+                const ancientVals = [
+                  userId, userUrl, examSlug, paperLang, urlHash, totalMarks,
+                  examDate, examTime, examId, location, gender, category, domain,
+                  createdAt, createdAt
+                ];
+                await queryD1(env, ancientSql, ancientVals);
               }
             }
 

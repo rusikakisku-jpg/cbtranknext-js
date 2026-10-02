@@ -219,8 +219,15 @@ export async function processAnswerKeyAction(params: {
         ? Number(smartData.score_summary.marks_obtained)
         : 0;
 
-      let domainHost = '';
-      try { domainHost = new URL(urlVal).hostname; } catch (e) {}
+      let qsStr = '[]';
+      if (smartData?.questions_summary) {
+        qsStr = typeof smartData.questions_summary === 'object' 
+          ? JSON.stringify(smartData.questions_summary) 
+          : String(smartData.questions_summary);
+        if (qsStr.length > 700000) {
+          qsStr = qsStr.replace(/data:image\/[^;]+;base64,[^"'>]+/g, '[inline-image]');
+        }
+      }
 
       const serverRankPayload = {
         user_id: userRoll,
@@ -239,7 +246,7 @@ export async function processAnswerKeyAction(params: {
         sub_type: params.sub_type || params.trade || params.branch || '',
         marking_source: smartData?.exam_info?.marking_source || (domainHost.includes('cbexams') ? 'cbexams' : 'digialm'),
         section_summary: smartData?.section_summary ? (typeof smartData.section_summary === 'object' ? JSON.stringify(smartData.section_summary) : String(smartData.section_summary)) : '{}',
-        questions_summary: smartData?.questions_summary ? (typeof smartData.questions_summary === 'object' ? JSON.stringify(smartData.questions_summary) : String(smartData.questions_summary)) : '[]',
+        questions_summary: qsStr,
         marking_scheme_applied: smartData?.exam_info?.marking_scheme_applied ? (typeof smartData.exam_info.marking_scheme_applied === 'object' ? JSON.stringify(smartData.exam_info.marking_scheme_applied) : String(smartData.exam_info.marking_scheme_applied)) : '{}',
         candidate_info: smartData?.candidate_info ? (typeof smartData.candidate_info === 'object' ? JSON.stringify(smartData.candidate_info) : String(smartData.candidate_info)) : '{}',
         header_banner_img: (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) ? rawBannerImg : '',
