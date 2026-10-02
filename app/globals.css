@@ -4493,30 +4493,129 @@ footer {
   background: #f1f5f9;
 }
 
-/* Custom Description Accordion FAQ Matching ExamFaqSection */
-.exam-custom-description details summary::-webkit-details-marker {
+/* ============================================================
+   RESPONSIVE CUSTOM DESCRIPTION FAQ & TABLE STYLING
+============================================================ */
+.custom-faq-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  margin: 28px 0 16px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.custom-faq-header {
+  padding: 20px 20px 14px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.custom-faq-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.custom-faq-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.custom-faq-card summary {
+  padding: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  list-style: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.custom-faq-card summary::-webkit-details-marker {
   display: none;
 }
 
-.exam-custom-description details summary {
-  list-style: none;
-}
-
-.exam-custom-description details[open] {
+.custom-faq-card[open] {
   border-color: #3b82f6 !important;
   background: #ffffff !important;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08) !important;
 }
 
-.exam-custom-description details[open] summary .faq-toggle-icon {
+.custom-faq-card[open] summary .faq-toggle-icon {
   background: #eff6ff !important;
   color: #1d4ed8 !important;
   border-color: #93c5fd !important;
   transform: rotate(180deg);
 }
 
-.exam-custom-description details[open] summary .cbtrank-faq-num-pill {
+.custom-faq-card[open] summary .cbtrank-faq-num-pill {
   background: #2563eb !important;
   color: #ffffff !important;
+}
+
+.custom-faq-answer {
+  padding: 10px 14px 14px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.84rem;
+  color: #475569;
+  line-height: 1.6;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+.custom-faq-cta {
+  margin-top: 4px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .custom-faq-header {
+    padding: 16px 14px 12px;
+  }
+  .custom-faq-body {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+  .custom-faq-card summary {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+  .custom-faq-answer {
+    padding: 8px 10px 12px;
+    font-size: 0.81rem;
+  }
+  .custom-faq-cta {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 12px;
+  }
+  .custom-faq-cta a {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
 }
 
