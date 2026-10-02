@@ -18,5 +18,5 @@ export const APP_FEATURE_FLAGS = {
    * - Set to true to show latest 5 blog posts on the home page.
    * - Set to false to completely hide the blog posts section from the home page.
    */
-  SHOW_HOMEPAGE_BLOGS: true,
+  SHOW_HOMEPAGE_BLOGS: false,
 };
