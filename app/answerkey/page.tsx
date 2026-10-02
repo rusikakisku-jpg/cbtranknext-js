@@ -5,9 +5,13 @@ import AnswerkeyCalculator from '../components/AnswerkeyCalculator';
 import ExamFaqSection from '../components/ExamFaqSection';
 import RelatedExamsSection from '../components/RelatedExamsSection';
 
+const currentYear = new Date().getFullYear();
+
 export const metadata: Metadata = {
-  title: 'CBT Rank Answer Key Calculator & Rank Predictor',
-  description: 'Calculate your marks, shift rank, and category rank instantly with CBTRank\'s official Answer Key Calculator. Works with all DigiALM and TCS iON response sheets.',
+  title: {
+    absolute: `CBTRank AnswerKey Calculator – Rank & Score Calculator ${currentYear}`,
+  },
+  description: `Calculate your exam marks, shift rank, and category cut off instantly with CBTRank's Answer Key Calculator ${currentYear}. Works with all DigiALM and TCS iON response sheets.`,
   keywords: [
     'Answer Key Calculator',
     'CBT marks calculator',
@@ -20,7 +24,7 @@ export const metadata: Metadata = {
     canonical: 'https://cbtrank.com/answerkey',
   },
   openGraph: {
-    title: 'CBT Rank Answer Key Calculator | CBT RANK',
+    title: `CBTRank AnswerKey Calculator – Rank & Score Calculator ${currentYear}`,
     description: 'Calculate your marks, shift rank, and category rank instantly. Supports all major CBT exams.',
     url: 'https://cbtrank.com/answerkey',
     siteName: 'CBT RANK',
@@ -28,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'CBT Rank Answer Key Calculator | CBT RANK',
+    title: `CBTRank AnswerKey Calculator – Rank & Score Calculator ${currentYear}`,
     description: 'Calculate your marks, shift rank, and category rank instantly.',
   },
 };
@@ -55,7 +59,7 @@ const UNIVERSAL_FAQS = [
 const webAppSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
-  'name': 'CBT RANK Latest Answer Key Calculator',
+  'name': `CBTRank AnswerKey Calculator – Rank & Score Calculator ${currentYear}`,
   'url': 'https://cbtrank.com/answerkey',
   'applicationCategory': 'EducationalApplication',
   'operatingSystem': 'All',
@@ -93,6 +97,7 @@ export default function AnswerkeyPage() {
       />
 
       <AnswerkeyCalculator
+        initialTitle={`CBTRank AnswerKey Calculator – Rank & Score Calculator ${currentYear}`}
         sidebar={
           <RelatedExamsSection
             currentSlug=""

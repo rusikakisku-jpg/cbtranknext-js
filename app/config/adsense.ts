@@ -24,7 +24,7 @@
 
 export const ADSENSE_CONFIG = {
   // Yahan apni AdSense ID paste karein (e.g. 'ca-pub-1234567890123456' ya 'pub-1234567890123456')
-  PUBLISHER_ID: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || '',
+  PUBLISHER_ID: process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-3497555781233424',
 
   // Ads/Script ko ON/OFF karne ke liye toggle (true = Active, false = Disabled)
   ENABLED: true,

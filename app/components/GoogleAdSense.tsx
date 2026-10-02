@@ -4,22 +4,8 @@ import Script from 'next/script';
 import { ADSENSE_CONFIG, getAdSenseClientId } from '../config/adsense';
 
 export default function GoogleAdSense() {
-  const clientId = getAdSenseClientId();
-
-  // Agar publisher ID paste nahi ki gayi ya disabled hai, toh load na karein
-  if (!ADSENSE_CONFIG.ENABLED || !clientId) {
-    return null;
-  }
-
-  return (
-    <Script
-      id="google-adsense-script"
-      async
-      strategy="afterInteractive"
-      src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`}
-      crossOrigin="anonymous"
-    />
-  );
+  // Main AdSense script is loaded directly in <head> of layout.tsx for 100% crawler discovery
+  return null;
 }
 
 /**

@@ -801,7 +801,7 @@ export default function ResultPage() {
     </main>
 
     {/* ─────────────────────────────────────────────────────────── */}
-    {/* Dedicated Full-Bleed Table Scorecard (RankGuruji Design)    */}
+    {/* Dedicated Full-Bleed Table Scorecard Design                */}
     {/* Captured by html2canvas when "Download Scorecard" is clicked */}
     {/* ─────────────────────────────────────────────────────────── */}
     <div

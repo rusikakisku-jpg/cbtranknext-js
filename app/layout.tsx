@@ -64,7 +64,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         {getAdSenseClientId() && (
-          <meta name="google-adsense-account" content={getAdSenseClientId()} />
+          <>
+            <meta name="google-adsense-account" content={getAdSenseClientId()} />
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${getAdSenseClientId()}`}
+              crossOrigin="anonymous"
+            />
+          </>
         )}
         <script
           type="application/ld+json"

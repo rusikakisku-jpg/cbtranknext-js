@@ -170,6 +170,9 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
     ],
   };
 
+  const hasCustomDescription = Boolean(exam.description && exam.description.trim().length > 0);
+  const isHtml = hasCustomDescription && /<[a-z][\s\S]*>/i.test(exam.description!);
+
   return (
     <>
       <script
@@ -215,37 +218,55 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
             <span style={{ fontSize: '1.2rem' }}>📋</span>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              {examTitle} - Marking Scheme &amp; Details
+              {examTitle} - {hasCustomDescription ? 'Exam Pattern & Details' : 'Marking Scheme & Details'}
             </h2>
           </div>
-          <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.6, margin: '0 0 16px 0' }}>
-            Use this automated rank predictor tool to evaluate your performance in the {examTitle}. The score evaluation strictly adheres to official recruitment notification guidelines.
-          </p>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: '12px',
-            }}
-          >
-            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>Correct Mark</span>
-              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>+{marksRight} Mark</p>
+          {hasCustomDescription ? (
+            <div className="exam-custom-description-wrapper">
+              {isHtml ? (
+                <div
+                  className="exam-custom-description"
+                  dangerouslySetInnerHTML={{ __html: exam.description! }}
+                />
+              ) : (
+                <div className="exam-custom-description text-plain">
+                  {exam.description}
+                </div>
+              )}
             </div>
-            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase' }}>Negative Marking</span>
-              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>-{marksWrong} Mark</p>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase' }}>Conducting Scope</span>
-              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>{locationText}</p>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase' }}>Response Format</span>
-              <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>TCS iON / DigiALM</p>
-            </div>
-          </div>
+          ) : (
+            <>
+              <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.6, margin: '0 0 16px 0' }}>
+                Use this automated rank predictor tool to evaluate your performance in the {examTitle}. The score evaluation strictly adheres to official recruitment notification guidelines.
+              </p>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', textTransform: 'uppercase' }}>Correct Mark</span>
+                  <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>+{marksRight} Mark</p>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase' }}>Negative Marking</span>
+                  <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>-{marksWrong} Mark</p>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#2563eb', textTransform: 'uppercase' }}>Conducting Scope</span>
+                  <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>{locationText}</p>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase' }}>Response Format</span>
+                  <p style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 0' }}>TCS iON / DigiALM</p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

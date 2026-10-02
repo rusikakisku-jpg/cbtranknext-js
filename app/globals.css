@@ -4374,3 +4374,83 @@ footer {
     font-size: 0.64rem !important;
   }
 }
+
+/* ============================================================
+   CUSTOM EXAM DESCRIPTION & PATTERN STYLING
+============================================================ */
+.exam-custom-description-wrapper {
+  margin-top: 14px;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.exam-custom-description {
+  color: #334155;
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.exam-custom-description.text-plain {
+  white-space: pre-line;
+}
+
+.exam-custom-description h2,
+.exam-custom-description h3,
+.exam-custom-description h4 {
+  color: #0f172a;
+  font-weight: 800;
+  margin: 18px 0 10px;
+}
+
+.exam-custom-description h2 { font-size: 1.15rem; }
+.exam-custom-description h3 { font-size: 1.02rem; }
+.exam-custom-description h4 { font-size: 0.92rem; }
+
+.exam-custom-description p {
+  margin: 0 0 12px;
+}
+
+.exam-custom-description ul,
+.exam-custom-description ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.exam-custom-description li {
+  margin-bottom: 6px;
+}
+
+.exam-custom-description table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 0.84rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.exam-custom-description th {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 800;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1.5px solid #cbd5e1;
+}
+
+.exam-custom-description td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.exam-custom-description tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.exam-custom-description tr:hover td {
+  background: #f1f5f9;
+}
+
