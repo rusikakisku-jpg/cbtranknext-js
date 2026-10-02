@@ -229,6 +229,9 @@ export async function processAnswerKeyAction(params: {
         }
       }
 
+      let domainHost = '';
+      try { domainHost = new URL(urlVal).hostname; } catch (e) {}
+
       const serverRankPayload = {
         user_id: userRoll,
         url: urlVal,
