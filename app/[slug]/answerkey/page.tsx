@@ -195,6 +195,7 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
         initialMarksWrong={exam.marks_wrong}
         initialLocationType={exam.location_type_id}
         initialLocations={exam.location_id}
+        hasCustomDescription={hasCustomDescription}
         sidebar={
           <RelatedExamsSection
             currentSlug={slug}

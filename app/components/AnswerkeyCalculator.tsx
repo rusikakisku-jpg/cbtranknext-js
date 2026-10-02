@@ -270,6 +270,7 @@ interface AnswerkeyCalculatorProps {
   initialMarksWrong?: number | string;
   initialLocationType?: string;
   initialLocations?: string[] | string;
+  hasCustomDescription?: boolean;
 }
 
 export default function AnswerkeyCalculator({
@@ -280,6 +281,7 @@ export default function AnswerkeyCalculator({
   initialMarksWrong,
   initialLocationType,
   initialLocations,
+  hasCustomDescription = false,
 }: AnswerkeyCalculatorProps) {
   const router = useRouter();
 
@@ -882,7 +884,8 @@ export default function AnswerkeyCalculator({
         )}
       </div>
 
-        {/* Rich SEO & Informational Content Cards */}
+        {/* Rich SEO & Informational Content Cards (Shown on universal /answerkey or when exam description is blank) */}
+        {(!examSlug || !hasCustomDescription) && (
         <div className="details-wrapper" style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
           
           {/* Card 1: Hero Welcome & Overview */}
@@ -1145,8 +1148,7 @@ export default function AnswerkeyCalculator({
               <strong>⚖️ Disclaimer:</strong> CBTRank is an independent educational score estimation and rank analysis utility created to help candidates calculate indicative scores. CBTRank is not associated with, affiliated with, or endorsed by any government department, board, or examination authority. Official final results, normalized marks, cut-offs, and merit lists are published exclusively by the respective recruitment boards.
             </p>
           </div>
-
-        </div>
+        )}
       </div>
     </main>
   );
