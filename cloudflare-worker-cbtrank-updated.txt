@@ -1188,23 +1188,23 @@ export default {
           let whereParams = [];
           if (userId && (examId || (examSlug && examSlug !== 'general'))) {
             if (examId) {
-              checkSql = "SELECT user_id FROM user_ranks WHERE user_id = ? AND (exam_id = ? OR exam_slug = ?) LIMIT 1";
+              checkSql = "SELECT user_id, header_banner_img, header_banner_text FROM user_ranks WHERE user_id = ? AND (exam_id = ? OR exam_slug = ?) LIMIT 1";
               checkParams = [userId, examId, examSlug];
               whereClause = "user_id = ? AND (exam_id = ? OR exam_slug = ?)";
               whereParams = [userId, examId, examSlug];
             } else {
-              checkSql = "SELECT user_id FROM user_ranks WHERE user_id = ? AND exam_slug = ? LIMIT 1";
+              checkSql = "SELECT user_id, header_banner_img, header_banner_text FROM user_ranks WHERE user_id = ? AND exam_slug = ? LIMIT 1";
               checkParams = [userId, examSlug];
               whereClause = "user_id = ? AND exam_slug = ?";
               whereParams = [userId, examSlug];
             }
           } else if (userId) {
-            checkSql = "SELECT user_id FROM user_ranks WHERE user_id = ? LIMIT 1";
+            checkSql = "SELECT user_id, header_banner_img, header_banner_text FROM user_ranks WHERE user_id = ? LIMIT 1";
             checkParams = [userId];
             whereClause = "user_id = ?";
             whereParams = [userId];
           } else {
-            checkSql = "SELECT user_id FROM user_ranks WHERE url = ? LIMIT 1";
+            checkSql = "SELECT user_id, header_banner_img, header_banner_text FROM user_ranks WHERE url = ? LIMIT 1";
             checkParams = [userUrl];
             whereClause = "url = ?";
             whereParams = [userUrl];
@@ -1214,6 +1214,9 @@ export default {
 
           if (existing && existing.length > 0) {
             // 🔄 UPDATE existing candidate attempt record using prepared statement parameters
+            const finalBannerImg = (headerBannerImg && headerBannerImg.trim()) || (existing[0] && existing[0].header_banner_img) || '';
+            const finalBannerText = (headerBannerText && headerBannerText.trim()) || (existing[0] && existing[0].header_banner_text) || '';
+
             const updateCols = [
               "url = ?", "total_marks = ?", "updated_at = ?", "paper_language = ?",
               "exam_date = ?", "exam_time = ?", "exam_id = ?", "exam_slug = ?",
@@ -1228,7 +1231,7 @@ export default {
               location, gender, category, domain,
               subType, customData, markingSource,
               sectionSummary, questionsSummary, markingSchemeApplied,
-              candidateInfo, headerBannerImg, headerBannerText,
+              candidateInfo, finalBannerImg, finalBannerText,
               ...whereParams
             ];
 

@@ -186,8 +186,11 @@ export async function processAnswerKeyAction(params: {
 
   // 3. Evaluate final data
   if (smartData && isValidSmartData(smartData)) {
-    // Convert header banner image to Base64 to eliminate CORS blank canvas issues during scorecard image download
+    // Preserve clean HTTP banner URL before base64 conversion for database persistence
     const rawBannerImg = smartData.header_banner_img || smartData.header_image || smartData.headerImgUrl || smartData.logo;
+    const originalBannerUrl = (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) ? rawBannerImg : '';
+    smartData.header_banner_img_url = originalBannerUrl;
+
     if (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) {
       try {
         const b64 = await getBase64ImageAction(rawBannerImg);
@@ -251,9 +254,19 @@ export async function processAnswerKeyAction(params: {
         section_summary: smartData?.section_summary ? (typeof smartData.section_summary === 'object' ? JSON.stringify(smartData.section_summary) : String(smartData.section_summary)) : '{}',
         questions_summary: qsStr,
         marking_scheme_applied: smartData?.exam_info?.marking_scheme_applied ? (typeof smartData.exam_info.marking_scheme_applied === 'object' ? JSON.stringify(smartData.exam_info.marking_scheme_applied) : String(smartData.exam_info.marking_scheme_applied)) : '{}',
-        candidate_info: smartData?.candidate_info ? (typeof smartData.candidate_info === 'object' ? JSON.stringify(smartData.candidate_info) : String(smartData.candidate_info)) : '{}',
-        header_banner_img: (rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) ? rawBannerImg : '',
-        header_banner_text: smartData?.header_banner_text || ''
+        header_banner_img: originalBannerUrl || ((rawBannerImg && typeof rawBannerImg === 'string' && !rawBannerImg.startsWith('data:image')) ? rawBannerImg : ''),
+        header_banner_text: smartData?.header_banner_text ||
+          smartData?.candidate_info?.['Exam Level'] ||
+          smartData?.candidate_info?.['Subject'] ||
+          smartData?.candidate_info?.['Assessment Name'] ||
+          smartData?.candidate_info?.['Post Name'] ||
+          smartData?.candidate_info?.['Exam Name'] ||
+          smartData?.candidate_info?.['Exam'] ||
+          smartData?.exam_info?.detected_exam_name ||
+          smartData?.exam_name ||
+          smartData?.examName ||
+          (params.examSlug && params.examSlug !== 'general' ? params.examSlug.replace(/-/g, ' ').toUpperCase() : '') ||
+          ''
       };
 
       await fetch(`${BACKEND_BASE}/user_ranks`, {
