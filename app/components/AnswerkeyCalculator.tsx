@@ -876,6 +876,7 @@ export default function AnswerkeyCalculator({
             </form>
           </div>
         </div>
+      </div>
 
         {sidebar && (
           <aside className="calculator-sidebar">
@@ -1148,7 +1149,8 @@ export default function AnswerkeyCalculator({
               <strong>⚖️ Disclaimer:</strong> CBTRank is an independent educational score estimation and rank analysis utility created to help candidates calculate indicative scores. CBTRank is not associated with, affiliated with, or endorsed by any government department, board, or examination authority. Official final results, normalized marks, cut-offs, and merit lists are published exclusively by the respective recruitment boards.
             </p>
           </div>
-        )}
+        </div>
+      )}
       </div>
     </main>
   );
