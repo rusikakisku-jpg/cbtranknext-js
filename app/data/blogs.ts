@@ -172,45 +172,52 @@ function formatCleanExcerpt(rawExcerpt?: string | null, rawDescription?: string 
 }
 
 export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
-  // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://api.cbtrank.com/blogs)
-  try {
-    const workerRes = await fetch("https://api.cbtrank.com/blogs", {
-      next: { revalidate: 60 }
-    });
-    if (workerRes.ok) {
-      const json = await workerRes.json();
-      const rawBlogs = json?.data || json?.blogs || (Array.isArray(json) ? json : []);
-      if (Array.isArray(rawBlogs) && rawBlogs.length > 0) {
-        const publishedBlogs = rawBlogs.filter((b: any) => {
-          if (!b.status) return true;
-          const st = String(b.status).toLowerCase();
-          return st === 'publish' || st === 'published';
-        });
+  // 1. Primary: Fetch live blogs from Cloudflare Worker API (https://api.cbtrank.com/blogs or fallback)
+  const workerEndpoints = [
+    "https://api.cbtrank.com/blogs",
+    "https://cbtrank.rusikakisku.workers.dev/blogs"
+  ];
 
-        const blogsList: BlogPost[] = publishedBlogs.map((b: any) => ({
-          id: b.id !== undefined && b.id !== null ? Number(b.id) : undefined,
-          slug: String(b.slug),
-          title: String(b.title),
-          excerpt: formatCleanExcerpt(b.excerpt, b.description, b.title),
-          category: String(b.category || 'Exam Analysis'),
-          date: String(b.published_at || b.publish_date || b.created_at || b.date || 'August 2026').trim().split(' ')[0],
-          created_at: b.created_at ? String(b.created_at).trim() : undefined,
-          published_at: b.published_at ? String(b.published_at).trim() : undefined,
-          publish_date: b.publish_date ? String(b.publish_date).trim() : undefined,
-          updated_at: b.updated_at ? String(b.updated_at).trim() : undefined,
-          readTime: '4 min read',
-          author_name: String(b.author_name || b.author || 'Team CBTRANK'),
-          views: Number(b.views || 0),
-          coverImage: formatCoverImageUrl(b.cover_image || b.image),
-          content: String(b.content || b.description || b.title)
-        }));
-        if (blogsList.length > 0) {
-          return sortBlogsByLatest(blogsList);
+  for (const ep of workerEndpoints) {
+    try {
+      const workerRes = await fetch(ep, {
+        next: { revalidate: 60 }
+      });
+      if (workerRes.ok) {
+        const json = await workerRes.json();
+        const rawBlogs = json?.data || json?.blogs || (Array.isArray(json) ? json : []);
+        if (Array.isArray(rawBlogs) && rawBlogs.length > 0) {
+          const publishedBlogs = rawBlogs.filter((b: any) => {
+            if (!b.status) return true;
+            const st = String(b.status).toLowerCase();
+            return st === 'publish' || st === 'published';
+          });
+
+          const blogsList: BlogPost[] = publishedBlogs.map((b: any) => ({
+            id: b.id !== undefined && b.id !== null ? Number(b.id) : undefined,
+            slug: String(b.slug),
+            title: String(b.title),
+            excerpt: formatCleanExcerpt(b.excerpt, b.description, b.title),
+            category: String(b.category || 'Exam Analysis'),
+            date: String(b.published_at || b.publish_date || b.created_at || b.date || 'August 2026').trim().split(' ')[0],
+            created_at: b.created_at ? String(b.created_at).trim() : undefined,
+            published_at: b.published_at ? String(b.published_at).trim() : undefined,
+            publish_date: b.publish_date ? String(b.publish_date).trim() : undefined,
+            updated_at: b.updated_at ? String(b.updated_at).trim() : undefined,
+            readTime: '4 min read',
+            author_name: String(b.author_name || b.author || 'Team CBTRANK'),
+            views: Number(b.views || 0),
+            coverImage: formatCoverImageUrl(b.cover_image || b.image),
+            content: String(b.content || b.description || b.title)
+          }));
+          if (blogsList.length > 0) {
+            return sortBlogsByLatest(blogsList);
+          }
         }
       }
+    } catch (e) {
+      // Try next endpoint
     }
-  } catch (e) {
-    // Fallback to direct D1 REST API query
   }
 
   // 2. Secondary Fallback: Direct Cloudflare D1 REST API query
@@ -289,6 +296,52 @@ export async function fetchBlogsFromCloudflareD1(): Promise<BlogPost[]> {
   }
 
   return sortBlogsByLatest(FALLBACK_BLOG_POSTS);
+}
+
+/**
+ * Safely fetch a single blog post by slug from Cloudflare Worker API.
+ * Falls back to searching in full blogs list or fallback articles.
+ */
+export async function fetchBlogBySlug(slug: string): Promise<BlogPost | null> {
+  if (!slug) return null;
+  const cleanSlug = encodeURIComponent(String(slug).trim());
+  const endpoints = [
+    `https://api.cbtrank.com/blogs?slug=${cleanSlug}`,
+    `https://cbtrank.rusikakisku.workers.dev/blogs?slug=${cleanSlug}`
+  ];
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, { next: { revalidate: 60 } });
+      if (res.ok) {
+        const json = await res.json();
+        const b = json?.data || json?.blog || json;
+        if (b && b.slug && b.title) {
+          return {
+            id: b.id !== undefined && b.id !== null ? Number(b.id) : undefined,
+            slug: String(b.slug),
+            title: String(b.title),
+            excerpt: formatCleanExcerpt(b.excerpt, b.description, b.title),
+            category: String(b.category || 'Exam Analysis'),
+            date: String(b.published_at || b.publish_date || b.created_at || b.date || 'August 2026').trim().split(' ')[0],
+            created_at: b.created_at ? String(b.created_at).trim() : undefined,
+            published_at: b.published_at ? String(b.published_at).trim() : undefined,
+            publish_date: b.publish_date ? String(b.publish_date).trim() : undefined,
+            updated_at: b.updated_at ? String(b.updated_at).trim() : undefined,
+            readTime: '4 min read',
+            author_name: String(b.author_name || b.author || 'Team CBTRANK'),
+            views: Number(b.views || 0),
+            coverImage: formatCoverImageUrl(b.cover_image || b.image),
+            content: String(b.content || b.description || b.title)
+          };
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Fallback: search among fallback posts
+  const fallback = FALLBACK_BLOG_POSTS.find(p => p.slug === slug);
+  return fallback || null;
 }
 
 /**

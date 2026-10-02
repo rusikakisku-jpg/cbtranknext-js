@@ -93,6 +93,10 @@ async function ensureDynamicSchema(env) {
       try { await env.DB.prepare("ALTER TABLE user_ranks ADD COLUMN header_banner_text TEXT DEFAULT ''").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]'").run(); } catch (e) {}
       try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN excerpt TEXT DEFAULT ''").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN read_time TEXT DEFAULT '4 min read'").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN cover_image TEXT DEFAULT ''").run(); } catch (e) {}
+      try { await env.DB.prepare("ALTER TABLE blogs ADD COLUMN author_name TEXT DEFAULT ''").run(); } catch (e) {}
       isSchemaMigrated = true;
       return;
     } catch (err) {}
@@ -118,6 +122,10 @@ async function ensureDynamicSchema(env) {
         ALTER TABLE user_ranks ADD COLUMN header_banner_text TEXT DEFAULT '';
         ALTER TABLE exams ADD COLUMN custom_fields TEXT DEFAULT '[]';
         ALTER TABLE blogs ADD COLUMN views INTEGER DEFAULT 0;
+        ALTER TABLE blogs ADD COLUMN excerpt TEXT DEFAULT '';
+        ALTER TABLE blogs ADD COLUMN read_time TEXT DEFAULT '4 min read';
+        ALTER TABLE blogs ADD COLUMN cover_image TEXT DEFAULT '';
+        ALTER TABLE blogs ADD COLUMN author_name TEXT DEFAULT '';
       `;
       await fetch(apiUrl, {
         method: "POST",
@@ -490,10 +498,28 @@ export default {
       // Fetch single blog post by slug
       if (targetSlug) {
         const cleanSlug = sanitizeSql(targetSlug);
-        const sql = `SELECT * FROM blogs WHERE slug = '${cleanSlug}' LIMIT 1`;
-        const results = await queryD1(env, sql);
+        let results = [];
+        try {
+          const sql = `SELECT * FROM blogs WHERE slug = '${cleanSlug}' LIMIT 1`;
+          results = await queryD1(env, sql);
+        } catch (e) {
+          results = [];
+        }
         if (results && results.length > 0) {
-          return new Response(JSON.stringify({ success: true, data: results[0] }), { headers: corsHeaders, status: 200 });
+          const post = results[0];
+          if (!post.date) {
+            post.date = String(post.published_at || post.publish_date || post.created_at || '').split(' ')[0] || '2026-09-24';
+          }
+          if (!post.read_time) {
+            post.read_time = '4 min read';
+          }
+          if (!post.author_name && post.author) {
+            post.author_name = post.author;
+          }
+          if (!post.cover_image && post.image) {
+            post.cover_image = post.image;
+          }
+          return new Response(JSON.stringify({ success: true, data: post }), { headers: corsHeaders, status: 200 });
         } else {
           return new Response(JSON.stringify({ success: false, error: `No article found matching slug: ${targetSlug}` }), { headers: corsHeaders, status: 404 });
         }
@@ -518,27 +544,49 @@ export default {
       }
 
       const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
-      let sql = `SELECT id, title, slug, excerpt, description, category, author, author_name, date, created_at, read_time, views, image, cover_image, status FROM blogs ${whereSql} ORDER BY id DESC LIMIT ${limit}`;
-      
-      let results = await queryD1(env, sql);
-
-      // Graceful fallback if specific columns do not exist in D1 table schema
-      if (!results || (Array.isArray(results) && results.length === 0 && !searchParam && !catParam)) {
+      let results = [];
+      try {
+        const sql = `SELECT * FROM blogs ${whereSql} ORDER BY id DESC LIMIT ${limit}`;
+        results = await queryD1(env, sql);
+      } catch (err) {
         try {
           const fallbackSql = `SELECT * FROM blogs ORDER BY id DESC LIMIT ${limit}`;
-          const fallbackResults = await queryD1(env, fallbackSql);
-          if (fallbackResults && fallbackResults.length > 0) {
-            results = fallbackResults.filter(b => {
-              if (!b.status) return true;
-              const st = String(b.status).toLowerCase();
-              return st !== 'draft';
-            });
-          }
-        } catch (e) {}
+          results = await queryD1(env, fallbackSql);
+        } catch (e2) {
+          results = [];
+        }
       }
 
-      // Strictly sort results date-time wise (latest first, tie-break by id DESC)
+      // Filter drafts safely
       if (Array.isArray(results) && results.length > 0) {
+        results = results.filter(b => {
+          if (!b.status) return true;
+          const st = String(b.status).toLowerCase();
+          return st !== 'draft';
+        });
+
+        // Ensure backward-compatible fields
+        results.forEach(b => {
+          if (!b.date) {
+            b.date = String(b.published_at || b.publish_date || b.created_at || '').split(' ')[0] || '2026-09-24';
+          }
+          if (!b.read_time) {
+            b.read_time = '4 min read';
+          }
+          if (!b.author_name && b.author) {
+            b.author_name = b.author;
+          }
+          if (!b.cover_image && b.image) {
+            b.cover_image = b.image;
+          }
+          if (!b.excerpt) {
+            const raw = b.description || b.content || b.title || '';
+            const clean = String(raw).replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+            b.excerpt = clean.length > 160 ? clean.slice(0, 157) + '...' : clean;
+          }
+        });
+
+        // Strictly sort results date-time wise (latest first, tie-break by id DESC)
         results.sort((a, b) => {
           const parseTs = (item) => {
             if (!item) return 0;
@@ -561,10 +609,15 @@ export default {
         });
       }
 
+      if (url.searchParams.get('raw') === '1' || url.searchParams.get('format') === 'array') {
+        return new Response(JSON.stringify(results || []), { headers: corsHeaders, status: 200 });
+      }
+
       return new Response(JSON.stringify({
         success: true,
         total: Array.isArray(results) ? results.length : 0,
-        data: results || []
+        data: results || [],
+        blogs: results || []
       }), { headers: corsHeaders, status: 200 });
     }
 
