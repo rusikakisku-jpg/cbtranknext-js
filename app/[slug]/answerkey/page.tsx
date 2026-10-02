@@ -230,10 +230,9 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
               </div>
             </div>
           ) : (
-            <>
-              <div
-                style={{
-                  background: '#ffffff',
+            <div
+              style={{
+                background: '#ffffff',
                   border: '1px solid #e2e8f0',
                   borderRadius: '16px',
                   padding: '24px',
@@ -277,10 +276,9 @@ export default async function ExamAnswerkeyPage({ params }: PageProps) {
                 </div>
               </div>
 
-              <ExamFaqSection formattedTitle={examTitle} faqs={faqs} />
-            </>
           )
         }
+        faqContent={!hasCustomDescription ? <ExamFaqSection formattedTitle={examTitle} faqs={faqs} /> : undefined}
       />
     </>
   );

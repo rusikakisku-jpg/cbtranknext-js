@@ -889,10 +889,9 @@ export default function AnswerkeyCalculator({
           </div>
         )}
 
-        {/* Rich SEO & Informational Content Cards (Shown on universal /answerkey on the left side) */}
-        {!examSlug && (
-          <>
-            <div className="details-wrapper" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        {/* Rich SEO & Informational Content Cards (Shown when custom description is absent) */}
+        {!hasCustomDescription && (
+          <div className="details-wrapper" style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', gap: '22px' }}>
           
           {/* Card 1: Hero Welcome & Overview */}
           <div className="info-card" style={{ background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '18px', padding: '24px 22px', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
@@ -1148,16 +1147,24 @@ export default function AnswerkeyCalculator({
             </div>
           </div>
 
-          {/* Card 7: Legal Disclaimer */}
-          <div className="info-card" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '16px 18px' }}>
-            <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0, lineHeight: 1.6, textAlign: 'center' }}>
-              <strong>⚖️ Disclaimer:</strong> CBTRank is an independent educational score estimation and rank analysis utility created to help candidates calculate indicative scores. CBTRank is not associated with, affiliated with, or endorsed by any government department, board, or examination authority. Official final results, normalized marks, cut-offs, and merit lists are published exclusively by the respective recruitment boards.
-            </p>
-          </div>
         </div>
-        {faqContent}
-      </>
-    )}
+      )}
+
+      {/* ⚖️ Disclaimer: Always shown on BOTH with slug and without slug */}
+      <div className="disclaimer-wrapper" style={{ marginTop: '20px' }}>
+        <div className="info-card" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '14px', padding: '16px 18px' }}>
+          <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0, lineHeight: 1.6, textAlign: 'center' }}>
+            <strong>⚖️ Disclaimer:</strong> CBTRank is an independent educational score estimation and rank analysis utility created to help candidates calculate indicative scores. CBTRank is not associated with, affiliated with, or endorsed by any government department, board, or examination authority. Official final results, normalized marks, cut-offs, and merit lists are published exclusively by the respective recruitment boards.
+          </p>
+        </div>
+      </div>
+
+      {/* 💡 Help & FAQs + 🚀 Telegram Channel CTA: Shown when custom description is absent */}
+      {!hasCustomDescription && faqContent && (
+        <div className="calculator-faq-wrapper" style={{ marginTop: '20px' }}>
+          {faqContent}
+        </div>
+      )}
   </div>
 
   {sidebar && (

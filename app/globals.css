@@ -1068,7 +1068,9 @@ footer {
   padding: 0 !important;
 }
 
-.calculator-left-col .details-wrapper {
+.calculator-left-col .details-wrapper,
+.calculator-left-col .disclaimer-wrapper,
+.calculator-left-col .calculator-faq-wrapper {
   width: 100%;
 }
 
