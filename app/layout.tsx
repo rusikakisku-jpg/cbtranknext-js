@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import GoogleAdSense from "./components/GoogleAdSense";
 import CookieConsent from "./components/CookieConsent";
+import AdsterraSocialBar from "./components/AdsterraSocialBar";
 import { getAdSenseClientId } from "./config/adsense";
 
 export const metadata: Metadata = {
@@ -109,6 +110,7 @@ export default function RootLayout({
       <body>
         <GoogleAnalytics />
         <GoogleAdSense />
+        <AdsterraSocialBar />
         <div className="page-body">
           <Navbar />
           {children}
