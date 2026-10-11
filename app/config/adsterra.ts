@@ -28,7 +28,7 @@ export const ADSTERRA_CONFIG = {
   // Native Banner Ads toggle (true = Active, false = Disabled)
   NATIVE_BANNER_ENABLED: process.env.NEXT_PUBLIC_ADSTERRA_NATIVE_ENABLED !== undefined
     ? process.env.NEXT_PUBLIC_ADSTERRA_NATIVE_ENABLED === 'true'
-    : true,
+    : false,
 
   // Native Banner Container ID & Script URL
   NATIVE_BANNER_CONTAINER_ID: 'container-06cb6e91c088798f75b3e90c4f7fd49a',
