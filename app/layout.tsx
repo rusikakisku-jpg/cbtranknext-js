@@ -9,6 +9,7 @@ import AdsterraSocialBar from "./components/AdsterraSocialBar";
 import AdsterraBanner from "./components/AdsterraBanner";
 import { getAdSenseClientId } from "./config/adsense";
 import { MONETAG_CONFIG } from "./config/monetag";
+import MonetagVignette from "./components/MonetagVignette";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cbtrank.com'),
@@ -115,6 +116,7 @@ export default function RootLayout({
       <body>
         <GoogleAnalytics />
         <GoogleAdSense />
+        <MonetagVignette />
         <AdsterraSocialBar />
         <div className="page-body">
           <Navbar />
