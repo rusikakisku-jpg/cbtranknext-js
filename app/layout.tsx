@@ -8,6 +8,7 @@ import CookieConsent from "./components/CookieConsent";
 import AdsterraSocialBar from "./components/AdsterraSocialBar";
 import AdsterraBanner from "./components/AdsterraBanner";
 import { getAdSenseClientId } from "./config/adsense";
+import { MONETAG_CONFIG } from "./config/monetag";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cbtrank.com'),
@@ -74,6 +75,9 @@ export default function RootLayout({
               crossOrigin="anonymous"
             />
           </>
+        )}
+        {MONETAG_CONFIG.VERIFICATION_CODE && (
+          <meta name="monetag" content={MONETAG_CONFIG.VERIFICATION_CODE} />
         )}
         <script
           type="application/ld+json"
