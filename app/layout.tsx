@@ -6,6 +6,7 @@ import GoogleAnalytics from "./components/GoogleAnalytics";
 import GoogleAdSense from "./components/GoogleAdSense";
 import CookieConsent from "./components/CookieConsent";
 import AdsterraSocialBar from "./components/AdsterraSocialBar";
+import AdsterraBanner from "./components/AdsterraBanner";
 import { getAdSenseClientId } from "./config/adsense";
 
 export const metadata: Metadata = {
@@ -114,6 +115,7 @@ export default function RootLayout({
         <div className="page-body">
           <Navbar />
           {children}
+          <AdsterraBanner size="320x50" />
           <Footer />
         </div>
         <CookieConsent />

@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 import HomeSeoContent from './components/HomeSeoContent';
 import HomeBlogsSection from './components/HomeBlogsSection';
 import AdsterraNativeBanner from './components/AdsterraNativeBanner';
+import AdsterraBanner from './components/AdsterraBanner';
 import { fetchBlogsFromCloudflareD1, BlogPost } from './data/blogs';
 import { APP_FEATURE_FLAGS } from './config/features';
 
@@ -152,6 +153,8 @@ export default async function HomePage() {
               <span>Answerkey Calculator</span>
             </Link>
           </div>
+          {/* Adsterra 300x250 Banner in mobile view below Answerkey Calculator button */}
+          <AdsterraBanner size="300x250" />
         </div>
 
         <div className="content-grid">
@@ -199,6 +202,9 @@ export default async function HomePage() {
 
             {/* Adsterra Native Banner */}
             <AdsterraNativeBanner />
+
+            {/* Adsterra 300x250 Banner at the end of exam list */}
+            <AdsterraBanner size="300x250" />
 
             {/* In-depth Informative SEO Section & FAQ */}
             <HomeSeoContent />
