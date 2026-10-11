@@ -24,4 +24,13 @@ export const MONETAG_CONFIG = {
   // Vignette Zone & Script details
   VIGNETTE_ZONE_ID: '12007232',
   VIGNETTE_SCRIPT_URL: 'https://n6wxm.com/vignette.min.js',
+
+  // In-Page Push (IPP) Ads toggle (true = Active, false = Disabled)
+  IN_PAGE_PUSH_ENABLED: process.env.NEXT_PUBLIC_MONETAG_IPP_ENABLED !== undefined
+    ? process.env.NEXT_PUBLIC_MONETAG_IPP_ENABLED === 'true'
+    : true,
+
+  // In-Page Push Zone & Script details
+  IN_PAGE_PUSH_ZONE_ID: '12007302',
+  IN_PAGE_PUSH_SCRIPT_URL: 'https://nap5k.com/tag.min.js',
 };

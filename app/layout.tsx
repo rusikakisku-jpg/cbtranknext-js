@@ -87,6 +87,13 @@ export default function RootLayout({
             }}
           />
         )}
+        {MONETAG_CONFIG.ENABLED && MONETAG_CONFIG.IN_PAGE_PUSH_ENABLED && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(s){s.dataset.zone='${MONETAG_CONFIG.IN_PAGE_PUSH_ZONE_ID}',s.src='${MONETAG_CONFIG.IN_PAGE_PUSH_SCRIPT_URL}'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`
+            }}
+          />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
