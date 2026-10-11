@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { processAnswerKeyAction, logUserRankAction, logValidUrlAction, fetchLiveRankAction } from '../actions/calculate';
 import { cbtSave, cbtGet, cbtRemove, cbtSaveString, cbtGetString, STORAGE_KEYS } from '../utils/storage';
 import { trackEvent } from './GoogleAnalytics';
+import AdsterraNativeBanner from './AdsterraNativeBanner';
 
 const DEFAULT_RRB_ZONES = [
   "Ahmedabad", "Ajmer", "Prayagraj (Allahabad)", "Bengaluru (Bangalore)", "Bhopal", 
@@ -914,6 +915,9 @@ export default function AnswerkeyCalculator({
             </form>
           </div>
         </div>
+
+        {/* Adsterra Native Banner */}
+        <AdsterraNativeBanner />
 
         {bottomContent && (
           <div className="calculator-bottom-content">
