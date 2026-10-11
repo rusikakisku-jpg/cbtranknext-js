@@ -28,7 +28,7 @@ export const ADSTERRA_CONFIG = {
   // 1. Social Bar toggle (true = Active, false = Disabled)
   ENABLED: process.env.NEXT_PUBLIC_ADSTERRA_ENABLED !== undefined
     ? process.env.NEXT_PUBLIC_ADSTERRA_ENABLED === 'true'
-    : true,
+    : false,
   SCRIPT_URL: process.env.NEXT_PUBLIC_ADSTERRA_SCRIPT_URL || 'https://bauval.org/14/5991cf8792c639f07a4b5b09b1a7c1fd',
 
   // 2. Native Banner Ads toggle
@@ -39,14 +39,14 @@ export const ADSTERRA_CONFIG = {
   NATIVE_BANNER_SCRIPT_URL: process.env.NEXT_PUBLIC_ADSTERRA_NATIVE_SCRIPT_URL || 'https://bauval.org/21/06cb6e91c088798f75b3e90c4f7fd49a',
 
   // 3. Banner 300x250 Ads toggle (true = Active, false = Disabled)
-  BANNER_300x250_ENABLED: process.env.NEXT_PUBLIC_ADSTERRA_300x250_ENABLED !== undefined
-    ? process.env.NEXT_PUBLIC_ADSTERRA_300x250_ENABLED === 'true'
-    : true,
+  BANNER_300x250_ENABLED: process.env.NEXT_PUBLIC_ADSTERRA_BANNER_300x250_ENABLED !== undefined
+    ? process.env.NEXT_PUBLIC_ADSTERRA_BANNER_300x250_ENABLED === 'true'
+    : false,
   BANNER_300x250_KEY: '356d922d4c39757870b963b7933a3640',
 
   // 4. Banner 320x50 (Bottom) Ads toggle (true = Active, false = Disabled)
-  BANNER_320x50_ENABLED: process.env.NEXT_PUBLIC_ADSTERRA_320x50_ENABLED !== undefined
-    ? process.env.NEXT_PUBLIC_ADSTERRA_320x50_ENABLED === 'true'
-    : true,
+  BANNER_320x50_ENABLED: process.env.NEXT_PUBLIC_ADSTERRA_BANNER_320x50_ENABLED !== undefined
+    ? process.env.NEXT_PUBLIC_ADSTERRA_BANNER_320x50_ENABLED === 'true'
+    : false,
   BANNER_320x50_KEY: '9069c27b76ceea1c963d624a5ec3b299',
 };
