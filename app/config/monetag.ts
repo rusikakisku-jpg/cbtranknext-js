@@ -14,12 +14,12 @@ export const MONETAG_CONFIG = {
   // Master ads toggle (true = Active, false = Disabled)
   ENABLED: process.env.NEXT_PUBLIC_MONETAG_ENABLED !== undefined
     ? process.env.NEXT_PUBLIC_MONETAG_ENABLED === 'true'
-    : true,
+    : false,
 
   // Vignette Banner Ads toggle (true = Active, false = Disabled)
   VIGNETTE_ENABLED: process.env.NEXT_PUBLIC_MONETAG_VIGNETTE_ENABLED !== undefined
     ? process.env.NEXT_PUBLIC_MONETAG_VIGNETTE_ENABLED === 'true'
-    : true,
+    : false,
 
   // Vignette Zone & Script details
   VIGNETTE_ZONE_ID: '12007232',
@@ -28,7 +28,7 @@ export const MONETAG_CONFIG = {
   // In-Page Push (IPP) Ads toggle (true = Active, false = Disabled)
   IN_PAGE_PUSH_ENABLED: process.env.NEXT_PUBLIC_MONETAG_IPP_ENABLED !== undefined
     ? process.env.NEXT_PUBLIC_MONETAG_IPP_ENABLED === 'true'
-    : true,
+    : false,
 
   // In-Page Push Zone & Script details
   IN_PAGE_PUSH_ZONE_ID: '12007302',
